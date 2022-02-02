@@ -16,4 +16,5 @@ add_executable(main main.cpp)
 
 target_link_libraries(main PUBLIC engine)
 
-
+find_package(spdlog CONFIG REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE spdlog::spdlog spdlog::spdlog_header_only)

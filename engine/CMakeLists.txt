@@ -7,6 +7,7 @@ include (GenerateExportHeader)
 add_library(
     ${PROJECT_NAME}
     SHARED
+    Window.cpp
     Application.cpp
     Log.cpp
 )
@@ -24,8 +25,14 @@ target_include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
+add_subdirectory(Platform)
+target_link_libraries(${PROJECT_NAME} PRIVATE Platform)
+
+find_package(glad CONFIG REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE glad::glad)
+
 find_package(spdlog CONFIG REQUIRED)
-target_link_libraries(${PROJECT_NAME} PUBLIC spdlog::spdlog spdlog::spdlog_header_only)
+target_link_libraries(${PROJECT_NAME} PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
 
 install(TARGETS ${PROJECT_NAME} 
         RUNTIME DESTINATION bin
