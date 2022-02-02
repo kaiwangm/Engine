@@ -12,14 +12,6 @@ public:
     {
         ENGINE_CORE_TRACE("Sandbox Shutdown");
     }
-
-    void Run()
-    {
-        for(int i = 0; i < 10; ++i)
-        {
-            ENGINE_CORE_INFO("Run");
-        }
-    }
 };
 
 Engine::Application* Engine::CreateApplication()

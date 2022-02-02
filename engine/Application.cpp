@@ -17,6 +17,9 @@ namespace Engine
 
     void Application::Run()
     {
-        ENGINE_CORE_WARN("Please implement the Run function");
+        for(int i = 0; i < 10; ++i)
+        {
+            ENGINE_CORE_INFO("Run");
+        }
     }
 }
