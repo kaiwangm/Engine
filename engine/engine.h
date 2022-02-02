@@ -1,4 +1,6 @@
 #pragma once
 
-void hello_world();
-void open_imgui();
+#include "Application.h"
+#include "Log.h"
+
+#include "EntryPoint.h"

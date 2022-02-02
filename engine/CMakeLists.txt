@@ -1,9 +1,21 @@
 project(engine LANGUAGES CXX)
 
+add_definitions(-DENGINE_BUILD_DLL)
+
+include (GenerateExportHeader)
+
 add_library(
     ${PROJECT_NAME}
-    STATIC
-    engine.cpp
+    SHARED
+    Application.cpp
+    Log.cpp
+)
+
+GENERATE_EXPORT_HEADER(${PROJECT_NAME}           
+    BASE_NAME ${PROJECT_NAME}
+    EXPORT_MACRO_NAME ENGINE_API
+    EXPORT_FILE_NAME Core.h
+    STATIC_DEFINE SHARED_EXPORTS_BUILT_AS_STATIC
 )
 
 target_include_directories(
@@ -12,14 +24,9 @@ target_include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-find_package(fmt CONFIG REQUIRED)
-target_link_libraries(${PROJECT_NAME} PRIVATE fmt::fmt)
+find_package(spdlog CONFIG REQUIRED)
+target_link_libraries(${PROJECT_NAME} PUBLIC spdlog::spdlog spdlog::spdlog_header_only)
 
-find_package(imgui CONFIG REQUIRED)
-target_link_libraries(${PROJECT_NAME} PRIVATE imgui::imgui)
-
-find_package(GLEW REQUIRED)
-target_link_libraries(${PROJECT_NAME} PRIVATE GLEW::GLEW)
-
-find_package(glfw3 CONFIG REQUIRED)
-target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
+install(TARGETS ${PROJECT_NAME} 
+        RUNTIME DESTINATION bin
+        )

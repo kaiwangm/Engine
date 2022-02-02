@@ -3,6 +3,12 @@ project(main VERSION 0.1.0)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+IF (WIN32)
+	MESSAGE(STATUS "Now is windows")
+    add_definitions(-DENGINE_PLATFORM_WINDOWS)
+ENDIF ()
 
 add_subdirectory(engine)
 

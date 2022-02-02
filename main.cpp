@@ -1,9 +1,28 @@
-#include <iostream>
-#include <engine.h>
+#include <Engine.h>
 
-int main(int argc, char **argv)
+class Sandbox: public Engine::Application
 {
-    hello_world();
-    open_imgui();
-    return 0;
+public:
+    Sandbox()
+    {
+        ENGINE_CORE_TRACE("Sandbox Initialization");
+    }
+
+    ~Sandbox()
+    {
+        ENGINE_CORE_TRACE("Sandbox Shutdown");
+    }
+
+    void Run()
+    {
+        for(int i = 0; i < 10; ++i)
+        {
+            ENGINE_CORE_INFO("Run");
+        }
+    }
+};
+
+Engine::Application* Engine::CreateApplication()
+{
+    return new Sandbox();
 }
