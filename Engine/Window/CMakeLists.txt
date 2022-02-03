@@ -1,8 +1,6 @@
-project(Window LANGUAGES CXX)
-
 IF (WIN32)
     add_library(
-        ${PROJECT_NAME}
+        Window
         STATIC
         WIndows/WindowsWindow.cpp
         Window.cpp
