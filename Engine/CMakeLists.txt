@@ -1,8 +1,11 @@
 project(Engine LANGUAGES CXX)
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/Engine)
+
 add_definitions(-DENGINE_BUILD_DLL)
 
-include (GenerateExportHeader)
+add_subdirectory(Log)
+add_subdirectory(Window)
 
 add_library(
     ${PROJECT_NAME}
@@ -23,21 +26,12 @@ target_include_directories(
     ${PROJECT_SOURCE_DIR}
 )
 
-add_subdirectory(Log)
 target_link_libraries(${PROJECT_NAME} PRIVATE Log)
-
-add_subdirectory(Window)
 target_link_libraries(${PROJECT_NAME} PRIVATE Window)
-
-find_package(glad CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE glad::glad)
-
-find_package(spdlog CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
-
-find_package(glfw3 CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
 
-install(TARGETS ${PROJECT_NAME} 
-        RUNTIME DESTINATION bin
-        )
+#install(TARGETS ${PROJECT_NAME} 
+#        RUNTIME DESTINATION bin
+#)
