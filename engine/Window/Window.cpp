@@ -1,7 +1,7 @@
-#include "Window.h"
+#include "../Window.h"
 
 #ifdef ENGINE_PLATFORM_WINDOWS
-    #include "Platform/Windows/WindowsWindow.h"
+    #include "Windows/WindowsWindow.h"
 #endif
 
 namespace Engine

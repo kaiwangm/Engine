@@ -10,11 +10,11 @@ IF (WIN32)
     add_definitions(-DENGINE_PLATFORM_WINDOWS)
 ENDIF ()
 
-add_subdirectory(engine)
+add_subdirectory(Engine)
 
 add_executable(main main.cpp)
 
-target_link_libraries(main PUBLIC engine)
+target_link_libraries(main PUBLIC Engine)
 
 find_package(spdlog CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE spdlog::spdlog spdlog::spdlog_header_only)

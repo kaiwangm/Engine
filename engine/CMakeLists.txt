@@ -1,4 +1,4 @@
-project(engine LANGUAGES CXX)
+project(Engine LANGUAGES CXX)
 
 add_definitions(-DENGINE_BUILD_DLL)
 
@@ -7,9 +7,7 @@ include (GenerateExportHeader)
 add_library(
     ${PROJECT_NAME}
     SHARED
-    Window.cpp
     Application.cpp
-    Log.cpp
 )
 
 GENERATE_EXPORT_HEADER(${PROJECT_NAME}           
@@ -22,17 +20,23 @@ GENERATE_EXPORT_HEADER(${PROJECT_NAME}
 target_include_directories(
     ${PROJECT_NAME}
     PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${PROJECT_SOURCE_DIR}
 )
 
-add_subdirectory(Platform)
-target_link_libraries(${PROJECT_NAME} PRIVATE Platform)
+add_subdirectory(Log)
+target_link_libraries(${PROJECT_NAME} PRIVATE Log)
+
+add_subdirectory(Window)
+target_link_libraries(${PROJECT_NAME} PRIVATE Window)
 
 find_package(glad CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE glad::glad)
 
 find_package(spdlog CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
+
+find_package(glfw3 CONFIG REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
 
 install(TARGETS ${PROJECT_NAME} 
         RUNTIME DESTINATION bin
