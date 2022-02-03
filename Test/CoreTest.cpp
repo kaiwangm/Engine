@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <Engine.h>
 
 int add(int lhs, int rhs) {
     return lhs + rhs; 

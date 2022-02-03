@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 namespace Engine
 {
 	using KeyCode = uint16_t;

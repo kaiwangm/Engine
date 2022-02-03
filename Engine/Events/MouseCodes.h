@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 namespace Engine
 {
 	using MouseCode = uint16_t;

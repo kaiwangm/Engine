@@ -4,8 +4,8 @@
 
 #include <sstream>
 
-namespace Engine {
-	
+namespace Engine 
+{
     class WindowResizeEvent : public Event
 	{
 	public:
@@ -63,5 +63,4 @@ namespace Engine {
 		EVENT_CLASS_TYPE(AppRender)
 		EVENT_CLASS_CATEGORY(EventCategoryApplication)
 	};
-
 }

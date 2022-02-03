@@ -18,11 +18,7 @@ GENERATE_EXPORT_HEADER(Engine
     STATIC_DEFINE SHARED_EXPORTS_BUILT_AS_STATIC
 )
 
-target_include_directories(
-    Engine
-    PUBLIC
-    .
-)
+target_include_directories(Engine PUBLIC .)
 
 target_link_libraries(Engine PRIVATE Log)
 target_link_libraries(Engine PRIVATE Window)

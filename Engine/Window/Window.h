@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Core.h"
-#include "Log.h"
-#include "Events/Event.h"
+#include "../Core.h"
+#include "../Log/Log.h"
+#include "../Events/Event.h"
 
 namespace Engine
 {
@@ -40,5 +40,4 @@ namespace Engine
 
 		static Window* Create(const WindowProps& props = WindowProps());
 	};
-
 }

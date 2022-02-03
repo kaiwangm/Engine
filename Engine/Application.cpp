@@ -7,11 +7,12 @@ namespace Engine
         Engine::Log::Init();
         ENGINE_CORE_TRACE("Engine Initialization");
 
-        m_Window = std::unique_ptr<Window>(Window::Create());
+        m_Window = Window::Create();
     }
 
     Application::~Application()
     {
+        delete m_Window;
         ENGINE_CORE_TRACE("Engine Shutdown");
     }
 

@@ -5,8 +5,8 @@
 
 #include <sstream>
 
-namespace Engine {
-    
+namespace Engine 
+{
     class MouseMovedEvent : public Event
 	{
 	public:

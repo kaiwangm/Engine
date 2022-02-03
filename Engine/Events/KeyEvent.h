@@ -5,8 +5,8 @@
 
 #include <sstream>
 
-namespace Engine {
-
+namespace Engine 
+{
     class KeyEvent : public Event
 	{
 	public:
@@ -71,5 +71,4 @@ namespace Engine {
 
 		EVENT_CLASS_TYPE(KeyTyped)
 	};
-
 }

@@ -80,5 +80,4 @@ namespace Engine {
 	{
 		return os << e.ToString();
 	}
-
 }
