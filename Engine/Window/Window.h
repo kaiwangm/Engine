@@ -1,11 +1,10 @@
 #pragma once
 
-#include "../Core.h"
-#include "../Log/Log.h"
-#include "../Events/Event.h"
-#include "../Events/ApplicationEvent.h"
-#include "../Events/MouseEvent.h"
-#include "../Events/KeyEvent.h"
+#include "Core.h"
+#include "Log.h"
+#include "ApplicationEvent.h"
+#include "MouseEvent.h"
+#include "KeyEvent.h"
 
 namespace Engine
 {

@@ -7,9 +7,9 @@
 #endif
 
 #include "Core.h"
-#include "Window/Window.h"
-#include "Log/Log.h"
-#include "Events/ApplicationEvent.h"
+#include "Window.h"
+#include "Log.h"
+#include "ApplicationEvent.h"
 
 namespace Engine
 {

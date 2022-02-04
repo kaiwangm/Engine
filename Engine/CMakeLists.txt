@@ -2,14 +2,17 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/Engine)
 
 add_definitions(-DENGINE_BUILD_DLL)
 
+add_subdirectory(Application)
+add_subdirectory(Core)
 add_subdirectory(Events)
 add_subdirectory(Log)
+add_subdirectory(Platform)
 add_subdirectory(Window)
 
 add_library(
     Engine
     SHARED
-    Application.cpp
+    Engine.cpp
 )
 
 GENERATE_EXPORT_HEADER(Engine           
@@ -19,11 +22,14 @@ GENERATE_EXPORT_HEADER(Engine
     STATIC_DEFINE SHARED_EXPORTS_BUILT_AS_STATIC
 )
 
-target_include_directories(Engine PUBLIC .)
+target_include_directories(Engine INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_libraries(Engine PRIVATE Events)
+target_link_libraries(Engine PUBLIC Application)
+target_link_libraries(Engine PUBLIC Core)
+target_link_libraries(Engine PUBLIC Events)
 target_link_libraries(Engine PUBLIC Log)
-target_link_libraries(Engine PRIVATE Window)
+target_link_libraries(Engine PUBLIC Platform)
+target_link_libraries(Engine PUBLIC Window)
 
 target_link_libraries(Engine PRIVATE glad::glad)
 target_link_libraries(Engine PRIVATE glfw)
