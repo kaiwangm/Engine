@@ -1,6 +1,6 @@
 # Engine
 
-A Game Engine.
+A Modern OpenGL Game Engine.
 
 # Reference
 
