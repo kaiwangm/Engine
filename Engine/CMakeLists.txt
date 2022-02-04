@@ -2,6 +2,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/Engine)
 
 add_definitions(-DENGINE_BUILD_DLL)
 
+add_subdirectory(Events)
 add_subdirectory(Log)
 add_subdirectory(Window)
 
@@ -20,10 +21,11 @@ GENERATE_EXPORT_HEADER(Engine
 
 target_include_directories(Engine PUBLIC .)
 
-target_link_libraries(Engine PRIVATE Log)
+target_link_libraries(Engine PRIVATE Events)
+target_link_libraries(Engine PUBLIC Log)
 target_link_libraries(Engine PRIVATE Window)
+
 target_link_libraries(Engine PRIVATE glad::glad)
-target_link_libraries(Engine PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
 target_link_libraries(Engine PRIVATE glfw)
 
 #install(TARGETS ${PROJECT_NAME} 

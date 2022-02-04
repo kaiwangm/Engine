@@ -3,6 +3,9 @@
 #include "../Core.h"
 #include "../Log/Log.h"
 #include "../Events/Event.h"
+#include "../Events/ApplicationEvent.h"
+#include "../Events/MouseEvent.h"
+#include "../Events/KeyEvent.h"
 
 namespace Engine
 {
@@ -21,7 +24,7 @@ namespace Engine
 	};
 
     // Interface representing a desktop system based Window
-	class Window
+	class ENGINE_API Window
 	{
 	public:
 		using EventCallbackFn = std::function<void(Event&)>;

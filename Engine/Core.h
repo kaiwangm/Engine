@@ -11,3 +11,4 @@
 #endif
 
 #define BIT(x) (1 << x)
+#define PI 3.1415926f

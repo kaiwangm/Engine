@@ -20,6 +20,11 @@ namespace Engine
             virtual ~Application();
 
             void Run();
+
+            //Event Callbacks
+            void onEvent(Event& e);
+            bool onWindowClose(WindowCloseEvent& e);
+            
         private:
             Window* m_Window;
             bool m_Running = true;

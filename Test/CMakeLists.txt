@@ -5,7 +5,7 @@ target_link_libraries(CoreTest PRIVATE GTest::gtest Engine)
 add_test(NAME CoreTest COMMAND CoreTest WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 add_executable(MathTest MathTest.cpp)
-target_link_libraries(MathTest PRIVATE GTest::gtest)
+target_link_libraries(MathTest PRIVATE GTest::gtest Engine)
 add_test(NAME MathTest COMMAND MathTest WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 add_custom_command(TARGET CoreTest POST_BUILD

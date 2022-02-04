@@ -5,12 +5,12 @@ class Sandbox: public Engine::Application
 public:
     Sandbox()
     {
-        ENGINE_CORE_TRACE("Sandbox Initialization");
+        ENGINE_TRACE("Sandbox Initialization");
     }
 
     ~Sandbox()
     {
-        ENGINE_CORE_TRACE("Sandbox Shutdown");
+        ENGINE_TRACE("Sandbox Shutdown");
     }
 };
 
