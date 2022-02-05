@@ -77,7 +77,7 @@ namespace Engine
 
     void ImGuiLayer::OnEvent(Event& e)
     {   
-        ENGINE_CORE_INFO("ImGuiLayer::{} <-- Event::{}", m_LayerName, e);
+        ENGINE_CORE_INFO("Layer::{} <-- Event::{}", m_LayerName, e);
 
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<MouseButtonPressedEvent>(BIND_EVENT(ImGuiLayer::OnMouseButtonPressedEvent));
