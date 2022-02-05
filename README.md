@@ -8,6 +8,21 @@ Framework Architecture:
 
 ## Getting Started
 
+1. Clone the repo.
+
+```
+git clone https://github.com/kaiwangm/Engine.git
+```
+
+2. install dependencies.
+
+3. Build.
+
+```
+mkdir build
+cd build
+cmake ..
+```
 
 
 ## Reference
