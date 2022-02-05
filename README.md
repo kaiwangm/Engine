@@ -2,6 +2,10 @@
 
 A Modern OpenGL Game Engine.
 
+Framework Architecture:
+
+![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/engine.png)
+
 ## Getting Started
 
 
