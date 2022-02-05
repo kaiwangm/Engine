@@ -12,3 +12,4 @@
 
 #define BIT(x) (1 << x)
 #define PI 3.1415926f
+#define BIND_EVENT(x) std::bind(&x, this, std::placeholders::_1)

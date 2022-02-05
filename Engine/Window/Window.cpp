@@ -12,5 +12,4 @@ namespace Engine
 		return nullptr;
 	#endif
 	}
-
 }

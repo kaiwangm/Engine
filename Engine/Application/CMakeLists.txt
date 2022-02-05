@@ -7,6 +7,7 @@ add_library(
 target_link_libraries(Application PRIVATE spdlog::spdlog_header_only)
 target_link_libraries(Application PRIVATE Core)
 target_link_libraries(Application PRIVATE Events)
+target_link_libraries(Application PRIVATE Layer)
 target_link_libraries(Application PRIVATE Log)
 target_link_libraries(Application PRIVATE Window)
 

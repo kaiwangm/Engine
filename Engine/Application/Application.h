@@ -1,15 +1,9 @@
 #pragma once
 
-#ifdef ENGINE_PLATFORM_WINDOWS
-    #include <windows.h>
-    #include <glad/glad.h>
-    #include <GLFW/glfw3.h>
-#endif
-
 #include "Core.h"
-#include "Window.h"
-#include "Log.h"
 #include "ApplicationEvent.h"
+#include "LayerStack.h"
+#include "Window.h"
 
 namespace Engine
 {
@@ -21,13 +15,21 @@ namespace Engine
 
             void Run();
 
-            //Event Callbacks
             void onEvent(Event& e);
-            bool onWindowClose(WindowCloseEvent& e);
+
+            void PushLayer(Layer* layer);
+            void PushOverlay(Layer* layer);
+
+            inline Window& GetWinodw() { return *m_Window; }
             
+        //Event Callbacks
+        private:
+            bool onWindowClose(WindowCloseEvent& e);
+
         private:
             Window* m_Window;
             bool m_Running = true;
+            LayerStack m_LayerStack;
     };
 
     Application* CreateApplication();
