@@ -3,8 +3,6 @@
 #include "Event.h"
 #include "KeyCodes.h"
 
-#include <sstream>
-
 namespace Engine 
 {
     class KeyEvent : public Event

@@ -3,8 +3,6 @@
 #include "Event.h"
 #include "MouseCodes.h"
 
-#include <sstream>
-
 namespace Engine 
 {
     class MouseMovedEvent : public Event

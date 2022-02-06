@@ -1,5 +1,3 @@
-#pragma once
-
 #include "WindowsWindow.h"
 
 namespace Engine {

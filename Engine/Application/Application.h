@@ -28,8 +28,8 @@ namespace Engine
 
         private:
             Window* m_Window;
+            LayerStack* m_LayerStack;
             bool m_Running = true;
-            LayerStack m_LayerStack;
     };
 
     Application* CreateApplication();

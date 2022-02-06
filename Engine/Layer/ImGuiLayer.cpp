@@ -59,7 +59,7 @@ namespace Engine
     {   
         ImGuiIO& io = ImGui::GetIO();
         Application& app = *m_Application;
-        io.DisplaySize = ImVec2(app.GetWinodw().GetWidth(), app.GetWinodw().GetHeight());
+        io.DisplaySize = ImVec2((float)app.GetWinodw().GetWidth(), (float)app.GetWinodw().GetHeight());
 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui::NewFrame();
@@ -77,7 +77,7 @@ namespace Engine
 
     void ImGuiLayer::OnEvent(Event& e)
     {   
-        ENGINE_CORE_INFO("Layer::{} <-- Event::{}", m_LayerName, e);
+        //ENGINE_CORE_INFO("Layer::{} <-- Event::{}", m_LayerName, e);
 
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<MouseButtonPressedEvent>(BIND_EVENT(ImGuiLayer::OnMouseButtonPressedEvent));
@@ -92,6 +92,7 @@ namespace Engine
 
     bool ImGuiLayer::OnMouseButtonPressedEvent(MouseButtonPressedEvent& e)
     {
+        ENGINE_CORE_INFO("Layer::{} <-- Event::{}", m_LayerName, e);
         ImGuiIO& io = ImGui::GetIO();
         io.MouseDown[e.GetMouseButton()] = true;
 
@@ -100,6 +101,7 @@ namespace Engine
 
     bool ImGuiLayer::OnMouseButtonReleasedEvent(MouseButtonReleasedEvent& e)
     {
+        ENGINE_CORE_INFO("Layer::{} <-- Event::{}", m_LayerName, e);
         ImGuiIO& io = ImGui::GetIO();
         io.MouseDown[e.GetMouseButton()] = false;
 
@@ -116,6 +118,7 @@ namespace Engine
 
     bool ImGuiLayer::OnMouseScrolledEvent(MouseScrolledEvent& e)
     {
+        ENGINE_CORE_INFO("Layer::{} <-- Event::{}", m_LayerName, e);
         ImGuiIO& io = ImGui::GetIO();
         io.MouseWheelH += e.GetXOffset();
         io.MouseWheel += e.GetYOffset();
@@ -125,6 +128,7 @@ namespace Engine
 
     bool ImGuiLayer::OnKeyPressedEvent(KeyPressedEvent& e)
     {
+        ENGINE_CORE_INFO("Layer::{} <-- Event::{}", m_LayerName, e);
         ImGuiIO& io = ImGui::GetIO();
         io.KeysDown[e.GetKeyCode()] = true;
 
@@ -138,6 +142,7 @@ namespace Engine
 
     bool ImGuiLayer::OnKeyReleasedEvent(KeyReleasedEvent& e)
     {
+        ENGINE_CORE_INFO("Layer::{} <-- Event::{}", m_LayerName, e);
         ImGuiIO& io = ImGui::GetIO();
         io.KeysDown[e.GetKeyCode()] = false;
 
@@ -151,6 +156,7 @@ namespace Engine
 
     bool ImGuiLayer::OnKeyTypedEvent(KeyTypedEvent& e)
     {
+        ENGINE_CORE_INFO("Layer::{} <-- Event::{}", m_LayerName, e);
         ImGuiIO& io = ImGui::GetIO();
         int keycode = e.GetKeyCode();
 
@@ -162,8 +168,9 @@ namespace Engine
 
     bool ImGuiLayer::OnWindowResizeEvent(WindowResizeEvent& e)
     {
+        ENGINE_CORE_INFO("Layer::{} <-- Event::{}", m_LayerName, e);
         ImGuiIO& io = ImGui::GetIO();
-        io.DisplaySize = ImVec2(e.GetWidth(), e.GetHeight());
+        io.DisplaySize = ImVec2((float)e.GetWidth(), (float)e.GetHeight());
         io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
         glViewport(0, 0, e.GetWidth(), e.GetHeight());
 

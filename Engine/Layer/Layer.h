@@ -4,17 +4,15 @@
 #include "Log.h"
 #include "ApplicationEvent.h"
 
-#include <string>
-
 namespace Engine
 {
-    class ENGINE_API Layer
+    class Layer
     {
         public:
             Layer(const std::string& name = "Layer"){ 
                 m_LayerName = name;
             };
-            virtual ~Layer(){};
+            virtual ~Layer(){}
 
             virtual void OnAttach(){}
             virtual void OnDetach(){}
