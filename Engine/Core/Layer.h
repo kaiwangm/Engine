@@ -17,7 +17,8 @@ namespace Engine
             virtual void OnAttach(){}
             virtual void OnDetach(){}
             virtual void OnUpdate(){}
-            virtual void OnEvent(Event& e){ ENGINE_CORE_INFO("Layer::{} <-- Event::{}", m_LayerName, e); }
+            virtual void OnImGuiRender(){}
+            virtual void OnEvent(Event& event) {}
 
             inline const std::string& GetName() const { return m_LayerName; }
         

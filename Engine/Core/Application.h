@@ -4,6 +4,7 @@
 #include "ApplicationEvent.h"
 #include "LayerStack.h"
 #include "Window.h"
+#include "ImGuiLayer.h"
 
 namespace Engine
 {
@@ -20,7 +21,9 @@ namespace Engine
             void PushLayer(Layer* layer);
             void PushOverlay(Layer* layer);
 
-            inline Window& GetWinodw() { return *m_Window; }
+            inline Window& GetWindow() { return *m_Window; }
+
+            static Application& Get() { return *s_Instance; }
             
         //Event Callbacks
         private:
@@ -28,8 +31,11 @@ namespace Engine
 
         private:
             Window* m_Window;
+            ImGuiLayer* m_ImGuiLayer;
             LayerStack* m_LayerStack;
             bool m_Running = true;
+
+            static Application* s_Instance;
     };
 
     Application* CreateApplication();

@@ -2,11 +2,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/Engine)
 
 add_definitions(-DENGINE_BUILD_DLL)
 
-add_subdirectory(Application)
 add_subdirectory(Core)
 add_subdirectory(Events)
-add_subdirectory(Layer)
-add_subdirectory(Log)
+add_subdirectory(Gui)
 add_subdirectory(Platform)
 add_subdirectory(Window)
 
@@ -25,16 +23,15 @@ GENERATE_EXPORT_HEADER(Engine
 
 target_include_directories(Engine INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_libraries(Engine PUBLIC Application)
 target_link_libraries(Engine PUBLIC Core)
 target_link_libraries(Engine PUBLIC Events)
-target_link_libraries(Engine PUBLIC Layer)
-target_link_libraries(Engine PUBLIC Log)
+target_link_libraries(Engine PUBLIC Gui)
 target_link_libraries(Engine PUBLIC Platform)
 target_link_libraries(Engine PUBLIC Window)
 
 target_link_libraries(Engine PRIVATE glad::glad)
 target_link_libraries(Engine PRIVATE glfw)
+target_link_libraries(Engine PUBLIC glm::glm)
 
 #install(TARGETS ${PROJECT_NAME} 
 #        RUNTIME DESTINATION bin

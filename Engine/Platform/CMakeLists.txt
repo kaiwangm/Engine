@@ -10,7 +10,6 @@ IF (WIN32)
 
     target_link_libraries(Platform PRIVATE Core)
     target_link_libraries(Platform PRIVATE Events)
-    target_link_libraries(Platform PRIVATE Log)
     target_link_libraries(Platform PRIVATE Window)
     target_link_libraries(Platform PRIVATE Platform_Windows)
     target_link_libraries(Platform PRIVATE Platform_OpenGL)

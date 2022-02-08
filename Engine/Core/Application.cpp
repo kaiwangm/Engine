@@ -1,20 +1,25 @@
 #include "Application.h"
 #include "Log.h"
 #include "ImGuiLayer.h"
+#include "Input.h"
 
 namespace Engine
 {
+    Application* Application::s_Instance = nullptr;
+
     Application::Application()
     {
         Engine::Log::Init();
         ENGINE_CORE_TRACE("Engine Initialization");
 
+        s_Instance = this;
         m_Window = Window::Create();
         m_Window->SetEventCallback(BIND_EVENT(Application::onEvent));
 
+        m_ImGuiLayer = new ImGuiLayer();
         m_LayerStack = new LayerStack();
 
-        PushLayer(new ImGuiLayer(this));
+        PushOverlay(m_ImGuiLayer);
     }
 
     Application::~Application()
@@ -43,10 +48,21 @@ namespace Engine
             glClearColor(0.7f, 0.7f, 0.7f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
 
+            //auto[x, y] = Input::GetMousePostion();
+
+            //ENGINE_CORE_INFO("{0}, {1}", x, y);
+
             for(auto layer : *m_LayerStack)
             {
                 layer->OnUpdate();
             }
+
+            m_ImGuiLayer->Begin();
+            for(auto layer : *m_LayerStack)
+            {
+                layer->OnImGuiRender();
+            }  
+            m_ImGuiLayer->End();
 
             m_Window->OnUpdate();
         }
@@ -57,13 +73,13 @@ namespace Engine
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT(Application::onWindowClose));
 
-        //ENGINE_CORE_INFO("Application <-- Event::{}", e);
+        ENGINE_CORE_INFO("Application <-- Event::{}", e);
 
-        for(auto it = m_LayerStack->end(); it != m_LayerStack->begin();)
+        for(auto it = m_LayerStack->rbegin(); it != m_LayerStack->rend(); ++it)
         {
-            (*--it)->OnEvent(e);
             if (e.m_Handled)
                 break;
+            (*it)->OnEvent(e);
         }
     }
 
