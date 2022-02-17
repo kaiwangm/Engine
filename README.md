@@ -2,7 +2,7 @@
 
 A Modern OpenGL Game Engine.
 
-## Feature
+## Features and Plan
 
 2022-2-17 ✨ First Triangle.
 
