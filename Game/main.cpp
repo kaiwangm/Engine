@@ -1,22 +1,22 @@
 #include <Engine.h>
 
-#include <glm/vec3.hpp>
-
 class Sandbox: public Engine::Application
 {
 public:
     Sandbox()
     {
-
-        auto vec = glm::vec3(-1.0f, 1.0f, 0.9f);
-        ENGINE_TRACE(vec.x);
-
-        ENGINE_TRACE("Sandbox Initialization");
+        ENGINE_TRACE("Sandbox Initialization.");
     }
 
     ~Sandbox()
     {
-        ENGINE_TRACE("Sandbox Shutdown");
+        ENGINE_TRACE("Sandbox Shutdown.");
+    }
+
+    void ClientDraw() override
+    {
+        //glClearColor(0.7f, 0.7f, 0.7f, 1.0f);
+        //glClear(GL_COLOR_BUFFER_BIT);
     }
 };
 

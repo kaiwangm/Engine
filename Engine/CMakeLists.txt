@@ -6,6 +6,7 @@ add_subdirectory(Core)
 add_subdirectory(Events)
 add_subdirectory(Gui)
 add_subdirectory(Platform)
+add_subdirectory(Render)
 add_subdirectory(Window)
 
 add_library(
@@ -27,11 +28,13 @@ target_link_libraries(Engine PUBLIC Core)
 target_link_libraries(Engine PUBLIC Events)
 target_link_libraries(Engine PUBLIC Gui)
 target_link_libraries(Engine PUBLIC Platform)
+target_link_libraries(Engine PUBLIC Render)
 target_link_libraries(Engine PUBLIC Window)
 
+target_link_libraries(Engine PUBLIC spdlog::spdlog spdlog::spdlog_header_only)
 target_link_libraries(Engine PRIVATE glad::glad)
 target_link_libraries(Engine PRIVATE glfw)
-target_link_libraries(Engine PUBLIC glm::glm)
+target_link_libraries(Engine PRIVATE glm::glm)
 
 #install(TARGETS ${PROJECT_NAME} 
 #        RUNTIME DESTINATION bin

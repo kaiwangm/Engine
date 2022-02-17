@@ -5,6 +5,7 @@
 #include "LayerStack.h"
 #include "Window.h"
 #include "ImGuiLayer.h"
+#include "Shader.h"
 
 namespace Engine
 {
@@ -15,6 +16,7 @@ namespace Engine
             virtual ~Application();
 
             void Run();
+            virtual void ClientDraw() = 0;
 
             void onEvent(Event& e);
 
@@ -36,6 +38,12 @@ namespace Engine
             bool m_Running = true;
 
             static Application* s_Instance;
+        
+        // APP temp
+        private:
+            GLuint m_VertexArray, m_VertexBuffer, m_IndexBuffer;
+            Shader* m_Shader;
+
     };
 
     Application* CreateApplication();

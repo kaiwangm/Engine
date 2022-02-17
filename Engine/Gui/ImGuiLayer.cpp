@@ -69,7 +69,10 @@ namespace Engine
     void ImGuiLayer::OnImGuiRender()
     {
         static bool show = true;
-        ImGui::ShowDemoWindow(&show);
+
+		ImGui::Begin("Demo window");
+        ImGui::Text("Hello, Triangle !");
+		ImGui::End();
     }
 
     void ImGuiLayer::Begin()
