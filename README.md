@@ -2,7 +2,13 @@
 
 A Modern OpenGL Game Engine.
 
-Framework Architecture:
+## Feature
+
+2022-2-17 ✨ First Triangle.
+
+![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/First_Triangle.png)
+
+## Framework Architecture:
 
 ![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/engine.png)
 
