@@ -6,6 +6,7 @@
 #include "Window.h"
 #include "ImGuiLayer.h"
 #include "Shader.h"
+#include "Buffer.h"
 
 namespace Engine
 {
@@ -34,15 +35,17 @@ namespace Engine
         private:
             Window* m_Window;
             ImGuiLayer* m_ImGuiLayer;
-            LayerStack* m_LayerStack;
+            std::unique_ptr<LayerStack> m_LayerStack;
             bool m_Running = true;
 
             static Application* s_Instance;
         
         // APP temp
         private:
-            GLuint m_VertexArray, m_VertexBuffer, m_IndexBuffer;
-            Shader* m_Shader;
+            GLuint m_VertexArray;
+            std::unique_ptr<Shader> m_Shader;
+            std::unique_ptr<VertexBuffer> m_VertexBuffer;
+            std::unique_ptr<IndexBuffer> m_IndexBuffer;
 
     };
 
