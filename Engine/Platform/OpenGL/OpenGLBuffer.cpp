@@ -25,6 +25,37 @@ namespace Engine
     {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
+
+    void OpenGLVertexBuffer::SetLayout(const BufferLayout& layout)
+    {
+        this->layout = layout;
+    }
+
+    const BufferLayout& OpenGLVertexBuffer::GetLayout() const
+    {
+        return layout;
+    }
+
+    void OpenGLVertexBuffer::ApplyLayout() const
+    {
+        uint32_t index = 0;
+
+        for(const auto& element : layout)
+        {
+            glEnableVertexAttribArray(index);
+            glVertexAttribPointer(
+                index, 
+                element.GetComponentCount(), 
+                ShaderDataTypeToOpenGLBaseType(element.GetGLType()), 
+                element.GetNormalized() ? GL_TRUE : GL_FALSE,  
+                layout.GetStride(), 
+                element.GetOffset()
+            );
+            index++;
+        }
+
+        return;
+    }
     
     // IndexBuffer
 

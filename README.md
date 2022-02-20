@@ -4,13 +4,15 @@ A Modern OpenGL Game Engine.
 
 ## Features and Plan
 
-2022-2-17 ✨ First Triangle.
+- 2022-2-17 ✨ First Triangle.
+- 2022-2-20 ✨ Layout Vertex Attribute.
 
-![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/First_Triangle.png)
+![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/Color_Triangle.png)
 
+<!--
 ## Framework Architecture:
-
 ![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/engine.png)
+-->
 
 ## Getting Started
 
