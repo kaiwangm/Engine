@@ -1,9 +1,13 @@
 #include "ImGuiLayer.h"
 
-#include "Platform.h"
 #include "imgui.h"
 
 #include "Application.h"
+
+#ifdef ENGINE_PLATFORM_WINDOWS
+    #include "OpenGL/imgui_impl_glfw.h"
+    #include "OpenGL/imgui_impl_opengl3.h"
+#endif
 
 namespace Engine
 {
