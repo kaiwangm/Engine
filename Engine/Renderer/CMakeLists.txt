@@ -4,6 +4,7 @@ add_library(
     Shader.cpp
     Buffer.cpp
     Renderer.cpp
+    VertexArray.cpp
 )
 
 target_link_libraries(Renderer PRIVATE Core)

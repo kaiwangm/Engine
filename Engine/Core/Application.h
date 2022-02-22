@@ -7,6 +7,7 @@
 #include "ImGuiLayer.h"
 #include "Shader.h"
 #include "Buffer.h"
+#include "VertexArray.h"
 
 namespace Engine
 {
@@ -42,11 +43,10 @@ namespace Engine
         
         // APP temp
         private:
-            GLuint m_VertexArray;
-            std::unique_ptr<Shader> m_Shader;
-            std::unique_ptr<VertexBuffer> m_VertexBuffer;
-            std::unique_ptr<IndexBuffer> m_IndexBuffer;
+            std::shared_ptr<Shader> m_Shader;
 
+            std::shared_ptr<VertexArray> m_Triangle_VertexArray;
+            std::shared_ptr<VertexArray> m_Square_VertexArray;
     };
 
     Application* CreateApplication();

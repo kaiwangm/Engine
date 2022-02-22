@@ -35,7 +35,6 @@ namespace Engine
 
             virtual void SetLayout(const BufferLayout& layout);
             virtual const BufferLayout& GetLayout() const;
-            virtual void ApplyLayout() const;
         
         private:
             uint32_t m_RendererID;

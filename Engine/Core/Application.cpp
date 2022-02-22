@@ -23,28 +23,57 @@ namespace Engine
 
         // ------------ OpenGL Triangle -------- //
 
-        // Set Vertex Arrays
-        glGenVertexArrays(1, &m_VertexArray);
-        glBindVertexArray(m_VertexArray);
-
-        // Set Vertex Buffer
-        float vertices[3 * 7] = {
+        float Triangle_vertices[3 * 7] = {
             -0.5f, -0.5f,  0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
              0.5f, -0.5f,  0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
              0.0f,  0.5f,  0.0f, 1.0f, 1.0f, 0.0f, 1.0f,
         };
-        m_VertexBuffer.reset(VertexBuffer::Create(vertices, sizeof(vertices)));
-        
-        m_VertexBuffer->SetLayout({
+        uint32_t Triangle_indices[3] = {0, 1, 2};
+
+        // Set Vertex Buffer
+        std::shared_ptr<VertexBuffer> Triangle_VertexBuffer;
+        Triangle_VertexBuffer.reset(VertexBuffer::Create(Triangle_vertices, sizeof(Triangle_vertices)));
+        Triangle_VertexBuffer->SetLayout({
             { ShaderDataType::Float3, "a_Position"},
             { ShaderDataType::Float4, "a_Color"}
         });
 
-        m_VertexBuffer->ApplyLayout();
+        // Set Index Buffer
+        std::shared_ptr<IndexBuffer> Triangle_IndexBuffer;
+        Triangle_IndexBuffer.reset(IndexBuffer::Create(Triangle_indices, sizeof(Triangle_indices) / sizeof(uint32_t)));
+
+        // Set Vertex Arrays
+        m_Triangle_VertexArray.reset(VertexArray::Create());
+        m_Triangle_VertexArray->AddVertexBuffer(Triangle_VertexBuffer);
+        m_Triangle_VertexArray->AddIndexBuffer(Triangle_IndexBuffer);
+        
+
+        // ---------------Square--------------- //
+
+        float Square_vertices[4 * 7] = {
+            -0.5f, -0.5f,  0.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+             0.5f, -0.5f,  0.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+             0.5f,  0.5f,  0.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+            -0.5f,  0.5f,  0.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+        };
+        uint32_t Square_indices[6] = {0, 1, 2, 2, 3, 0};
+
+        // Set Vertex Buffer
+        std::shared_ptr<VertexBuffer> Square_VertexBuffer;
+        Square_VertexBuffer.reset(VertexBuffer::Create(Square_vertices, sizeof(Square_vertices)));
+        Square_VertexBuffer->SetLayout({
+            { ShaderDataType::Float3, "a_Position"},
+            { ShaderDataType::Float4, "a_Color"}
+        });
 
         // Set Index Buffer
-        uint32_t indices[3] = {0, 1, 2};
-        m_IndexBuffer.reset(IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
+        std::shared_ptr<IndexBuffer> Square_IndexBuffer;
+        Square_IndexBuffer.reset(IndexBuffer::Create(Square_indices, sizeof(Square_indices) / sizeof(uint32_t)));
+
+        // Set Vertex Arrays
+        m_Square_VertexArray.reset(VertexArray::Create());
+        m_Square_VertexArray->AddVertexBuffer(Square_VertexBuffer);
+        m_Square_VertexArray->AddIndexBuffer(Square_IndexBuffer);
 
         // Set Shader
         std::string vertexSrc = R"(
@@ -108,9 +137,17 @@ namespace Engine
 
             ClientDraw();
 
-            glBindVertexArray(m_VertexArray);
+            
             m_Shader->Bind();
-            glDrawElements(GL_TRIANGLES, m_IndexBuffer->GetCount() , GL_UNSIGNED_INT, nullptr);
+
+            m_Square_VertexArray->Bind();
+            glDrawElements(GL_TRIANGLES, m_Square_VertexArray->GetIndexBuffer()->GetCount() , GL_UNSIGNED_INT, nullptr);
+            m_Square_VertexArray->UnBind();
+
+            m_Triangle_VertexArray->Bind();
+            glDrawElements(GL_TRIANGLES, m_Triangle_VertexArray->GetIndexBuffer()->GetCount() , GL_UNSIGNED_INT, nullptr);
+            m_Triangle_VertexArray->UnBind();
+
             m_Shader->UnBind();
             
             //auto[x, y] = Input::GetMousePostion();

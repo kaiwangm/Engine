@@ -5,6 +5,7 @@ add_library(
     imgui_impl_glfw.cpp
     OpenGLContext.cpp
     OpenGLBuffer.cpp
+    OpenGLVertexArray.cpp
 )
 
 target_link_libraries(Platform_OpenGL PRIVATE Core)
