@@ -4,18 +4,26 @@
 
 namespace Engine
 {   
-    template class ENGINE_API std::shared_ptr<spdlog::logger>;
-    class ENGINE_API Log
+    class Log_Imp
     {   
         public:
             static void Init();
 
-            inline static std::shared_ptr<spdlog::logger> & GetCoreLogger() { return s_CoreLogger; }
-            inline static std::shared_ptr<spdlog::logger> & GetClientLogger() { return s_ClientLogger; }
+            inline static Ref<spdlog::logger> & GetCoreLogger() { return s_CoreLogger; }
+            inline static Ref<spdlog::logger> & GetClientLogger() { return s_ClientLogger; }
 
         private:
-            static std::shared_ptr<spdlog::logger> s_CoreLogger;
-            static std::shared_ptr<spdlog::logger> s_ClientLogger;
+            static Ref<spdlog::logger> s_CoreLogger;
+            static Ref<spdlog::logger> s_ClientLogger;
+    };
+
+    class Log
+    {
+        public:
+            static void Init();
+
+            inline static Ref<spdlog::logger> & GetCoreLogger() { return Log_Imp::GetCoreLogger(); }
+            inline static Ref<spdlog::logger> & GetClientLogger() { return Log_Imp::GetClientLogger(); }
     };
 }
 

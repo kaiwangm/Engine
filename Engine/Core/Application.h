@@ -11,7 +11,7 @@
 
 namespace Engine
 {
-    class ENGINE_API Application
+    class Application
     {   
         public:
             Application();
@@ -36,17 +36,10 @@ namespace Engine
         private:
             Window* m_Window;
             ImGuiLayer* m_ImGuiLayer;
-            std::unique_ptr<LayerStack> m_LayerStack;
+            Scope<LayerStack> m_LayerStack;
             bool m_Running = true;
 
             static Application* s_Instance;
-        
-        // APP temp
-        private:
-            std::shared_ptr<Shader> m_Shader;
-
-            std::shared_ptr<VertexArray> m_Triangle_VertexArray;
-            std::shared_ptr<VertexArray> m_Square_VertexArray;
     };
 
     Application* CreateApplication();

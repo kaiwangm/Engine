@@ -6,11 +6,12 @@ add_executable(Game main.cpp)
 
 target_link_libraries(Game PRIVATE Engine)
 
-add_custom_command(TARGET Game POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-    $<TARGET_FILE_DIR:Engine>
-    $<TARGET_FILE_DIR:Game>
-)
+#add_custom_command(
+#    TARGET Game POST_BUILD
+#    COMMAND ${CMAKE_COMMAND} -E copy_directory
+#    $<TARGET_FILE_DIR:Engine>
+#    $<TARGET_FILE_DIR:Game>
+#)
 
 add_custom_command(
     TARGET Game POST_BUILD

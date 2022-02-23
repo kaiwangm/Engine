@@ -23,7 +23,7 @@ namespace Engine
 	};
 
     // Interface representing a desktop system based Window
-	class ENGINE_API Window
+	class Window
 	{
 	public:
 		using EventCallbackFn = std::function<void(Event&)>;
