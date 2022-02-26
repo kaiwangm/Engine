@@ -14,11 +14,11 @@ namespace Engine
         VertexBuffer* buffer = nullptr;
         switch (Renderer::GetAPI())
         {
-            case RendererAPI::None : 
+            case RendererAPI::API::None : 
                 ENGINE_CORE_ERROR("RendererAPI::None is currently not supported.");
                 break;
             
-            case RendererAPI::OpenGL : 
+            case RendererAPI::API::OpenGL : 
                 buffer =  new OpenGLVertexBuffer(vertices, size);
                 break;
             
@@ -35,11 +35,11 @@ namespace Engine
         IndexBuffer* buffer = nullptr;
         switch (Renderer::GetAPI())
         {
-            case RendererAPI::None: 
+            case RendererAPI::API::None: 
                 ENGINE_CORE_ERROR("RendererAPI::None is currently not supported.");
                 break;
             
-            case RendererAPI::OpenGL: 
+            case RendererAPI::API::OpenGL: 
                 buffer =  new OpenGLIndexBuffer(indices, count);
                 break;
             

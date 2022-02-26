@@ -3,14 +3,18 @@
 
 #ifdef ENGINE_PLATFORM_WINDOWS
 
-extern Engine::Application* Engine::CreateApplication();
+namespace Engine
+{
+    extern Scope<Application> CreateApplication();
+}
 
 #ifdef ENGINE_USE_ENTRYPOINT
 int main(int argc, char **argv)
 {
     auto app = Engine::CreateApplication();
     app->Run();
-    delete app;
+
+    return 0;
 }
 #endif
 

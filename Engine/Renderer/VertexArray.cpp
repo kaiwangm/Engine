@@ -5,7 +5,6 @@
     #include "OpenGL/OpenGLVertexArray.h"
 #endif
 
-
 namespace Engine
 {
     VertexArray* VertexArray::Create()
@@ -13,11 +12,11 @@ namespace Engine
         VertexArray* array = nullptr;
         switch (Renderer::GetAPI())
         {
-            case RendererAPI::None : 
+            case RendererAPI::API::None : 
                 ENGINE_CORE_ERROR("RendererAPI::None is currently not supported.");
                 break;
             
-            case RendererAPI::OpenGL : 
+            case RendererAPI::API::OpenGL : 
                 array =  new OpenGLVertexArray();
                 break;
             

@@ -6,10 +6,10 @@
 
 namespace Engine
 {
-    Window* Window::Create(const WindowProps& props)
+    Scope<Window> Window::Create(const WindowProps& props)
 	{
 	#ifdef ENGINE_PLATFORM_WINDOWS
-		return new WindowsWindow(props);
+		return std::make_unique<WindowsWindow>(props);
 	#else
 		return nullptr;
 	#endif

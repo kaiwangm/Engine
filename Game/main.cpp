@@ -46,7 +46,7 @@ namespace Engine
             float Square_vertices[4 * 7] = {
                 -0.5f, -0.5f,  0.0f, 1.0f, 1.0f, 1.0f, 1.0f,
                 0.5f, -0.5f,  0.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-                0.5f,  0.5f,  0.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+                0.5f,  0.5f,  0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
                 -0.5f,  0.5f,  0.0f, 1.0f, 1.0f, 1.0f, 1.0f,
             };
             uint32_t Square_indices[6] = {0, 1, 2, 2, 3, 0};
@@ -113,25 +113,20 @@ namespace Engine
 
         void ClientDraw() override
         {
-            glClearColor(0.7f, 0.7f, 0.7f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT);
+            RenderCommand::SetClearColor({0.7f, 0.7f, 0.7f, 1.0f});
+            RenderCommand::Clear();
+            
+            Renderer::BeginScene();
 
-            m_Shader->Bind();
+            Renderer::Submit(m_Square_VertexArray, m_Shader);
+            Renderer::Submit(m_Triangle_VertexArray, m_Shader);
 
-            m_Square_VertexArray->Bind();
-            glDrawElements(GL_TRIANGLES, m_Square_VertexArray->GetIndexBuffer()->GetCount() , GL_UNSIGNED_INT, nullptr);
-            m_Square_VertexArray->UnBind();
-
-            m_Triangle_VertexArray->Bind();
-            glDrawElements(GL_TRIANGLES, m_Triangle_VertexArray->GetIndexBuffer()->GetCount() , GL_UNSIGNED_INT, nullptr);
-            m_Triangle_VertexArray->UnBind();
-
-            m_Shader->UnBind();
+            Renderer::EndScene();
         }
     };
 
-    Application* CreateApplication()
+    Scope<Application> CreateApplication()
     {
-        return new Sandbox();
+        return std::make_unique<Sandbox>();
     }
 }

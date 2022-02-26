@@ -34,13 +34,14 @@ namespace Engine
             bool onWindowClose(WindowCloseEvent& e);
 
         private:
-            Window* m_Window;
-            ImGuiLayer* m_ImGuiLayer;
+            Scope<Window> m_Window;
             Scope<LayerStack> m_LayerStack;
             bool m_Running = true;
+
+            ImGuiLayer* m_ImGuiLayer;
 
             static Application* s_Instance;
     };
 
-    Application* CreateApplication();
+    Scope<Application> CreateApplication();
 }

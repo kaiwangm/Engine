@@ -63,6 +63,13 @@ namespace Engine
 		ImGui::DestroyContext();
     }
 
+	void ImGuiLayer::OnUpdate()
+	{
+		this->Begin();
+        this->OnImGuiRender();
+        this->End();
+	}
+
     void ImGuiLayer::OnEvent(Event& e)
 	{
 		ImGuiIO& io = ImGui::GetIO();

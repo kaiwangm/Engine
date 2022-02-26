@@ -1,9 +1,21 @@
 #include "Renderer.h"
 
 namespace Engine {
-    #ifdef ENGINE_PLATFORM_WINDOWS
-        RendererAPI Renderer::s_RendererAPI = RendererAPI::OpenGL;
-    #else
-        RendererAPI Renderer::s_RendererAPI = RendererAPI::None;
-    #endif
+    void Renderer::BeginScene()
+	{
+		
+	}
+
+	void Renderer::EndScene()
+	{
+	}
+
+	void Renderer::Submit(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader)
+	{
+		shader->Bind();
+		vertexArray->Bind();
+		RenderCommand::DrawIndexed(vertexArray);
+		vertexArray->UnBind();
+		shader->UnBind();
+	}
 }

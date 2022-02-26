@@ -1,18 +1,22 @@
 #pragma once
 
+#include "Core.h"
+#include "RendererAPI.h"
+#include "RenderCommand.h"
+
+#include "VertexArray.h"
+#include "Shader.h"
+
 namespace Engine
 {
-    enum class RendererAPI
-    {
-        None = 0,
-        OpenGL = 1
-    };
-
     class Renderer
     {
         public:
-            inline static RendererAPI GetAPI(){ return s_RendererAPI; }
-        private:
-            static RendererAPI s_RendererAPI;
+            static void BeginScene();
+		    static void EndScene();
+
+		    static void Submit(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader);
+
+            inline static RendererAPI::API GetAPI(){ return RendererAPI::GetAPI(); }
     };
 }

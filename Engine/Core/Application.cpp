@@ -56,12 +56,12 @@ namespace Engine
                 layer->OnUpdate();
             }
 
-            m_ImGuiLayer->Begin();
-            for(auto layer : *m_LayerStack)
-            {
-                layer->OnImGuiRender();
-            }  
-            m_ImGuiLayer->End();
+            //m_ImGuiLayer->Begin();
+            //for(auto layer : *m_LayerStack)
+            //{
+            //    layer->OnImGuiRender();
+            //}  
+            //m_ImGuiLayer->End();
 
             m_Window->OnUpdate();
         }
