@@ -1,21 +1,16 @@
 #include "Renderer.h"
 
 namespace Engine {
-    void Renderer::BeginScene()
-	{
-		
-	}
+void Renderer::BeginScene() {}
 
-	void Renderer::EndScene()
-	{
-	}
+void Renderer::EndScene() {}
 
-	void Renderer::Submit(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader)
-	{
-		shader->Bind();
-		vertexArray->Bind();
-		RenderCommand::DrawIndexed(vertexArray);
-		vertexArray->UnBind();
-		shader->UnBind();
-	}
+void Renderer::Submit(const Ref<VertexArray>& vertexArray,
+                      const Ref<Shader>& shader) {
+    shader->Bind();
+    vertexArray->Bind();
+    RenderCommand::DrawIndexed(vertexArray);
+    vertexArray->UnBind();
+    shader->UnBind();
 }
+}  // namespace Engine

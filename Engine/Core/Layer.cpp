@@ -1,6 +1,3 @@
 #include "Layer.h"
 
-namespace Engine
-{
-    
-}
+namespace Engine {}
