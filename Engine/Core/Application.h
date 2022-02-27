@@ -16,7 +16,6 @@ class Application {
     virtual ~Application();
 
     void Run();
-    virtual void ClientDraw() = 0;
 
     void onEvent(Event& e);
 

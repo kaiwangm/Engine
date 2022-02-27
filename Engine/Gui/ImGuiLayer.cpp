@@ -59,11 +59,7 @@ void ImGuiLayer::OnDetach() {
     ImGui::DestroyContext();
 }
 
-void ImGuiLayer::OnUpdate() {
-    this->Begin();
-    this->OnImGuiRender();
-    this->End();
-}
+void ImGuiLayer::OnUpdate() {}
 
 void ImGuiLayer::OnEvent(Event& e) {
     ImGuiIO& io = ImGui::GetIO();
@@ -73,10 +69,8 @@ void ImGuiLayer::OnEvent(Event& e) {
 }
 
 void ImGuiLayer::OnImGuiRender() {
-    static bool show = true;
-
-    ImGui::Begin("Demo window");
-    ImGui::Text("Hello, Triangle !");
+    ImGui::Begin("Imgui Test WIndow");
+    ImGui::Text("Imgui Layer !");
     ImGui::End();
 }
 

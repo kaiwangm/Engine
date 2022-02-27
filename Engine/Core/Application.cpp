@@ -37,8 +37,6 @@ void Application::PushOverlay(Layer* layer) {
 
 void Application::Run() {
     while (m_Running) {
-        ClientDraw();
-
         // auto[x, y] = Input::GetMousePostion();
 
         // ENGINE_CORE_INFO("{0}, {1}", x, y);
@@ -46,6 +44,12 @@ void Application::Run() {
         for (auto layer : *m_LayerStack) {
             layer->OnUpdate();
         }
+
+        m_ImGuiLayer->Begin();
+        for (auto layer : *m_LayerStack) {
+            layer->OnImGuiRender();
+        }
+        m_ImGuiLayer->End();
 
         // m_ImGuiLayer->Begin();
         // for(auto layer : *m_LayerStack)

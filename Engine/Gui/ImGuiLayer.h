@@ -14,15 +14,14 @@ class ImGuiLayer : public Layer {
     virtual void OnAttach() override;
     virtual void OnDetach() override;
     virtual void OnUpdate() override;
-
+    virtual void OnImGuiRender() override;
     virtual void OnEvent(Event& e) override;
-
-   private:
-    void OnImGuiRender();
 
     void Begin();
     void End();
-    void SetDarkThemeColors();
+
+   private:
+        void SetDarkThemeColors();
 
    private:
     float m_Time;
