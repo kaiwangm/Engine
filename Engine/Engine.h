@@ -1,8 +1,7 @@
 #pragma once
 
-#include "Application.h"
 #include "Core.h"
-#include "Log.h"
+#include "Application.h"
 #include "Renderer.h"
 
 //-----------------------EntryPoint-------------------------------

@@ -3,6 +3,7 @@
 namespace Engine {
 class Sandbox : public Application {
    public:
+    Ref<OrthographicCamera> m_Camera;
     Ref<Shader> m_Shader;
 
     Ref<VertexArray> m_Triangle_VertexArray;
@@ -11,11 +12,13 @@ class Sandbox : public Application {
     Sandbox() {
         ENGINE_TRACE("Sandbox Initialization.");
 
+        m_Camera.reset(new OrthographicCamera(-1.6f, 1.6f, -0.9f, 0.9f));
         // ------------ OpenGL Triangle -------- //
 
         float Triangle_vertices[3 * 7] = {
-            -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.5f, -0.5f, 0.0f, 0.0f,
-            0.0f,  1.0f,  1.0f, 0.0f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f,  1.0f,
+            -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,  //
+            0.5f,  -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,  //
+            0.0f,  0.5f,  0.0f, 1.0f, 1.0f, 0.0f, 1.0f,  //
         };
         uint32_t Triangle_indices[3] = {0, 1, 2};
 
@@ -40,9 +43,10 @@ class Sandbox : public Application {
         // ---------------Square--------------- //
 
         float Square_vertices[4 * 7] = {
-            -0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.5f, -0.5f, 0.0f,
-            1.0f,  1.0f,  1.0f, 1.0f, 0.5f, 0.5f, 0.0f, 0.0f, 0.0f,  0.0f,
-            1.0f,  -0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+            -0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f,  //
+            0.5f,  -0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f,  //
+            0.5f,  0.5f,  0.0f, 0.0f, 0.0f, 0.0f, 1.0f,  //
+            -0.5f, 0.5f,  0.0f, 1.0f, 1.0f, 1.0f, 1.0f,  //
         };
         uint32_t Square_indices[6] = {0, 1, 2, 2, 3, 0};
 
@@ -70,6 +74,8 @@ class Sandbox : public Application {
                 layout(location = 0) in vec3 a_Position;
                 layout(location = 1) in vec4 a_Color;
 
+                uniform mat4 u_ViewProjection;
+
                 out vec3 v_Position;
                 out vec4 v_Color;
 
@@ -77,7 +83,7 @@ class Sandbox : public Application {
                 {   
                     v_Position = a_Position;
                     v_Color = a_Color;
-                    gl_Position = vec4(a_Position, 1.0);
+                    gl_Position = u_ViewProjection * vec4(a_Position, 1.0);
                 }
             )";
 
@@ -107,7 +113,9 @@ class Sandbox : public Application {
         RenderCommand::SetClearColor({0.7f, 0.7f, 0.7f, 1.0f});
         RenderCommand::Clear();
 
-        Renderer::BeginScene();
+        m_Camera->SetPosition({0.0f, 0.0f, 0.0f});
+        m_Camera->SetRotation({45.0f});
+        Renderer::BeginScene(m_Camera);
 
         Renderer::Submit(m_Square_VertexArray, m_Shader);
         Renderer::Submit(m_Triangle_VertexArray, m_Shader);

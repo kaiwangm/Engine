@@ -1,9 +1,11 @@
 #include "Shader.h"
 
+#include <glm/gtc/type_ptr.hpp>
+
 #include "Log.h"
 
 namespace Engine {
-Shader::Shader(const std::string &vertexSrc, const std::string &fragmentSrc) {
+Shader::Shader(const std::string& vertexSrc, const std::string& fragmentSrc) {
     ENGINE_CORE_TRACE("Creating Shader.");
 
     // Read our shaders into the appropriate buffers
@@ -16,7 +18,7 @@ Shader::Shader(const std::string &vertexSrc, const std::string &fragmentSrc) {
 
     // Send the vertex shader source code to GL
     // Note that std::string's .c_str is NULL character terminated.
-    const GLchar *source = (const GLchar *)vertexSource.c_str();
+    const GLchar* source = (const GLchar*)vertexSource.c_str();
     glShaderSource(vertexShader, 1, &source, 0);
 
     // Compile the vertex shader
@@ -48,7 +50,7 @@ Shader::Shader(const std::string &vertexSrc, const std::string &fragmentSrc) {
 
     // Send the fragment shader source code to GL
     // Note that std::string's .c_str is NULL character terminated.
-    source = (const GLchar *)fragmentSource.c_str();
+    source = (const GLchar*)fragmentSource.c_str();
     glShaderSource(fragmentShader, 1, &source, 0);
 
     // Compile the fragment shader
@@ -91,7 +93,7 @@ Shader::Shader(const std::string &vertexSrc, const std::string &fragmentSrc) {
 
     // Note the different functions here: glGetProgram* instead of glGetShader*.
     GLint isLinked = 0;
-    glGetProgramiv(program, GL_LINK_STATUS, (int *)&isLinked);
+    glGetProgramiv(program, GL_LINK_STATUS, (int*)&isLinked);
     if (isLinked == GL_FALSE) {
         GLint maxLength = 0;
         glGetProgramiv(program, GL_INFO_LOG_LENGTH, &maxLength);
@@ -127,4 +129,48 @@ Shader::~Shader() {
 void Shader::Bind() const { glUseProgram(m_RendererID); }
 
 void Shader::UnBind() const { glUseProgram(0); }
+
+void Shader::SetInt(const std::string& name, const int& value) {
+    GLint location = glGetUniformLocation(m_RendererID, name.c_str());
+    glUniform1i(location, value);
+}
+void Shader::SetIntArray(const std::string& name, int* values, uint32_t count) {
+    GLint location = glGetUniformLocation(m_RendererID, name.c_str());
+    glUniform1iv(location, count, values);
+}
+
+void Shader::SetFloat(const std::string& name, const float& value) {
+    GLint location = glGetUniformLocation(m_RendererID, name.c_str());
+    glUniform1f(location, value);
+}
+
+void Shader::SetFloat2(const std::string& name, const glm::vec2& vector) {
+    GLint location = glGetUniformLocation(m_RendererID, name.c_str());
+    glUniform2f(location, vector.x, vector.y);
+}
+
+void Shader::SetFloat3(const std::string& name, const glm::vec3& vector) {
+    GLint location = glGetUniformLocation(m_RendererID, name.c_str());
+    glUniform3f(location, vector.x, vector.y, vector.z);
+}
+
+void Shader::SetFloat4(const std::string& name, const glm::vec4& vector) {
+    GLint location = glGetUniformLocation(m_RendererID, name.c_str());
+    glUniform4f(location, vector.x, vector.y, vector.z, vector.w);
+}
+
+void Shader::SetMat2(const std::string& name, const glm::mat2& matrix) {
+    GLint location = glGetUniformLocation(m_RendererID, name.c_str());
+    glUniformMatrix2fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
+}
+
+void Shader::SetMat3(const std::string& name, const glm::mat3& matrix) {
+    GLint location = glGetUniformLocation(m_RendererID, name.c_str());
+    glUniformMatrix3fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
+}
+
+void Shader::SetMat4(const std::string& name, const glm::mat4& matrix) {
+    GLint location = glGetUniformLocation(m_RendererID, name.c_str());
+    glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
+}
 }  // namespace Engine

@@ -12,7 +12,7 @@ Application::Application() {
     ENGINE_CORE_TRACE("Engine Initialization.");
 
     s_Instance = this;
-    m_Window = Window::Create();
+    m_Window = Window::Create({"Game Engine", 1600, 900});
     m_Window->SetEventCallback(BIND_EVENT(Application::onEvent));
 
     m_ImGuiLayer = new ImGuiLayer();

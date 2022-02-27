@@ -24,6 +24,8 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
+#include <glm/glm.hpp>
+
 #ifdef ENGINE_PLATFORM_WINDOWS
 #include <windows.h>
 #include <glad/glad.h>

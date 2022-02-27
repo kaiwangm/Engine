@@ -7,6 +7,7 @@ add_library(
     VertexArray.cpp
     RenderCommand.cpp
     RendererAPI.cpp
+    Camera.cpp
 )
 
 target_link_libraries(Renderer PRIVATE Core)
