@@ -34,10 +34,11 @@ class Application {
     Scope<Window> m_Window;
     Scope<LayerStack> m_LayerStack;
     bool m_Running = true;
-
     ImGuiLayer* m_ImGuiLayer;
-
     static Application* s_Instance;
+
+   protected:
+    Timer m_Timer;
 };
 
 Scope<Application> CreateApplication();

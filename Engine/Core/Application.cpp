@@ -14,6 +14,7 @@ Application::Application() {
     s_Instance = this;
     m_Window = Window::Create({"Game Engine", 1600, 900});
     m_Window->SetEventCallback(BIND_EVENT(Application::onEvent));
+    m_Window->SetVSync(true);
 
     m_ImGuiLayer = new ImGuiLayer();
     m_LayerStack.reset(new LayerStack());
@@ -40,6 +41,12 @@ void Application::Run() {
         // auto[x, y] = Input::GetMousePostion();
 
         // ENGINE_CORE_INFO("{0}, {1}", x, y);
+
+        LayerUpdateMeta updateMeta(m_Timer.GetTimeStep(), m_Timer.GetSeconds());
+
+        for (auto layer : *m_LayerStack) {
+            layer->SetLayerUpdateMeta(updateMeta);
+        }
 
         for (auto layer : *m_LayerStack) {
             layer->OnUpdate();

@@ -25,6 +25,7 @@
 #include <spdlog/spdlog.h>
 
 #include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #ifdef ENGINE_PLATFORM_WINDOWS
 #include <windows.h>
@@ -41,3 +42,4 @@ using Ref = std::shared_ptr<T>;
 }  // namespace Engine
 
 #include "Log.h"
+#include "Timer.h"
