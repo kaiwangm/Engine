@@ -1,5 +1,5 @@
 #pragma once
-
+#include "Core.h"
 #include "Buffer.h"
 
 namespace Engine {
