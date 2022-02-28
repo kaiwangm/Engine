@@ -32,7 +32,7 @@ class Application {
 
    private:
     Scope<Window> m_Window;
-    Scope<LayerStack> m_LayerStack;
+    LayerStack m_LayerStack;
     bool m_Running = true;
     ImGuiLayer* m_ImGuiLayer;
     static Application* s_Instance;

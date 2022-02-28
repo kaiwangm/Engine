@@ -3,7 +3,7 @@
 add_definitions(-DENGINE_BUILD_DLL)
 
 add_subdirectory(Core)
-add_subdirectory(Events)
+add_subdirectory(Application)
 add_subdirectory(Gui)
 add_subdirectory(Platform)
 add_subdirectory(Renderer)
@@ -23,13 +23,17 @@ add_library(
 
 target_include_directories(Engine INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_libraries(Engine PUBLIC Core)
-target_link_libraries(Engine PUBLIC Events)
-target_link_libraries(Engine PUBLIC Gui)
-target_link_libraries(Engine PRIVATE Platform)
-target_link_libraries(Engine PUBLIC Renderer)
+target_link_libraries(
+    Engine 
+    PUBLIC 
+    Core 
+    Application 
+    Gui 
+    Renderer
+)
 
-target_link_libraries(Engine PUBLIC spdlog::spdlog_header_only)
-target_link_libraries(Engine PUBLIC glad::glad)
-target_link_libraries(Engine PUBLIC glfw)
-target_link_libraries(Engine PUBLIC glm::glm)
+target_link_libraries(
+    Engine 
+    PRIVATE 
+    Platform
+)

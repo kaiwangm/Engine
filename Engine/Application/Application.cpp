@@ -17,7 +17,6 @@ Application::Application() {
     m_Window->SetVSync(true);
 
     m_ImGuiLayer = new ImGuiLayer();
-    m_LayerStack.reset(new LayerStack());
 
     PushOverlay(m_ImGuiLayer);
 
@@ -27,43 +26,35 @@ Application::Application() {
 Application::~Application() { ENGINE_CORE_TRACE("Engine Shutdown."); }
 
 void Application::PushLayer(Layer* layer) {
-    m_LayerStack->PushLayer(layer);
+    m_LayerStack.PushLayer(layer);
     layer->OnAttach();
 }
 
 void Application::PushOverlay(Layer* layer) {
-    m_LayerStack->PushOverlay(layer);
+    m_LayerStack.PushOverlay(layer);
     layer->OnAttach();
 }
 
 void Application::Run() {
     while (m_Running) {
         // auto[x, y] = Input::GetMousePostion();
-
         // ENGINE_CORE_INFO("{0}, {1}", x, y);
 
-        LayerUpdateMeta updateMeta(m_Timer.GetTimeStep(), m_Timer.GetSeconds());
+        const LayerUpdateMeta updateMeta(m_Timer.GetTimeStep(), m_Timer.GetSeconds());
 
-        for (auto layer : *m_LayerStack) {
+        for (const auto& layer : m_LayerStack) {
             layer->SetLayerUpdateMeta(updateMeta);
         }
 
-        for (auto layer : *m_LayerStack) {
+        for (const auto& layer : m_LayerStack) {
             layer->OnUpdate();
         }
 
         m_ImGuiLayer->Begin();
-        for (auto layer : *m_LayerStack) {
+        for (const auto& layer : m_LayerStack) {
             layer->OnImGuiRender();
         }
         m_ImGuiLayer->End();
-
-        // m_ImGuiLayer->Begin();
-        // for(auto layer : *m_LayerStack)
-        //{
-        //     layer->OnImGuiRender();
-        // }
-        // m_ImGuiLayer->End();
 
         m_Window->OnUpdate();
     }
@@ -76,7 +67,7 @@ void Application::onEvent(Event& e) {
 
     // ENGINE_CORE_INFO("Application <-- Event::{}", e);
 
-    for (auto it = m_LayerStack->rbegin(); it != m_LayerStack->rend(); ++it) {
+    for (auto it = m_LayerStack.rbegin(); it != m_LayerStack.rend(); ++it) {
         if (e.m_Handled) break;
         (*it)->OnEvent(e);
     }

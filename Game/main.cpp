@@ -98,6 +98,10 @@ class ExampleLayer : public Layer {
         m_Shader.reset(new Shader(vertexSrc, fragmentSrc));
     }
 
+    void OnAttach() override {}
+
+    void OnDetach() override {}
+    
     void OnUpdate() override {
         // Input
         float timeStep = m_LayerUpdateMeta.m_timeStep;
