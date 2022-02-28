@@ -6,8 +6,9 @@ A Modern OpenGL Game Engine.
 
 - 2022-2-17 ✨ First Triangle.
 - 2022-2-20 ✨ Layout Vertex Attribute.
+- 2022-2-28 ✨ Camera.
 
-![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/Color_Triangle.png)
+![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/Timer.png)
 
 <!--
 ## Framework Architecture:
