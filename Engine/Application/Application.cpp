@@ -1,5 +1,6 @@
 #include "Application.h"
 
+#include "Renderer.h"
 #include "ImGuiLayer.h"
 #include "Input.h"
 #include "Log.h"
@@ -16,8 +17,9 @@ Application::Application() {
     m_Window->SetEventCallback(BIND_EVENT(Application::onEvent));
     m_Window->SetVSync(true);
 
-    m_ImGuiLayer = ImGuiLayer::Create("ImGuiLayer");
+    Renderer::Init();
 
+    m_ImGuiLayer = ImGuiLayer::Create("ImGuiLayer");
     PushOverlay(m_ImGuiLayer);
 
     ENGINE_CORE_TRACE("Engine Initialization Success.");

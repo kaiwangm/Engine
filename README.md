@@ -9,7 +9,7 @@ A Modern OpenGL Game Engine.
 - 2022-02-28 ✨ Camera.
 - 2022-03-01 ✨ Texture.
 
-![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/Texture.png)
+![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/Texture_Tree.png)
 
 <!--
 ## Framework Architecture:

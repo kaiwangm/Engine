@@ -25,6 +25,7 @@ class Shader {
     virtual void SetMat4(const std::string& name, const glm::mat4& matrix) = 0;
 
     static Ref<Shader> Create(const std::string& vertexSrc,
-                              const std::string& fragmentSrc);
+                              const std::string& fragmentSrc,
+                              const std::string& mode);
 };
 }  // namespace Engine

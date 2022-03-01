@@ -1,15 +1,89 @@
 #include "OpenGLShader.h"
 
+#include <fstream>
+
 namespace Engine {
 
 OpenGLShader::OpenGLShader(const std::string& vertexSrc,
-                           const std::string& fragmentSrc) {
+                           const std::string& fragmentSrc,
+                           const std::string& mode) {
     ENGINE_CORE_TRACE("Creating Shader.");
+    std::string vertexShaderSource;
+    std::string fragmentShaderSource;
 
+    if (mode == "Path") {
+        vertexShaderSource = ReadFile(vertexSrc);
+        fragmentShaderSource = ReadFile(fragmentSrc);
+    } else if (mode == "Source") {
+        vertexShaderSource = vertexSrc;
+        fragmentShaderSource = fragmentSrc;
+    }
+
+    Compile(vertexShaderSource, fragmentShaderSource);
+}
+
+OpenGLShader::~OpenGLShader() {
+    glDeleteProgram(m_RendererID);
+
+    ENGINE_CORE_TRACE("Deleting Shader.");
+}
+
+void OpenGLShader::Bind() const { glUseProgram(m_RendererID); }
+
+void OpenGLShader::UnBind() const { glUseProgram(0); }
+
+void OpenGLShader::SetInt(const std::string& name, const int& value) {
+    GLint location = glGetUniformLocation(m_RendererID, name.c_str());
+    glUniform1i(location, value);
+}
+void OpenGLShader::SetIntArray(const std::string& name, int* values,
+                               uint32_t count) {
+    GLint location = glGetUniformLocation(m_RendererID, name.c_str());
+    glUniform1iv(location, count, values);
+}
+
+void OpenGLShader::SetFloat(const std::string& name, const float& value) {
+    GLint location = glGetUniformLocation(m_RendererID, name.c_str());
+    glUniform1f(location, value);
+}
+
+void OpenGLShader::SetFloat2(const std::string& name, const glm::vec2& vector) {
+    GLint location = glGetUniformLocation(m_RendererID, name.c_str());
+    glUniform2f(location, vector.x, vector.y);
+}
+
+void OpenGLShader::SetFloat3(const std::string& name, const glm::vec3& vector) {
+    GLint location = glGetUniformLocation(m_RendererID, name.c_str());
+    glUniform3f(location, vector.x, vector.y, vector.z);
+}
+
+void OpenGLShader::SetFloat4(const std::string& name, const glm::vec4& vector) {
+    GLint location = glGetUniformLocation(m_RendererID, name.c_str());
+    glUniform4f(location, vector.x, vector.y, vector.z, vector.w);
+}
+
+void OpenGLShader::SetMat2(const std::string& name, const glm::mat2& matrix) {
+    GLint location = glGetUniformLocation(m_RendererID, name.c_str());
+    glUniformMatrix2fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
+}
+
+void OpenGLShader::SetMat3(const std::string& name, const glm::mat3& matrix) {
+    GLint location = glGetUniformLocation(m_RendererID, name.c_str());
+    glUniformMatrix3fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
+}
+
+void OpenGLShader::SetMat4(const std::string& name, const glm::mat4& matrix) {
+    GLint location = glGetUniformLocation(m_RendererID, name.c_str());
+    glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
+}
+
+void OpenGLShader::Compile(const std::string& vertexShaderSource,
+                           const std::string& fragmentShaderSource) {
     // Read our shaders into the appropriate buffers
-    std::string vertexSource = vertexSrc;  // Get source code for vertex shader.
+    std::string vertexSource =
+        vertexShaderSource;  // Get source code for vertex shader.
     std::string fragmentSource =
-        fragmentSrc;  // Get source code for fragment shader.
+        fragmentShaderSource;  // Get source code for fragment shader.
 
     // Create an empty vertex shader handle
     GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -119,58 +193,18 @@ OpenGLShader::OpenGLShader(const std::string& vertexSrc,
     glDetachShader(program, fragmentShader);
 }
 
-OpenGLShader::~OpenGLShader() {
-    glDeleteProgram(m_RendererID);
+std::string OpenGLShader::ReadFile(const std::string& shaderPath) {
+    std::string res;
+    std::ifstream in_stream(shaderPath, std::ios::in, std::ios::binary);
 
-    ENGINE_CORE_TRACE("Deleting Shader.");
-}
+    if (in_stream.is_open()) {
+        // ENGINE_CORE_TRACE("Open shader file \"{0}\".", shaderPath);
+        res = std::string((std::istreambuf_iterator<char>(in_stream)),
+                          std::istreambuf_iterator<char>());
+    } else {
+        ENGINE_CORE_ERROR("Could not open shader file \"{0}\".", shaderPath);
+    }
 
-void OpenGLShader::Bind() const { glUseProgram(m_RendererID); }
-
-void OpenGLShader::UnBind() const { glUseProgram(0); }
-
-void OpenGLShader::SetInt(const std::string& name, const int& value) {
-    GLint location = glGetUniformLocation(m_RendererID, name.c_str());
-    glUniform1i(location, value);
-}
-void OpenGLShader::SetIntArray(const std::string& name, int* values,
-                               uint32_t count) {
-    GLint location = glGetUniformLocation(m_RendererID, name.c_str());
-    glUniform1iv(location, count, values);
-}
-
-void OpenGLShader::SetFloat(const std::string& name, const float& value) {
-    GLint location = glGetUniformLocation(m_RendererID, name.c_str());
-    glUniform1f(location, value);
-}
-
-void OpenGLShader::SetFloat2(const std::string& name, const glm::vec2& vector) {
-    GLint location = glGetUniformLocation(m_RendererID, name.c_str());
-    glUniform2f(location, vector.x, vector.y);
-}
-
-void OpenGLShader::SetFloat3(const std::string& name, const glm::vec3& vector) {
-    GLint location = glGetUniformLocation(m_RendererID, name.c_str());
-    glUniform3f(location, vector.x, vector.y, vector.z);
-}
-
-void OpenGLShader::SetFloat4(const std::string& name, const glm::vec4& vector) {
-    GLint location = glGetUniformLocation(m_RendererID, name.c_str());
-    glUniform4f(location, vector.x, vector.y, vector.z, vector.w);
-}
-
-void OpenGLShader::SetMat2(const std::string& name, const glm::mat2& matrix) {
-    GLint location = glGetUniformLocation(m_RendererID, name.c_str());
-    glUniformMatrix2fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
-}
-
-void OpenGLShader::SetMat3(const std::string& name, const glm::mat3& matrix) {
-    GLint location = glGetUniformLocation(m_RendererID, name.c_str());
-    glUniformMatrix3fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
-}
-
-void OpenGLShader::SetMat4(const std::string& name, const glm::mat4& matrix) {
-    GLint location = glGetUniformLocation(m_RendererID, name.c_str());
-    glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
+    return res;
 }
 }  // namespace Engine

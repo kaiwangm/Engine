@@ -5,12 +5,14 @@
 #include "RenderCommand.h"
 #include "RendererAPI.h"
 #include "Shader.h"
-#include "VertexArray.h"
 #include "Texture.h"
+#include "VertexArray.h"
 
 namespace Engine {
 class Renderer {
    public:
+    static void Init();
+    
     static void BeginScene(const Ref<Camera>& camera);
     static void EndScene();
 

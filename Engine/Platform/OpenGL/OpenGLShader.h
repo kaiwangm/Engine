@@ -5,7 +5,8 @@
 namespace Engine {
 class OpenGLShader : public Shader {
    public:
-    OpenGLShader(const std::string& vertexSrc, const std::string& fragmentSrc);
+    OpenGLShader(const std::string& vertexSrc, const std::string& fragmentSrc,
+                 const std::string& mode);
 
     virtual ~OpenGLShader();
 
@@ -30,6 +31,10 @@ class OpenGLShader : public Shader {
                          const glm::mat4& matrix) override;
 
    private:
+    void Compile(const std::string& vertexShaderSource,
+                 const std::string& fragmentShaderSource);
+    std::string ReadFile(const std::string& shaderPath);
+
     GLuint m_RendererID;
 };
 }  // namespace Engine

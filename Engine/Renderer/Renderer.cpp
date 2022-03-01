@@ -4,6 +4,8 @@ namespace Engine {
 Scope<Renderer::SceneData> Renderer::s_SceneData =
     std::make_unique<Renderer::SceneData>();
 
+void Renderer::Init() { RenderCommand::Init(); }
+
 void Renderer::BeginScene(const Ref<Camera>& camera) {
     s_SceneData->ViewProjectionMatrix = camera->GetViewProjectMatrix();
 }
