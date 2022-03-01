@@ -9,7 +9,6 @@ target_link_libraries(
     PRIVATE 
     Core 
     Gui 
-    Renderer
 )
 
 target_include_directories(Application INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})

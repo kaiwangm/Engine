@@ -1,6 +1,6 @@
 #include "OpenGLTexture.h"
 
-#include "stb_image.h"
+#include "Stb/stb_image.h"
 
 namespace Engine {
 OpenGLTexture2D::OpenGLTexture2D(const std::string& path) : m_Path(path) {

@@ -11,8 +11,13 @@ target_link_libraries(
     Core 
     Application 
     Gui 
-    Platform_OpenGL 
     Renderer
+)
+
+target_link_libraries(
+    Platform_Windows 
+    PRIVATE 
+    Platform_OpenGL 
 )
 
 target_include_directories(Platform_Windows INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})

@@ -2,22 +2,22 @@
 
 namespace Engine {
 LayerStack::~LayerStack() {
-    for (Layer* layer : m_LayerVector) {
+    for (Ref<Layer> layer : m_LayerVector) {
         layer->OnDetach();
-        delete layer;
+        //delete layer;
     }
 }
 
-void LayerStack::PushLayer(Layer* layer) {
+void LayerStack::PushLayer(Ref<Layer> layer) {
     m_LayerVector.emplace(m_LayerVector.begin() + m_LayerInsertIndex, layer);
     m_LayerInsertIndex++;
 }
 
-void LayerStack::PushOverlay(Layer* layer) {
+void LayerStack::PushOverlay(Ref<Layer> layer) {
     m_LayerVector.emplace_back(layer);
 }
 
-void LayerStack::PopLayer(Layer* layer) {
+void LayerStack::PopLayer(Ref<Layer> layer) {
     auto it = std::find(m_LayerVector.begin(),
                         m_LayerVector.begin() + m_LayerInsertIndex, layer);
     if (it != m_LayerVector.begin() + m_LayerInsertIndex) {
@@ -27,7 +27,7 @@ void LayerStack::PopLayer(Layer* layer) {
     }
 }
 
-void LayerStack::PopOverlay(Layer* layer) {
+void LayerStack::PopOverlay(Ref<Layer> layer) {
     auto it = std::find(m_LayerVector.begin() + m_LayerInsertIndex,
                         m_LayerVector.end(), layer);
     if (it != m_LayerVector.end()) {

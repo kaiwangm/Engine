@@ -214,7 +214,7 @@ class Sandbox : public Application {
    public:
     Sandbox() {
         ENGINE_TRACE("Sandbox Initialization.");
-        PushLayer(new ExampleLayer());
+        PushLayer(std::make_shared<ExampleLayer>());
         ENGINE_TRACE("Sandbox Initialization Success.");
     }
 

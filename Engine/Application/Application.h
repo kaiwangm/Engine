@@ -1,12 +1,9 @@
 #pragma once
 
-#include "ApplicationEvent.h"
-#include "Buffer.h"
 #include "Core.h"
+#include "Events/ApplicationEvent.h"
 #include "ImGuiLayer.h"
 #include "LayerStack.h"
-#include "Shader.h"
-#include "VertexArray.h"
 #include "Window.h"
 
 namespace Engine {
@@ -19,8 +16,8 @@ class Application {
 
     void onEvent(Event& e);
 
-    void PushLayer(Layer* layer);
-    void PushOverlay(Layer* layer);
+    void PushLayer(Ref<Layer> layer);
+    void PushOverlay(Ref<Layer> layer);
 
     inline Window& GetWindow() { return *m_Window; }
 
@@ -34,7 +31,7 @@ class Application {
     Scope<Window> m_Window;
     LayerStack m_LayerStack;
     bool m_Running = true;
-    ImGuiLayer* m_ImGuiLayer;
+    Ref<ImGuiLayer> m_ImGuiLayer;
     static Application* s_Instance;
 
    protected:

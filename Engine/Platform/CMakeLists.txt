@@ -12,9 +12,14 @@ IF (WIN32)
         Platform 
         PRIVATE 
         Core 
+        Renderer
+    )
+
+    target_link_libraries(
+        Platform 
+        PRIVATE 
         Platform_Windows 
         Platform_OpenGL 
-        Renderer
     )
 ENDIF ()
 

@@ -16,7 +16,7 @@ Application::Application() {
     m_Window->SetEventCallback(BIND_EVENT(Application::onEvent));
     m_Window->SetVSync(true);
 
-    m_ImGuiLayer = new ImGuiLayer();
+    m_ImGuiLayer = ImGuiLayer::Create("ImGuiLayer");
 
     PushOverlay(m_ImGuiLayer);
 
@@ -25,12 +25,12 @@ Application::Application() {
 
 Application::~Application() { ENGINE_CORE_TRACE("Engine Shutdown."); }
 
-void Application::PushLayer(Layer* layer) {
+void Application::PushLayer(Ref<Layer> layer) {
     m_LayerStack.PushLayer(layer);
     layer->OnAttach();
 }
 
-void Application::PushOverlay(Layer* layer) {
+void Application::PushOverlay(Ref<Layer> layer) {
     m_LayerStack.PushOverlay(layer);
     layer->OnAttach();
 }
@@ -40,7 +40,8 @@ void Application::Run() {
         // auto[x, y] = Input::GetMousePostion();
         // ENGINE_CORE_INFO("{0}, {1}", x, y);
 
-        const LayerUpdateMeta updateMeta(m_Timer.GetTimeStep(), m_Timer.GetSeconds());
+        const LayerUpdateMeta updateMeta(m_Timer.GetTimeStep(),
+                                         m_Timer.GetSeconds());
 
         for (const auto& layer : m_LayerStack) {
             layer->SetLayerUpdateMeta(updateMeta);

@@ -1,29 +1,16 @@
 #pragma once
 
-#include "ApplicationEvent.h"
-#include "KeyEvent.h"
+#include "Core.h"
 #include "Layer.h"
-#include "MouseEvent.h"
 
 namespace Engine {
 class ImGuiLayer : public Layer {
    public:
-    ImGuiLayer();
-    ~ImGuiLayer();
+    virtual ~ImGuiLayer() = default;
 
-    virtual void OnAttach() override;
-    virtual void OnDetach() override;
-    virtual void OnUpdate() override;
-    virtual void OnImGuiRender() override;
-    virtual void OnEvent(Event& e) override;
+    virtual void Begin() = 0;
+    virtual void End() = 0;
 
-    void Begin();
-    void End();
-
-   private:
-        void SetDarkThemeColors();
-
-   private:
-    float m_Time;
+    static Ref<ImGuiLayer> Create(const std::string& name);
 };
 }  // namespace Engine

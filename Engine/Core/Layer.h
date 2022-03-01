@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ApplicationEvent.h"
 #include "Core.h"
+#include "Events/ApplicationEvent.h"
 #include "Log.h"
 
 namespace Engine {
@@ -16,7 +16,7 @@ struct LayerUpdateMeta {
 class Layer {
    public:
     Layer(const std::string& name = "Layer") { m_LayerName = name; };
-    virtual ~Layer() {};
+    virtual ~Layer(){};
 
     virtual void OnAttach() = 0;
     virtual void OnDetach() = 0;
@@ -26,8 +26,7 @@ class Layer {
 
     inline const std::string& GetName() const { return m_LayerName; }
 
-    void SetLayerUpdateMeta(const LayerUpdateMeta& meta)
-    {
+    void SetLayerUpdateMeta(const LayerUpdateMeta& meta) {
         m_LayerUpdateMeta = meta;
     }
 
