@@ -7,15 +7,14 @@
 #endif
 
 namespace Engine {
-VertexBuffer* VertexBuffer::Create(float* vertices, uint32_t size) {
-    VertexBuffer* buffer = nullptr;
+Ref<VertexBuffer> VertexBuffer::Create(float* vertices, uint32_t size) {
     switch (Renderer::GetAPI()) {
         case RendererAPI::API::None:
             ENGINE_CORE_ERROR("RendererAPI::None is currently not supported.");
             break;
 
         case RendererAPI::API::OpenGL:
-            buffer = new OpenGLVertexBuffer(vertices, size);
+            return std::make_shared<OpenGLVertexBuffer>(vertices, size);
             break;
 
         default:
@@ -23,18 +22,17 @@ VertexBuffer* VertexBuffer::Create(float* vertices, uint32_t size) {
             break;
     }
 
-    return buffer;
+    return nullptr;
 }
 
-IndexBuffer* IndexBuffer::Create(uint32_t* indices, uint32_t count) {
-    IndexBuffer* buffer = nullptr;
+Ref<IndexBuffer> IndexBuffer::Create(uint32_t* indices, uint32_t count) {
     switch (Renderer::GetAPI()) {
         case RendererAPI::API::None:
             ENGINE_CORE_ERROR("RendererAPI::None is currently not supported.");
             break;
 
         case RendererAPI::API::OpenGL:
-            buffer = new OpenGLIndexBuffer(indices, count);
+            return std::make_shared<OpenGLIndexBuffer>(indices, count);
             break;
 
         default:
@@ -42,6 +40,6 @@ IndexBuffer* IndexBuffer::Create(uint32_t* indices, uint32_t count) {
             break;
     }
 
-    return buffer;
+    return nullptr;
 }
 }  // namespace Engine

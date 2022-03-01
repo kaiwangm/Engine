@@ -6,15 +6,14 @@
 #endif
 
 namespace Engine {
-VertexArray* VertexArray::Create() {
-    VertexArray* array = nullptr;
+Ref<VertexArray> VertexArray::Create() {
     switch (Renderer::GetAPI()) {
         case RendererAPI::API::None:
             ENGINE_CORE_ERROR("RendererAPI::None is currently not supported.");
             break;
 
         case RendererAPI::API::OpenGL:
-            array = new OpenGLVertexArray();
+            return std::make_shared<OpenGLVertexArray>();
             break;
 
         default:
@@ -22,6 +21,6 @@ VertexArray* VertexArray::Create() {
             break;
     }
 
-    return array;
+    return nullptr;
 }
 }  // namespace Engine

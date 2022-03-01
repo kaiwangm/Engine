@@ -3,10 +3,13 @@ add_library(
     STATIC
     imgui_impl_opengl3.cpp
     imgui_impl_glfw.cpp
+    stb_image.cpp
     OpenGLContext.cpp
     OpenGLBuffer.cpp
     OpenGLVertexArray.cpp
     OpenGLRendererAPI.cpp
+    OpenGLShader.cpp
+    OpenGLTexture.cpp
 )
 
 target_link_libraries(

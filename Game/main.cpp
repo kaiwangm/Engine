@@ -8,55 +8,56 @@ class ExampleLayer : public Layer {
         m_Camera.reset(new OrthographicCamera(-1.6f, 1.6f, -0.9f, 0.9f));
         // ------------ OpenGL Triangle -------- //
 
-        float Triangle_vertices[3 * 7] = {
-            -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,  //
-            0.5f,  -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,  //
-            0.0f,  0.5f,  0.0f, 1.0f, 1.0f, 0.0f, 1.0f,  //
+        float Triangle_vertices[3 * 9] = {
+            -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f,  //
+            0.5f,  -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f,  //
+            0.0f,  0.5f,  0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.5f, 1.0f,  //
         };
         uint32_t Triangle_indices[3] = {0, 1, 2};
 
         // Set Vertex Buffer
-        Ref<VertexBuffer> Triangle_VertexBuffer;
-        Triangle_VertexBuffer.reset(
-            VertexBuffer::Create(Triangle_vertices, sizeof(Triangle_vertices)));
-        Triangle_VertexBuffer->SetLayout(
-            {{ShaderDataType::Float3, "a_Position"},
-             {ShaderDataType::Float4, "a_Color"}});
+        Ref<VertexBuffer> Triangle_VertexBuffer =
+            VertexBuffer::Create(Triangle_vertices, sizeof(Triangle_vertices));
+        Triangle_VertexBuffer->SetLayout({
+            {ShaderDataType::Float3, "a_Position"},
+            {ShaderDataType::Float4, "a_Color"},
+            {ShaderDataType::Float2, "a_TexCoord"},
+        });
 
         // Set Index Buffer
-        Ref<IndexBuffer> Triangle_IndexBuffer;
-        Triangle_IndexBuffer.reset(IndexBuffer::Create(
-            Triangle_indices, sizeof(Triangle_indices) / sizeof(uint32_t)));
+        Ref<IndexBuffer> Triangle_IndexBuffer = IndexBuffer::Create(
+            Triangle_indices, sizeof(Triangle_indices) / sizeof(uint32_t));
 
         // Set Vertex Arrays
-        m_Triangle_VertexArray.reset(VertexArray::Create());
+        m_Triangle_VertexArray = VertexArray::Create();
         m_Triangle_VertexArray->AddVertexBuffer(Triangle_VertexBuffer);
         m_Triangle_VertexArray->AddIndexBuffer(Triangle_IndexBuffer);
 
         // ---------------Square--------------- //
 
-        float Square_vertices[4 * 7] = {
-            -0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f,  //
-            0.5f,  -0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f,  //
-            0.5f,  0.5f,  0.0f, 0.0f, 0.0f, 0.0f, 1.0f,  //
-            -0.5f, 0.5f,  0.0f, 1.0f, 1.0f, 1.0f, 1.0f,  //
+        float Square_vertices[4 * 9] = {
+            -0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,  //
+            0.5f,  -0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,  //
+            0.5f,  0.5f,  0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,  //
+            -0.5f, 0.5f,  0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,  //
         };
         uint32_t Square_indices[6] = {0, 1, 2, 2, 3, 0};
 
         // Set Vertex Buffer
-        Ref<VertexBuffer> Square_VertexBuffer;
-        Square_VertexBuffer.reset(
-            VertexBuffer::Create(Square_vertices, sizeof(Square_vertices)));
-        Square_VertexBuffer->SetLayout({{ShaderDataType::Float3, "a_Position"},
-                                        {ShaderDataType::Float4, "a_Color"}});
+        Ref<VertexBuffer> Square_VertexBuffer =
+            VertexBuffer::Create(Square_vertices, sizeof(Square_vertices));
+        Square_VertexBuffer->SetLayout({
+            {ShaderDataType::Float3, "a_Position"},
+            {ShaderDataType::Float4, "a_Color"},
+            {ShaderDataType::Float2, "a_TexCoord"},
+        });
 
         // Set Index Buffer
-        Ref<IndexBuffer> Square_IndexBuffer;
-        Square_IndexBuffer.reset(IndexBuffer::Create(
-            Square_indices, sizeof(Square_indices) / sizeof(uint32_t)));
+        Ref<IndexBuffer> Square_IndexBuffer = IndexBuffer::Create(
+            Square_indices, sizeof(Square_indices) / sizeof(uint32_t));
 
         // Set Vertex Arrays
-        m_Square_VertexArray.reset(VertexArray::Create());
+        m_Square_VertexArray = VertexArray::Create();
         m_Square_VertexArray->AddVertexBuffer(Square_VertexBuffer);
         m_Square_VertexArray->AddIndexBuffer(Square_IndexBuffer);
 
@@ -66,17 +67,19 @@ class ExampleLayer : public Layer {
 
                 layout(location = 0) in vec3 a_Position;
                 layout(location = 1) in vec4 a_Color;
+                layout(location = 2) in vec2 a_TexCoord;
 
                 uniform mat4 u_ViewProjection;
+                uniform mat4 u_Transform;
 
-                out vec3 v_Position;
                 out vec4 v_Color;
+                out vec2 v_TexCoord;
 
                 void main()
                 {   
-                    v_Position = a_Position;
                     v_Color = a_Color;
-                    gl_Position = u_ViewProjection * vec4(a_Position, 1.0);
+                    v_TexCoord = a_TexCoord;
+                    gl_Position = u_ViewProjection * u_Transform * vec4(a_Position, 1.0f);
                 }
             )";
 
@@ -85,23 +88,28 @@ class ExampleLayer : public Layer {
 
                 layout(location = 0) out vec4 color;
 
-                in vec3 v_Position;
                 in vec4 v_Color;
+                in vec2 v_TexCoord;
+
+                uniform vec4 u_Color;
+
+                uniform sampler2D u_Texture;
 
                 void main()
                 {
-                    //color = vec4(v_Position * 0.5 + 0.5, 1.0);
-                    color = v_Color;
+                    color = texture(u_Texture, v_TexCoord);
                 }
             )";
 
-        m_Shader.reset(new Shader(vertexSrc, fragmentSrc));
+        m_Shader = Shader::Create(vertexSrc, fragmentSrc);
+
+        m_Texture = Texture2D::Create("Assert/Checkerboard.png");
     }
 
     void OnAttach() override {}
 
     void OnDetach() override {}
-    
+
     void OnUpdate() override {
         // Input
         float timeStep = m_LayerUpdateMeta.m_timeStep;
@@ -136,8 +144,26 @@ class ExampleLayer : public Layer {
 
         Renderer::BeginScene(m_Camera);
 
-        Renderer::Submit(m_Square_VertexArray, m_Shader);
-        Renderer::Submit(m_Triangle_VertexArray, m_Shader);
+        m_Triangle_Transform =
+            glm::translate(glm::mat4(1.0f), m_Triangle_Position);
+        m_Square_Transform = glm::translate(glm::mat4(1.0f), m_Square_Position);
+
+        Renderer::SetShaderUniform(m_Shader, "u_Color",
+                                   glm::vec4(0.9f, 0.9f, 0.9f, 1.0f));
+        Renderer::SetShaderUniform(m_Shader, "u_Texture", 0);
+
+        m_Texture->Bind(0);
+        Renderer::Submit(m_Square_VertexArray, m_Shader, m_Square_Transform);
+        m_Texture->UnBind(0);
+
+        Renderer::SetShaderUniform(m_Shader, "u_Color",
+                                   glm::vec4(0.9f, 0.7f, 0.9f, 1.0f));
+        Renderer::SetShaderUniform(m_Shader, "u_Texture", 0);
+
+        m_Texture->Bind(0);
+        Renderer::Submit(m_Triangle_VertexArray, m_Shader,
+                         m_Triangle_Transform);
+        m_Texture->UnBind(0);
 
         Renderer::EndScene();
     }
@@ -155,6 +181,11 @@ class ExampleLayer : public Layer {
         ImGui::SliderFloat("transSpeed", &transSpeed, 0.0f, 6.0f);
         ImGui::SliderFloat("rotSpeed", &rotSpeed, 0.0f, 6.0f);
 
+        ImGui::SliderFloat3("m_Triangle_Position",
+                            glm::value_ptr(m_Triangle_Position), -1.0f, 1.0f);
+        ImGui::SliderFloat3("m_Square_Position",
+                            glm::value_ptr(m_Square_Position), -1.0f, 1.0f);
+
         ImGui::End();
     }
 
@@ -163,9 +194,15 @@ class ExampleLayer : public Layer {
    private:
     Ref<OrthographicCamera> m_Camera;
     Ref<Shader> m_Shader;
+    Ref<Texture2D> m_Texture;
 
     Ref<VertexArray> m_Triangle_VertexArray;
+    glm::vec3 m_Triangle_Position{0.0f, 0.0f, 0.0f};
+    glm::mat4 m_Triangle_Transform{1.0f};
+
     Ref<VertexArray> m_Square_VertexArray;
+    glm::vec3 m_Square_Position{0.0f, 0.0f, 0.0f};
+    glm::mat4 m_Square_Transform{1.0f};
 
    private:
     glm::vec4 backGroundColor{0.7f, 0.7f, 0.7f, 1.0f};
