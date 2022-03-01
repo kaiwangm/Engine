@@ -4,10 +4,10 @@ A Modern OpenGL Game Engine.
 
 ## Features and Plan
 
-- 2022-2-17 ✨ First Triangle.
-- 2022-2-20 ✨ Layout Vertex Attribute.
-- 2022-2-28 ✨ Camera.
-- 2022-3-1  ✨ Texture.
+- 2022-02-17 ✨ First Triangle.
+- 2022-02-20 ✨ Layout Vertex Attribute.
+- 2022-02-28 ✨ Camera.
+- 2022-03-01 ✨ Texture.
 
 ![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/Texture.png)
 
