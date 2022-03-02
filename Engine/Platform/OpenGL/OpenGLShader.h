@@ -5,8 +5,8 @@
 namespace Engine {
 class OpenGLShader : public Shader {
    public:
-    OpenGLShader(const std::string& vertexSrc, const std::string& fragmentSrc,
-                 const std::string& mode);
+    OpenGLShader(const std::string& name, const std::string& vertexSrc,
+                 const std::string& fragmentSrc, const std::string& mode);
 
     virtual ~OpenGLShader();
 

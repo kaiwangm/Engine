@@ -5,6 +5,7 @@
 namespace Engine {
 class Shader {
    public:
+    Shader(const std::string& name) : m_Name(name) {}
     virtual ~Shader() = default;
 
     virtual void Bind() const = 0;
@@ -24,8 +25,26 @@ class Shader {
     virtual void SetMat3(const std::string& name, const glm::mat3& matrix) = 0;
     virtual void SetMat4(const std::string& name, const glm::mat4& matrix) = 0;
 
-    static Ref<Shader> Create(const std::string& vertexSrc,
+    static Ref<Shader> Create(const std::string& name,
+                              const std::string& vertexSrc,
                               const std::string& fragmentSrc,
                               const std::string& mode);
+    const std::string& GetName() const { return m_Name; }
+
+   private:
+    std::string m_Name;
+};
+
+class ShaderLibrary {
+   public:
+    void Add(const Ref<Shader>& shader);
+    const Ref<Shader>& Load(const std::string& name,
+                            const std::string& vertexSrc,
+                            const std::string& fragmentSrc,
+                            const std::string& mode);
+    const Ref<Shader>& Get(const std::string& name);
+
+   private:
+    std::unordered_map<std::string, Ref<Shader> > m_Shaders;
 };
 }  // namespace Engine

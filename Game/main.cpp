@@ -63,8 +63,8 @@ class ExampleLayer : public Layer {
         m_Square_VertexArray->AddIndexBuffer(Square_IndexBuffer);
 
         // Set Shader
-        m_Shader = Shader::Create("Assert/vertex.glsl", "Assert/fragment.glsl",
-                                  "Path");
+        shaderLibrary.Load("TextureShader", "Assert/vertex.glsl",
+                           "Assert/fragment.glsl", "Path");
 
         m_Texture = Texture2D::Create("Assert/Checkerboard.png");
         m_Icons_Texture = Texture2D::Create("Assert/Icons.png");
@@ -111,6 +111,8 @@ class ExampleLayer : public Layer {
         m_Tree_Transform = glm::translate(glm::mat4(1.0f), m_Tree_Position);
         m_Square_Transform = glm::translate(glm::mat4(1.0f), m_Square_Position);
 
+        auto m_Shader = shaderLibrary.Get("TextureShader");
+        
         Renderer::SetShaderUniform(m_Shader, "u_Color",
                                    glm::vec4(0.9f, 0.9f, 0.9f, 1.0f));
         Renderer::SetShaderUniform(m_Shader, "u_Texture", 0);
@@ -155,7 +157,7 @@ class ExampleLayer : public Layer {
 
    private:
     Ref<OrthographicCamera> m_Camera;
-    Ref<Shader> m_Shader;
+    ShaderLibrary shaderLibrary;
     Ref<Texture2D> m_Texture;
     Ref<Texture2D> m_Icons_Texture;
 

@@ -4,9 +4,11 @@
 
 namespace Engine {
 
-OpenGLShader::OpenGLShader(const std::string& vertexSrc,
+OpenGLShader::OpenGLShader(const std::string& name,
+                           const std::string& vertexSrc,
                            const std::string& fragmentSrc,
-                           const std::string& mode) {
+                           const std::string& mode)
+    : Shader(name) {
     ENGINE_CORE_TRACE("Creating Shader.");
     std::string vertexShaderSource;
     std::string fragmentShaderSource;
