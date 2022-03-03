@@ -34,7 +34,7 @@ static GLenum ShaderDataTypeToOpenGLBaseType(ShaderDataType type) {
 
 class OpenGLVertexBuffer : public VertexBuffer {
    public:
-    OpenGLVertexBuffer(float* vertices, uint32_t size);
+    OpenGLVertexBuffer(float* vertices, uint32_t size, uint32_t count);
     virtual ~OpenGLVertexBuffer();
 
     virtual void Bind() const;

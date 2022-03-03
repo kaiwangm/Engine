@@ -12,7 +12,7 @@ namespace Engine {
 class Renderer {
    public:
     static void Init();
-    
+
     static void BeginScene(const Ref<Camera>& camera);
     static void EndScene();
 
@@ -82,6 +82,10 @@ class Renderer {
 
     static void Submit(const Ref<VertexArray>& vertexArray,
                        const Ref<Shader>& shader, const glm::mat4& transform);
+
+    static void DrawArray(const Ref<VertexArray>& vertexArray,
+                          const Ref<Shader>& shader,
+                          const glm::mat4& transform);
 
     inline static RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); }
 
