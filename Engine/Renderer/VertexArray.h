@@ -11,7 +11,8 @@ class VertexArray {
     virtual void Bind() const = 0;
     virtual void UnBind() const = 0;
 
-    virtual void AddVertexBuffer(const Ref<VertexBuffer>& buffer) = 0;
+    virtual void AddVertexBuffer(const Ref<VertexBuffer>& buffer,
+                                 const bool instance) = 0;
     virtual void AddIndexBuffer(const Ref<IndexBuffer>& buffer) = 0;
 
     virtual const std::vector<Ref<VertexBuffer> >& GetVertexBuffers() const = 0;

@@ -7,14 +7,14 @@
 #endif
 
 namespace Engine {
-Ref<VertexBuffer> VertexBuffer::Create(float* vertices, uint32_t size) {
+Ref<VertexBuffer> VertexBuffer::Create(float* vertices, uint32_t size, uint32_t count) {
     switch (Renderer::GetAPI()) {
         case RendererAPI::API::None:
             ENGINE_CORE_ERROR("RendererAPI::None is currently not supported.");
             break;
 
         case RendererAPI::API::OpenGL:
-            return std::make_shared<OpenGLVertexBuffer>(vertices, size);
+            return std::make_shared<OpenGLVertexBuffer>(vertices, size, count);
             break;
 
         default:

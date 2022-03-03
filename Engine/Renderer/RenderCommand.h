@@ -21,6 +21,10 @@ class RenderCommand {
         s_RendererAPI->DrawIndexed(vertexArray);
     }
 
+    static void DrawArray(const Ref<VertexArray>& vertexArray) {
+        s_RendererAPI->DrawArray(vertexArray);
+    }
+
    private:
     static Scope<RendererAPI> s_RendererAPI;
 };

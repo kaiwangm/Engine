@@ -18,7 +18,7 @@ include (GenerateExportHeader)
 include(CTest)
 
 add_subdirectory(Engine)
-add_subdirectory(Game)
+add_subdirectory(Example)
 add_subdirectory(Test)
 
 enable_testing()

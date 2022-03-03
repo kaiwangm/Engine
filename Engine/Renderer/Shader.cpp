@@ -42,7 +42,7 @@ const Ref<Shader>& ShaderLibrary::Load(const std::string& name,
     auto shader = Shader::Create(name, vertexSrc, fragmentSrc, mode);
     m_Shaders[name] = shader;
 
-    return shader;
+    return m_Shaders[name];
 }
 
 const Ref<Shader>& ShaderLibrary::Get(const std::string& name) {

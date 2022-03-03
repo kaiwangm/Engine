@@ -38,24 +38,29 @@ void OpenGLVertexArray::Bind() const { glBindVertexArray(m_RendererID); }
 
 void OpenGLVertexArray::UnBind() const { glBindVertexArray(0); }
 
-void OpenGLVertexArray::AddVertexBuffer(const Ref<VertexBuffer>& buffer) {
+void OpenGLVertexArray::AddVertexBuffer(const Ref<VertexBuffer>& buffer,
+                                        const bool instance) {
     glBindVertexArray(m_RendererID);
-    buffer->Bind();
-
-    uint32_t index = 0;
-
+    
     const auto& layout = buffer->GetLayout();
     for (const auto& element : layout) {
-        glEnableVertexAttribArray(index);
+        glEnableVertexAttribArray(element.GetIndex());
+        
+        buffer->Bind();
         glVertexAttribPointer(
-            index, element.GetComponentCount(),
+            element.GetIndex(), element.GetComponentCount(),
             ShaderDataTypeToOpenGLBaseType(element.GetGLType()),
             element.GetNormalized() ? GL_TRUE : GL_FALSE, layout.GetStride(),
             element.GetOffset());
-        index++;
+        buffer->UnBind();
+
+        if (instance) {
+            glVertexAttribDivisor(element.GetIndex(), 1);
+        }
     }
 
     m_VertexBuffers.push_back(buffer);
+    glBindVertexArray(0);
 }
 
 void OpenGLVertexArray::AddIndexBuffer(const Ref<IndexBuffer>& buffer) {
@@ -63,6 +68,8 @@ void OpenGLVertexArray::AddIndexBuffer(const Ref<IndexBuffer>& buffer) {
     buffer->Bind();
 
     m_IndexBuffer = buffer;
+
+    glBindVertexArray(0);
 }
 
 }  // namespace Engine

@@ -40,4 +40,10 @@ class OrthographicCamera : public Camera {
     OrthographicCamera(float left, float right, float bottom, float top);
 };
 
+class PerspectiveCamera : public Camera {
+   public:
+    PerspectiveCamera(float fov, float aspectRatio, float nearClip,
+                      float farClip);
+};
+
 }  // namespace Engine

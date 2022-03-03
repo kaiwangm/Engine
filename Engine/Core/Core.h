@@ -15,6 +15,7 @@
 #define BIND_EVENT(x) std::bind(&x, this, std::placeholders::_1)
 
 #include <functional>
+#include <cstdint>
 #include <memory>
 #include <sstream>
 #include <string>
