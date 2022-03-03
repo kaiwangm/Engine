@@ -30,10 +30,10 @@ void save_ply(const std::vector<Engine::Ref<Engine::OctreeNode> >& levelnodes,
 }
 
 std::vector<std::array<uint32_t, 6> > load_ply(const std::string& name) {
-    pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud(
-        new pcl::PointCloud<pcl::PointXYZRGBNormal>);
+    pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud(
+        new pcl::PointCloud<pcl::PointXYZRGBA>);
 
-    if (pcl::io::loadPLYFile<pcl::PointXYZRGBNormal>(name, *cloud) == -1) {
+    if (pcl::io::loadPLYFile<pcl::PointXYZRGBA>(name, *cloud) == -1) {
         PCL_ERROR("Couldn't read file. \n");
     }
 

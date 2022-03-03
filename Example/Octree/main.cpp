@@ -29,7 +29,7 @@ class ExampleLayer : public Layer {
         ENGINE_TRACE("Init game meta.");
 
         m_Camera =
-            std::make_shared<PerspectiveCamera>(45.0f, 1.778f, 0.1f, 3000.0f);
+            std::make_shared<PerspectiveCamera>(45.0f, 1.778f, 0.1f, 3000.0f * 8);
         m_Camera->SetPosition(m_Camera_Position);
 
         // ------------ OpenGL Tree -------- //
@@ -296,7 +296,7 @@ class ExampleLayer : public Layer {
 
    private:
     Ref<Camera> m_Camera;
-    glm::vec3 m_Camera_Position{224.0f, 453.0f, 1729.0f};
+    glm::vec3 m_Camera_Position{224.0f, 453.0f, 729.0f};
 
     ShaderLibrary m_ShaderLibrary;
     Ref<Texture2D> m_Texture;
