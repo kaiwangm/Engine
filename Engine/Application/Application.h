@@ -9,12 +9,13 @@
 namespace Engine {
 class Application {
    public:
-    Application();
+    Application(std::string appName, uint32_t windowWidth,
+                uint32_t windowHeight);
     virtual ~Application();
 
     void Run();
 
-    void onEvent(Event& e);
+    void OnEvent(Event& event);
 
     void PushLayer(Ref<Layer> layer);
     void PushOverlay(Ref<Layer> layer);
@@ -25,7 +26,8 @@ class Application {
 
     // Event Callbacks
    private:
-    bool onWindowClose(WindowCloseEvent& e);
+    bool OnWindowClose(WindowCloseEvent& event);
+    bool OnWindowResizeEvent(WindowResizeEvent& event);
 
    private:
     Scope<Window> m_Window;
@@ -33,6 +35,9 @@ class Application {
     bool m_Running = true;
     Ref<ImGuiLayer> m_ImGuiLayer;
     static Application* s_Instance;
+
+   private:
+    bool m_Minimized;
 
    protected:
     Timer m_Timer;

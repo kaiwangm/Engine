@@ -82,6 +82,10 @@ class Octree {
     uint32_t GetNumNodes() { return m_NumNodes; }
     uint32_t GetNumLeafs() { return m_NumLeafs; }
 
+    uint32_t GetLevelNumNodes(const uint32_t& level) {
+        return (uint32_t) m_LevelNodes[level].size();
+    }
+
    private:
     void insert(uint32_t x, uint32_t y, uint32_t z, uint32_t r, uint32_t g,
                 uint32_t b);

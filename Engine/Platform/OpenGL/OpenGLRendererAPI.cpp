@@ -2,11 +2,15 @@
 
 namespace Engine {
 void OpenGLRendererAPI::Init() {
-    //glEnable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+}
+void OpenGLRendererAPI::SetViewPort(uint32_t x, uint32_t y, uint32_t width,
+                                    uint32_t height) {
+    glViewport(x, y, width, height);
 }
 
 void OpenGLRendererAPI::Clear() {
@@ -18,10 +22,12 @@ void OpenGLRendererAPI::DrawIndexed(const Ref<VertexArray>& vertexArray) {
                    GL_UNSIGNED_INT, nullptr);
 }
 
-void OpenGLRendererAPI::DrawArray(const Ref<VertexArray>& vertexArray)
-{
-    //glDrawArrays(GL_TRIANGLES, 0, vertexArray->GetVertexBuffers()[0]->GetCount());
-    glDrawArraysInstanced(GL_TRIANGLES, 0, vertexArray->GetVertexBuffers()[0]->GetCount(), vertexArray->GetVertexBuffers()[1]->GetCount());  
+void OpenGLRendererAPI::DrawArray(const Ref<VertexArray>& vertexArray) {
+    // glDrawArrays(GL_TRIANGLES, 0,
+    // vertexArray->GetVertexBuffers()[0]->GetCount());
+    glDrawArraysInstanced(GL_TRIANGLES, 0,
+                          vertexArray->GetVertexBuffers()[0]->GetCount(),
+                          vertexArray->GetVertexBuffers()[1]->GetCount());
 }
 
 }  // namespace Engine

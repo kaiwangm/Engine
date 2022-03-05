@@ -6,6 +6,10 @@ Scope<Renderer::SceneData> Renderer::s_SceneData =
 
 void Renderer::Init() { RenderCommand::Init(); }
 
+void Renderer::OnWindowResize(uint32_t width, uint32_t height) {
+    RenderCommand::SetViewPort(0, 0, width, height);
+}
+
 void Renderer::BeginScene(const Ref<Camera>& camera) {
     s_SceneData->ViewProjectionMatrix = camera->GetViewProjectMatrix();
 }
@@ -26,7 +30,8 @@ void Renderer::Submit(const Ref<VertexArray>& vertexArray,
 }
 
 void Renderer::DrawArray(const Ref<VertexArray>& vertexArray,
-                      const Ref<Shader>& shader, const glm::mat4& transform) {
+                         const Ref<Shader>& shader,
+                         const glm::mat4& transform) {
     shader->Bind();
     shader->SetMat4("u_ViewProjection", s_SceneData->ViewProjectionMatrix);
     shader->SetMat4("u_Transform", transform);

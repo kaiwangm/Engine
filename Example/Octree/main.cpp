@@ -28,9 +28,11 @@ class ExampleLayer : public Layer {
         // ------------ Game -------- //
         ENGINE_TRACE("Init game meta.");
 
-        m_Camera =
-            std::make_shared<PerspectiveCamera>(45.0f, 1.778f, 0.1f, 3000.0f * 8);
+        m_Camera = std::make_shared<PerspectiveCamera>(45.0f, 1.778f, 0.1f,
+                                                       3000.0f * 8);
         m_Camera->SetPosition(m_Camera_Position);
+        m_Camera->SetCameraTranslationSpeed(300.0f);
+        m_Camera->SetCameraRotationSpeed(10.0f);
 
         // ------------ OpenGL Tree -------- //
 
@@ -171,37 +173,7 @@ class ExampleLayer : public Layer {
     void OnDetach() override { threadObj.join(); }
 
     void OnUpdate() override {
-        // Input
-        float timeStep = m_LayerUpdateMeta.m_timeStep;
-        auto camera_rot = m_Camera->GetRotation();
-
-        if (Input::IsKeyPressed(GLFW_KEY_A)) {
-            m_Camera_Position.x -= transSpeed * timeStep;
-        }
-        if (Input::IsKeyPressed(GLFW_KEY_D)) {
-            m_Camera_Position.x += transSpeed * timeStep;
-        }
-        if (Input::IsKeyPressed(GLFW_KEY_LEFT_CONTROL)) {
-            m_Camera_Position.y -= transSpeed * timeStep;
-        }
-        if (Input::IsKeyPressed(GLFW_KEY_SPACE)) {
-            m_Camera_Position.y += transSpeed * timeStep;
-        }
-        if (Input::IsKeyPressed(GLFW_KEY_W)) {
-            m_Camera_Position.z -= transSpeed * timeStep;
-        }
-        if (Input::IsKeyPressed(GLFW_KEY_S)) {
-            m_Camera_Position.z += transSpeed * timeStep;
-        }
-        if (Input::IsKeyPressed(GLFW_KEY_E)) {
-            camera_rot -= rotSpeed * timeStep;
-        }
-        if (Input::IsKeyPressed(GLFW_KEY_Q)) {
-            camera_rot += rotSpeed * timeStep;
-        }
-
-        m_Camera->SetRotation(camera_rot);
-        m_Camera->SetPosition(m_Camera_Position);
+        m_Camera->OnUpdate(m_LayerUpdateMeta.m_timeStep);
 
         // Render
         RenderCommand::SetClearColor(backGroundColor);
@@ -234,15 +206,17 @@ class ExampleLayer : public Layer {
         ImGui::Text("Time Step: %f", timeStep);
         ImGui::Text("Now Time: %f", nowTime);
 
-        //ImGui::ColorEdit4("backGroundColor", glm::value_ptr(backGroundColor));
-        //ImGui::SliderFloat("transSpeed", &transSpeed, 0.0f, 6.0f);
-        //ImGui::SliderFloat("rotSpeed", &rotSpeed, 0.0f, 6.0f);
+        // ImGui::ColorEdit4("backGroundColor",
+        // glm::value_ptr(backGroundColor)); ImGui::SliderFloat("transSpeed",
+        // &transSpeed, 0.0f, 6.0f); ImGui::SliderFloat("rotSpeed", &rotSpeed,
+        // 0.0f, 6.0f);
 
-        //ImGui::SliderFloat3("m_Tree_Position", glm::value_ptr(m_Tree_Position),
-        //                    -1.0f, 1.0f);
+        // ImGui::SliderFloat3("m_Tree_Position",
+        // glm::value_ptr(m_Tree_Position),
+        //                     -1.0f, 1.0f);
 
         ImGui::DragFloat3("m_Camera_Position",
-                            glm::value_ptr(m_Camera_Position), -0.0f, 3000.0f);
+                          glm::value_ptr(m_Camera_Position), -0.0f, 3000.0f);
 
         uint32_t nowLevel_min = 0;
         uint32_t nowLevel_max = 10;
@@ -254,7 +228,7 @@ class ExampleLayer : public Layer {
         this->RenderOctreeGui(m_Octree);
     }
 
-    void OnEvent(Event& event) override {}
+    void OnEvent(Event& event) override { m_Camera->OnEvent(event); }
 
     void RenderOctree(const Ref<Octree>& octree) {
         if (octree == nullptr) {
@@ -289,6 +263,11 @@ class ExampleLayer : public Layer {
             ImGui::Text("NumMaxLevel: %d", octree->GetMaxLevel());
             ImGui::Text("NumNodes: %d", octree->GetNumNodes());
             ImGui::Text("NumLeafs: %d", octree->GetNumLeafs());
+
+            for (int i = 0; i <= octree->GetMaxLevel(); ++i) {
+                ImGui::Text("Laver %d has %d Nodes", i,
+                            (int)octree->GetLevelNumNodes(i));
+            }
             ImGui::End();
             return;
         }
@@ -314,15 +293,13 @@ class ExampleLayer : public Layer {
 
    private:
     glm::vec4 backGroundColor{0.7f, 0.7f, 0.7f, 1.0f};
-    float transSpeed = 300.0;
-    float rotSpeed = 10.0;
 
     uint32_t nowLevel = 10;
 };
 
 class Sandbox : public Application {
    public:
-    Sandbox() {
+    Sandbox() : Application("OctreeExample", 1600, 900) {
         ENGINE_TRACE("Sandbox Initialization.");
         PushLayer(std::make_shared<ExampleLayer>());
         ENGINE_TRACE("Sandbox Initialization Success.");

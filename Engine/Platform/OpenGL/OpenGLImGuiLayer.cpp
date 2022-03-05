@@ -63,11 +63,11 @@ void OpenGLImGuiLayer::OnDetach() {
 
 void OpenGLImGuiLayer::OnUpdate() {}
 
-void OpenGLImGuiLayer::OnEvent(Event& e) {
+void OpenGLImGuiLayer::OnEvent(Event& event) {
     ImGuiIO& io = ImGui::GetIO();
-    e.m_Handled |= e.IsInCategory(EventCategoryMouse) & io.WantCaptureMouse;
-    e.m_Handled |=
-        e.IsInCategory(EventCategoryKeyboard) & io.WantCaptureKeyboard;
+    event.m_Handled |= event.IsInCategory(EventCategoryMouse) & io.WantCaptureMouse;
+    event.m_Handled |=
+        event.IsInCategory(EventCategoryKeyboard) & io.WantCaptureKeyboard;
 }
 
 void OpenGLImGuiLayer::OnImGuiRender() {
