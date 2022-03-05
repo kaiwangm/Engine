@@ -23,7 +23,7 @@ class OpenGLVertexArray : public VertexArray {
     };
 
    private:
-    uint32_t m_RendererID;
+    GLuint m_RendererID;
     std::vector<Ref<VertexBuffer> > m_VertexBuffers;
     Ref<IndexBuffer> m_IndexBuffer;
 };

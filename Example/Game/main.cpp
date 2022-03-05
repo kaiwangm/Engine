@@ -67,9 +67,16 @@ class ExampleLayer : public Layer {
         // Set Shader
         m_ShaderLibrary.Load("TextureShader", "Assert/vertex.glsl",
                              "Assert/fragment.glsl", "Path");
+        m_ShaderLibrary.Load("TextureShader_uv", "Assert/vertex_uv.glsl",
+                             "Assert/fragment_uv.glsl", "Path");
 
         m_Texture = Texture2D::Create("Assert/Checkerboard.png");
         m_Icons_Texture = Texture2D::Create("Assert/Icons.png");
+
+        // Set FrameRenderBuffer
+        m_FrameRenderBuffer = FrameRenderBuffer::Create();
+        m_FrameRenderBuffer_uv = FrameRenderBuffer::Create();
+        // m_FrameRenderBuffer->SetViewPort(800, 600);
     }
 
     void OnAttach() override {}
@@ -80,10 +87,10 @@ class ExampleLayer : public Layer {
         m_Camera->OnUpdate(m_LayerUpdateMeta.m_timeStep);
 
         // Render
+        Renderer::BeginScene(m_Camera, m_FrameRenderBuffer);
+
         RenderCommand::SetClearColor(backGroundColor);
         RenderCommand::Clear();
-
-        Renderer::BeginScene(m_Camera);
 
         m_Tree_Transform = glm::translate(glm::mat4(1.0f), m_Tree_Position);
         m_Square_Transform = glm::translate(glm::mat4(1.0f), m_Square_Position);
@@ -106,27 +113,102 @@ class ExampleLayer : public Layer {
         Renderer::Submit(m_Tree_VertexArray, m_Shader, m_Tree_Transform);
         m_Icons_Texture->UnBind(0);
 
-        Renderer::EndScene();
+        Renderer::EndScene(m_FrameRenderBuffer);
+
+        // Render
+        Renderer::BeginScene(m_Camera, m_FrameRenderBuffer_uv);
+
+        RenderCommand::SetClearColor(backGroundColor);
+        RenderCommand::Clear();
+
+        m_Tree_Transform = glm::translate(glm::mat4(1.0f), m_Tree_Position);
+        m_Square_Transform = glm::translate(glm::mat4(1.0f), m_Square_Position);
+
+        auto m_Shader_uv = m_ShaderLibrary.Get("TextureShader_uv");
+
+        Renderer::SetShaderUniform(m_Shader_uv, "u_Color",
+                                   glm::vec4(0.9f, 0.9f, 0.9f, 1.0f));
+        Renderer::SetShaderUniform(m_Shader_uv, "u_Texture", 0);
+
+        m_Texture->Bind(0);
+        Renderer::Submit(m_Square_VertexArray, m_Shader_uv, m_Square_Transform);
+        m_Texture->UnBind(0);
+
+        Renderer::SetShaderUniform(m_Shader_uv, "u_Color",
+                                   glm::vec4(0.9f, 0.7f, 0.9f, 1.0f));
+        Renderer::SetShaderUniform(m_Shader_uv, "u_Texture", 0);
+
+        m_Icons_Texture->Bind(0);
+        Renderer::Submit(m_Tree_VertexArray, m_Shader_uv, m_Tree_Transform);
+        m_Icons_Texture->UnBind(0);
+
+        Renderer::EndScene(m_FrameRenderBuffer_uv);
     }
 
     void OnImGuiRender() override {
         float timeStep = m_LayerUpdateMeta.m_timeStep;
         float nowTime = m_LayerUpdateMeta.m_nowTime;
 
-        ImGui::Begin("Example Layer");
-        ImGui::Text("Hello, a Tree and a Square !");
-        ImGui::Text("Time Step: %f", timeStep);
-        ImGui::Text("Now Time: %f", nowTime);
+        Gui::Begin("Scence Collection");
+        Gui::Text("Hello, a Tree and a Square !");
+        Gui::Text("Time Step: {0}", timeStep);
+        Gui::Text("Now Time: {0}", nowTime);
 
-        ImGui::ColorEdit4("backGroundColor", glm::value_ptr(backGroundColor));
+        static std::vector<float> arr(600, 0.0);
+        arr.push_back(timeStep);
+        arr.erase(arr.begin());
+        ImGui::PlotLines("Frame Times", &arr[0], 600);
+
+        Gui::ColorEdit4("backGroundColor", backGroundColor);
         // ImGui::SliderFloat("transSpeed", &transSpeed, 0.0f, 6.0f);
         // ImGui::SliderFloat("rotSpeed", &rotSpeed, 0.0f, 6.0f);
 
-        ImGui::SliderFloat3("m_Tree_Position", glm::value_ptr(m_Tree_Position),
-                            -3.0f, 3.0f);
-        ImGui::SliderFloat3("m_Square_Position",
-                            glm::value_ptr(m_Square_Position), -3.0f, 3.0f);
+        Gui::SliderFloat3("m_Tree_Position", m_Tree_Position, -3.0f, 3.0f);
+        Gui::SliderFloat3("m_Square_Position", m_Square_Position, -3.0f, 3.0f);
+        Gui::SliderFloat3("m_Camera_Position", m_Camera->GetPosition(), -10.0f,
+                          10.0f);
+        Gui::SliderFloat("m_Camera_Rotation", m_Camera->GetRotation(), -180.0f,
+                         180.0f);
 
+        Gui::End();
+
+        Gui::ShowImNodesDemoWindow();
+        ImGui::ShowDemoWindow();
+
+        ImGui::Begin("View :: Color");
+        {
+            // Using a Child allow to fill all the space of the window.
+            // It also alows customization
+            ImGui::BeginChild("GameRender");
+            // Get the size of the child (i.e. the whole draw size of the
+            // windows).
+            ImVec2 wsize = ImGui::GetWindowSize();
+            // Because I use the texture from OpenGL, I need to invert the V
+            // from the UV.
+            m_FrameRenderBuffer->SetViewPort((uint32_t)wsize.x,
+                                             (uint32_t)wsize.y);
+            ImGui::Image(m_FrameRenderBuffer->GetTextureID(), wsize,
+                         ImVec2(0, 1), ImVec2(1, 0));
+            ImGui::EndChild();
+        }
+        ImGui::End();
+
+        ImGui::Begin("View :: UV");
+        {
+            // Using a Child allow to fill all the space of the window.
+            // It also alows customization
+            ImGui::BeginChild("GameRender");
+            // Get the size of the child (i.e. the whole draw size of the
+            // windows).
+            ImVec2 wsize = ImGui::GetWindowSize();
+            // Because I use the texture from OpenGL, I need to invert the V
+            // from the UV.
+            m_FrameRenderBuffer_uv->SetViewPort((uint32_t)wsize.x,
+                                                (uint32_t)wsize.y);
+            ImGui::Image(m_FrameRenderBuffer_uv->GetTextureID(), wsize,
+                         ImVec2(0, 1), ImVec2(1, 0));
+            ImGui::EndChild();
+        }
         ImGui::End();
     }
 
@@ -146,14 +228,18 @@ class ExampleLayer : public Layer {
     glm::vec3 m_Square_Position{0.0f, 0.0f, 0.0f};
     glm::mat4 m_Square_Transform{1.0f};
 
+    Ref<FrameRenderBuffer> m_FrameRenderBuffer;
+    Ref<FrameRenderBuffer> m_FrameRenderBuffer_uv;
+
    private:
     glm::vec4 backGroundColor{0.7f, 0.7f, 0.7f, 1.0f};
 };
 
 class Sandbox : public Application {
    public:
-    Sandbox() : Application("Sandbox", 1600, 900) {
+    Sandbox() : Application("Sandbox", 2400, 1500) {
         ENGINE_TRACE("Sandbox Initialization.");
+        PushLayer(std::make_shared<DockSpaceLayer>(m_Running));
         PushLayer(std::make_shared<ExampleLayer>());
         ENGINE_TRACE("Sandbox Initialization Success.");
     }

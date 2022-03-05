@@ -202,9 +202,9 @@ class ExampleLayer : public Layer {
         float timeStep = m_LayerUpdateMeta.m_timeStep;
         float nowTime = m_LayerUpdateMeta.m_nowTime;
 
-        ImGui::Begin("Octree Rendering.");
-        ImGui::Text("Time Step: %f", timeStep);
-        ImGui::Text("Now Time: %f", nowTime);
+        Gui::Begin("Octree Rendering.");
+        Gui::Text("Time Step: {0}", timeStep);
+        Gui::Text("Now Time: {0}", nowTime);
 
         // ImGui::ColorEdit4("backGroundColor",
         // glm::value_ptr(backGroundColor)); ImGui::SliderFloat("transSpeed",
@@ -223,7 +223,7 @@ class ExampleLayer : public Layer {
         ImGui::SliderScalar("nowLevel", ImGuiDataType_U32, &nowLevel,
                             &nowLevel_min, &nowLevel_max);
 
-        ImGui::End();
+        Gui::End();
 
         this->RenderOctreeGui(m_Octree);
     }

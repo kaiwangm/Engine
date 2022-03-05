@@ -3,6 +3,7 @@ add_library(
     STATIC
     imgui_impl_opengl3.cpp
     imgui_impl_glfw.cpp
+    imgui_freetype.cpp
 )
 
 target_link_libraries(
@@ -15,6 +16,7 @@ target_link_libraries(
     OpenGL_Imgui  
     PRIVATE 
     imgui::imgui 
+    freetype 
     glad::glad 
-    glfw
+    glfw 
 )

@@ -32,14 +32,13 @@ class Application {
    private:
     Scope<Window> m_Window;
     LayerStack m_LayerStack;
-    bool m_Running = true;
+
     Ref<ImGuiLayer> m_ImGuiLayer;
     static Application* s_Instance;
 
-   private:
-    bool m_Minimized;
-
    protected:
+    bool m_Running;
+    bool m_Minimized;
     Timer m_Timer;
 };
 

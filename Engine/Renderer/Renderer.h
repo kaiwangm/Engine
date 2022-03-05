@@ -15,7 +15,10 @@ class Renderer {
     static void OnWindowResize(uint32_t width, uint32_t height);
 
     static void BeginScene(const Ref<Camera>& camera);
+    static void BeginScene(const Ref<Camera>& camera,
+                           const Ref<FrameRenderBuffer> framerenderbuffer);
     static void EndScene();
+    static void EndScene(const Ref<FrameRenderBuffer> framerenderbuffer);
 
     static void BindShader(const Ref<Shader>& shader) { shader->Bind(); }
     static void UnBindShader(const Ref<Shader>& shader) { shader->UnBind(); }

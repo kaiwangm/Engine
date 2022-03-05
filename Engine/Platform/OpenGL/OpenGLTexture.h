@@ -20,6 +20,6 @@ class OpenGLTexture2D : public Texture2D {
    private:
     std::string m_Path;
     uint32_t m_Width, m_Height, m_Channels;
-    uint32_t m_RendererID;
+    GLuint m_RendererID;
 };
 }  // namespace Engine

@@ -59,6 +59,11 @@ void Camera::RecalculateViewMatrix() {
                                    glm::vec3(0.0f, 0.0f, 1.0f));
 
     m_ViewMatrix = glm::inverse(transform * rotate);
+}
+
+void Camera::RecalculateViewProjectMatrix() {
+    RecalculateViewMatrix();
+    RecalculateProjectionMatrix();
     m_ViewProjectMatrix = m_ProjectionMatrix * m_ViewMatrix;
 }
 
@@ -77,18 +82,18 @@ OrthographicCamera::OrthographicCamera(float left, float right, float bottom,
 }
 
 void OrthographicCamera::SetViewPort(uint32_t width, uint32_t height) {
+    if (width == 0 || height == 0) return;
+
     float aspectRatio = (float)width / (float)height;
     m_Left = -aspectRatio;
     m_Right = aspectRatio;
     m_Bottom = -1.0f;
     m_Top = 1.0f;
-    RecalculateProjectionMatrix();
 }
 
 void OrthographicCamera::RecalculateProjectionMatrix() {
     m_ProjectionMatrix =
         glm::ortho(m_Left, m_Right, m_Bottom, m_Top, m_NearClip, m_FarClip);
-    m_ViewProjectMatrix = m_ProjectionMatrix * m_ViewMatrix;
 }
 
 PerspectiveCamera::PerspectiveCamera(float fov, float aspectRatio,
@@ -104,14 +109,13 @@ PerspectiveCamera::PerspectiveCamera(float fov, float aspectRatio,
 }
 
 void PerspectiveCamera::SetViewPort(uint32_t width, uint32_t height) {
+    if (width == 0 || height == 0) return;
+
     m_AspectRatio = (float)width / (float)height;
-    RecalculateProjectionMatrix();
 }
 
 void PerspectiveCamera::RecalculateProjectionMatrix() {
     m_ProjectionMatrix = glm::perspective(glm::radians(m_Fov), m_AspectRatio,
                                           m_NearClip, m_FarClip);
-    m_ViewProjectMatrix = m_ProjectionMatrix * m_ViewMatrix;
 }
-
 }  // namespace Engine

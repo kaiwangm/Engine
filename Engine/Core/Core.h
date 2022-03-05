@@ -29,6 +29,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <fmt/core.h>
+
 #ifdef ENGINE_PLATFORM_WINDOWS
 #include <windows.h>
 #include <glad/glad.h>

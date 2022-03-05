@@ -37,14 +37,14 @@ class OpenGLVertexBuffer : public VertexBuffer {
     OpenGLVertexBuffer(float* vertices, uint32_t size, uint32_t count);
     virtual ~OpenGLVertexBuffer();
 
-    virtual void Bind() const;
-    virtual void UnBind() const;
+    virtual void Bind() const override;
+    virtual void UnBind() const override;
 
-    virtual void SetLayout(const BufferLayout& layout);
-    virtual const BufferLayout& GetLayout() const;
+    virtual void SetLayout(const BufferLayout& layout) override;
+    virtual const BufferLayout& GetLayout() const override;
 
    private:
-    uint32_t m_RendererID;
+    GLuint m_RendererID;
 };
 
 class OpenGLIndexBuffer : public IndexBuffer {
@@ -52,13 +52,36 @@ class OpenGLIndexBuffer : public IndexBuffer {
     OpenGLIndexBuffer(uint32_t* indices, uint32_t count);
     virtual ~OpenGLIndexBuffer();
 
-    virtual void Bind() const;
-    virtual void UnBind() const;
+    virtual void Bind() const override;
+    virtual void UnBind() const override;
 
-    virtual uint32_t GetCount() const { return m_Count; };
+    virtual uint32_t GetCount() const override { return m_Count; };
 
    private:
-    uint32_t m_RendererID;
+    GLuint m_RendererID;
     uint32_t m_Count;
 };
+
+class OpenGLFrameRenderBuffer : public FrameRenderBuffer {
+   public:
+    OpenGLFrameRenderBuffer();
+    virtual ~OpenGLFrameRenderBuffer();
+
+    virtual void Bind() const override;
+    virtual void UnBind() const override;
+
+    virtual void SetViewPort(uint32_t width, uint32_t height) override;
+    virtual void* GetTextureID() const override;
+
+    virtual uint32_t GetWidth() const override;
+    virtual uint32_t GetHeight() const override;
+
+   private:
+    uint32_t m_Width;
+    uint32_t m_Height;
+    GLuint m_FrameBuffer_RendererID;
+    GLuint m_Texture_RendererID;
+    GLuint m_RenderBuffer_RendererID;
+};
+
 }  // namespace Engine

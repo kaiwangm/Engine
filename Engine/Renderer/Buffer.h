@@ -171,4 +171,19 @@ class IndexBuffer {
 
     static Ref<IndexBuffer> Create(uint32_t* indices, uint32_t count);
 };
+
+class FrameRenderBuffer {
+   public:
+    virtual ~FrameRenderBuffer() {}
+    virtual void Bind() const = 0;
+    virtual void UnBind() const = 0;
+
+    virtual void SetViewPort(uint32_t width, uint32_t height) = 0;
+    virtual void* GetTextureID() const = 0;
+
+    virtual uint32_t GetWidth() const = 0;
+    virtual uint32_t GetHeight() const = 0;
+
+    static Ref<FrameRenderBuffer> Create();
+};
 }  // namespace Engine

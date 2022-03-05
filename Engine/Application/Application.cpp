@@ -1,8 +1,6 @@
 #include "Application.h"
 
-#include "ImGuiLayer.h"
 #include "Input.h"
-#include "Log.h"
 #include "Renderer.h"
 
 namespace Engine {
@@ -10,7 +8,7 @@ Application* Application::s_Instance = nullptr;
 
 Application::Application(std::string appName, uint32_t windowWidth,
                          uint32_t windowHeight)
-    : m_Minimized(false) {
+    : m_Minimized(false), m_Running(true) {
     Engine::Log::Init();
     ENGINE_CORE_TRACE("Engine Initialization.");
 
@@ -51,17 +49,17 @@ void Application::Run() {
             layer->SetLayerUpdateMeta(updateMeta);
         }
 
-        if (m_Minimized == false) {
-            for (const auto& layer : m_LayerStack) {
-                layer->OnUpdate();
-            }
-
-            m_ImGuiLayer->Begin();
-            for (const auto& layer : m_LayerStack) {
-                layer->OnImGuiRender();
-            }
-            m_ImGuiLayer->End();
+        // if (m_Minimized == false) {
+        for (const auto& layer : m_LayerStack) {
+            layer->OnUpdate();
         }
+        //}
+
+        m_ImGuiLayer->Begin();
+        for (const auto& layer : m_LayerStack) {
+            layer->OnImGuiRender();
+        }
+        m_ImGuiLayer->End();
 
         m_Window->OnUpdate();
     }

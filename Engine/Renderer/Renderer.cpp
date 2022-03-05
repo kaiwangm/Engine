@@ -14,7 +14,25 @@ void Renderer::BeginScene(const Ref<Camera>& camera) {
     s_SceneData->ViewProjectionMatrix = camera->GetViewProjectMatrix();
 }
 
+void Renderer::BeginScene(const Ref<Camera>& camera,
+                          const Ref<FrameRenderBuffer> framerenderbuffer) {
+    camera->SetViewPort(framerenderbuffer->GetWidth(),
+                        framerenderbuffer->GetHeight());
+    camera->RecalculateViewProjectMatrix();
+
+    s_SceneData->ViewProjectionMatrix = camera->GetViewProjectMatrix();
+
+    framerenderbuffer->Bind();
+
+    RenderCommand::SetViewPort(0, 0, framerenderbuffer->GetWidth(),
+                               framerenderbuffer->GetHeight());
+}
+
 void Renderer::EndScene() {}
+
+void Renderer::EndScene(const Ref<FrameRenderBuffer> framerenderbuffer) {
+    framerenderbuffer->UnBind();
+}
 
 void Renderer::Submit(const Ref<VertexArray>& vertexArray,
                       const Ref<Shader>& shader, const glm::mat4& transform) {

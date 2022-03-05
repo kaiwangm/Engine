@@ -23,6 +23,7 @@ void WindowsWindow::Init(const WindowProps& props) {
         s_GLFWInitialized = true;
     }
 
+    //glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
     m_Window = glfwCreateWindow((int)m_Data.Width, (int)m_Data.Height,
                                 m_Data.Title.c_str(), nullptr, nullptr);
 

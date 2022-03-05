@@ -4,9 +4,11 @@
 #include "Renderer.h"
 
 // imgui
+#include <imgui.h>
+
+#include "OpenGL_Imgui/imgui_freetype.h"
 #include "OpenGL_Imgui/imgui_impl_glfw.h"
 #include "OpenGL_Imgui/imgui_impl_opengl3.h"
-#include "imgui.h"
 
 namespace Engine {
 OpenGLImGuiLayer::OpenGLImGuiLayer(const std::string& name) {
@@ -65,15 +67,16 @@ void OpenGLImGuiLayer::OnUpdate() {}
 
 void OpenGLImGuiLayer::OnEvent(Event& event) {
     ImGuiIO& io = ImGui::GetIO();
-    event.m_Handled |= event.IsInCategory(EventCategoryMouse) & io.WantCaptureMouse;
+    event.m_Handled |=
+        event.IsInCategory(EventCategoryMouse) & io.WantCaptureMouse;
     event.m_Handled |=
         event.IsInCategory(EventCategoryKeyboard) & io.WantCaptureKeyboard;
 }
 
 void OpenGLImGuiLayer::OnImGuiRender() {
-    ImGui::Begin("Imgui Test WIndow");
-    ImGui::Text("Imgui Layer !");
-    ImGui::End();
+    // ImGui::Begin("Imgui Test WIndow");
+    // ImGui::Text("Imgui Layer !");
+    // ImGui::End();
 }
 
 void OpenGLImGuiLayer::Begin() {
@@ -130,5 +133,10 @@ void OpenGLImGuiLayer::SetDarkThemeColors() {
     colors[ImGuiCol_TitleBg] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
     colors[ImGuiCol_TitleBgActive] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
     colors[ImGuiCol_TitleBgCollapsed] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
+
+    ImGuiIO& io = ImGui::GetIO();
+    io.Fonts->AddFontFromFileTTF(
+        "Assert/pinghei.ttf", 18.0f, NULL,
+        io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
 }
 }  // namespace Engine
