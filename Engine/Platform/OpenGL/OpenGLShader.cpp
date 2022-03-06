@@ -9,7 +9,7 @@ OpenGLShader::OpenGLShader(const std::string& name,
                            const std::string& fragmentSrc,
                            const std::string& mode)
     : Shader(name) {
-    ENGINE_CORE_TRACE("Creating Shader.");
+    Log::Core_Trace("Creating Shader.");
     std::string vertexShaderSource;
     std::string fragmentShaderSource;
 
@@ -27,7 +27,7 @@ OpenGLShader::OpenGLShader(const std::string& name,
 OpenGLShader::~OpenGLShader() {
     glDeleteProgram(m_RendererID);
 
-    ENGINE_CORE_TRACE("Deleting Shader.");
+    Log::Core_Trace("Deleting Shader.");
 }
 
 void OpenGLShader::Bind() const { glUseProgram(m_RendererID); }
@@ -112,8 +112,8 @@ void OpenGLShader::Compile(const std::string& vertexShaderSource,
         glDeleteShader(vertexShader);
 
         // Use the infoLog as you see fit.
-        ENGINE_CORE_ERROR("{0}", infoLog.data());
-        ENGINE_CORE_ERROR("Vertex shader compilation failed.");
+        Log::Core_Error("{0}", infoLog.data());
+        Log::Core_Error("Vertex shader compilation failed.");
 
         // In this simple program, we'll just leave
         return;
@@ -145,8 +145,8 @@ void OpenGLShader::Compile(const std::string& vertexShaderSource,
         glDeleteShader(vertexShader);
 
         // Use the infoLog as you see fit.
-        ENGINE_CORE_ERROR("{0}", infoLog.data());
-        ENGINE_CORE_ERROR("Fragment shader compilation failed.");
+        Log::Core_Error("{0}", infoLog.data());
+        Log::Core_Error("Fragment shader compilation failed.");
 
         // In this simple program, we'll just leave
         return;
@@ -183,8 +183,8 @@ void OpenGLShader::Compile(const std::string& vertexShaderSource,
         glDeleteShader(fragmentShader);
 
         // Use the infoLog as you see fit.
-        ENGINE_CORE_ERROR("{0}", infoLog.data());
-        ENGINE_CORE_ERROR("Shader Link failed.");
+        Log::Core_Error("{0}", infoLog.data());
+        Log::Core_Error("Shader Link failed.");
 
         // In this simple program, we'll just leave
         return;
@@ -200,11 +200,11 @@ std::string OpenGLShader::ReadFile(const std::string& shaderPath) {
     std::ifstream in_stream(shaderPath, std::ios::in, std::ios::binary);
 
     if (in_stream.is_open()) {
-        // ENGINE_CORE_TRACE("Open shader file \"{0}\".", shaderPath);
+        // Log::Core_Trace("Open shader file \"{0}\".", shaderPath);
         res = std::string((std::istreambuf_iterator<char>(in_stream)),
                           std::istreambuf_iterator<char>());
     } else {
-        ENGINE_CORE_ERROR("Could not open shader file \"{0}\".", shaderPath);
+        Log::Core_Error("Could not open shader file \"{0}\".", shaderPath);
     }
 
     return res;

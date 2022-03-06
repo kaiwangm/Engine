@@ -13,10 +13,10 @@ int OpenGLContext::Init() {
     glfwMakeContextCurrent(m_windowHandle);
     int gladload_status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 
-    ENGINE_CORE_TRACE("OpenGL Info:");
-    ENGINE_CORE_TRACE("    Vendor: {0}", GETGLSTRING(GL_VENDOR));
-    ENGINE_CORE_TRACE("    Render: {0}", GETGLSTRING(GL_RENDERER));
-    ENGINE_CORE_TRACE("    Version: {0}", GETGLSTRING(GL_VERSION));
+    Log::Core_Trace("OpenGL Info:");
+    Log::Core_Trace("    Vendor: {0}", GETGLSTRING(GL_VENDOR));
+    Log::Core_Trace("    Render: {0}", GETGLSTRING(GL_RENDERER));
+    Log::Core_Trace("    Version: {0}", GETGLSTRING(GL_VERSION));
 
     return gladload_status;
 }

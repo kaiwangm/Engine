@@ -13,3 +13,4 @@
 
 #include "Gui/GuiCommand.h"
 #include "Gui/DockSpaceLayer.h"
+#include "Gui/ImGuiLog.h"

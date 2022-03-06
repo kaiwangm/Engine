@@ -23,10 +23,10 @@ class ExampleLayer : public Layer {
 
         auto octree = m_Octree_future->get();
         m_Octree = octree;
-        ENGINE_TRACE("Octree built successfully.");
+        Log::Trace("Octree built successfully.");
 
         // ------------ Game -------- //
-        ENGINE_TRACE("Init game meta.");
+        Log::Trace("Init game meta.");
 
         m_Camera = std::make_shared<PerspectiveCamera>(45.0f, 1.778f, 0.1f,
                                                        3000.0f * 8);
@@ -300,12 +300,12 @@ class ExampleLayer : public Layer {
 class Sandbox : public Application {
    public:
     Sandbox() : Application("OctreeExample", 1600, 900) {
-        ENGINE_TRACE("Sandbox Initialization.");
+        Log::Trace("Sandbox Initialization.");
         PushLayer(std::make_shared<ExampleLayer>());
-        ENGINE_TRACE("Sandbox Initialization Success.");
+        Log::Trace("Sandbox Initialization Success.");
     }
 
-    ~Sandbox() { ENGINE_TRACE("Sandbox Shutdown."); }
+    ~Sandbox() { Log::Trace("Sandbox Shutdown."); }
 };
 
 Scope<Application> CreateApplication() { return std::make_unique<Sandbox>(); }

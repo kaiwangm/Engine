@@ -17,6 +17,7 @@
 #include <functional>
 #include <cstdint>
 #include <memory>
+#include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -43,6 +44,9 @@ using Scope = std::unique_ptr<T>;
 
 template <typename T>
 using Ref = std::shared_ptr<T>;
+
+template <typename T>
+using WeakRef = std::weak_ptr<T>;
 }  // namespace Engine
 
 #include "Log.h"

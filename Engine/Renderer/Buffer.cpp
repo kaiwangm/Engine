@@ -11,7 +11,7 @@ Ref<VertexBuffer> VertexBuffer::Create(float* vertices, uint32_t size,
                                        uint32_t count) {
     switch (Renderer::GetAPI()) {
         case RendererAPI::API::None:
-            ENGINE_CORE_ERROR("RendererAPI::None is currently not supported.");
+            Log::Core_Error("RendererAPI::None is currently not supported.");
             break;
 
         case RendererAPI::API::OpenGL:
@@ -19,7 +19,7 @@ Ref<VertexBuffer> VertexBuffer::Create(float* vertices, uint32_t size,
             break;
 
         default:
-            ENGINE_CORE_ERROR("RendererAPI::Unknow API.");
+            Log::Core_Error("RendererAPI::Unknow API.");
             break;
     }
 
@@ -29,7 +29,7 @@ Ref<VertexBuffer> VertexBuffer::Create(float* vertices, uint32_t size,
 Ref<IndexBuffer> IndexBuffer::Create(uint32_t* indices, uint32_t count) {
     switch (Renderer::GetAPI()) {
         case RendererAPI::API::None:
-            ENGINE_CORE_ERROR("RendererAPI::None is currently not supported.");
+            Log::Core_Error("RendererAPI::None is currently not supported.");
             break;
 
         case RendererAPI::API::OpenGL:
@@ -37,7 +37,7 @@ Ref<IndexBuffer> IndexBuffer::Create(uint32_t* indices, uint32_t count) {
             break;
 
         default:
-            ENGINE_CORE_ERROR("RendererAPI::Unknow API.");
+            Log::Core_Error("RendererAPI::Unknow API.");
             break;
     }
 
@@ -47,7 +47,7 @@ Ref<IndexBuffer> IndexBuffer::Create(uint32_t* indices, uint32_t count) {
 Ref<FrameRenderBuffer> FrameRenderBuffer::Create() {
     switch (Renderer::GetAPI()) {
         case RendererAPI::API::None:
-            ENGINE_CORE_ERROR("RendererAPI::None is currently not supported.");
+            Log::Core_Error("RendererAPI::None is currently not supported.");
             break;
 
         case RendererAPI::API::OpenGL:
@@ -55,7 +55,7 @@ Ref<FrameRenderBuffer> FrameRenderBuffer::Create() {
             break;
 
         default:
-            ENGINE_CORE_ERROR("RendererAPI::Unknow API.");
+            Log::Core_Error("RendererAPI::Unknow API.");
             break;
     }
 

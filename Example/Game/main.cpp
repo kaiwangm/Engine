@@ -4,7 +4,7 @@ namespace Engine {
 
 class ExampleLayer : public Layer {
    public:
-    ExampleLayer() : Layer("Example") {
+    ExampleLayer() : Layer("Example"), m_IsWindowFocused(false) {
         m_Camera = std::make_shared<PerspectiveCamera>(45.0f, 1.778f, 0.1f,
                                                        3000.0f * 8);
         m_Camera->SetPosition({0.0f, 0.0f, 3.0f});
@@ -84,7 +84,8 @@ class ExampleLayer : public Layer {
     void OnDetach() override {}
 
     void OnUpdate() override {
-        m_Camera->OnUpdate(m_LayerUpdateMeta.m_timeStep);
+        if (m_IsWindowFocused == true)
+            m_Camera->OnUpdate(m_LayerUpdateMeta.m_timeStep);
 
         // Render
         Renderer::BeginScene(m_Camera, m_FrameRenderBuffer);
@@ -175,13 +176,15 @@ class ExampleLayer : public Layer {
         Gui::ShowImNodesDemoWindow();
         ImGui::ShowDemoWindow();
 
-        ImGui::Begin("View :: Color");
+        ImGui::Begin("ViewPort :: Color");
         {
             // Using a Child allow to fill all the space of the window.
             // It also alows customization
-            ImGui::BeginChild("GameRender");
-            // Get the size of the child (i.e. the whole draw size of the
-            // windows).
+            ImGui::BeginChild("Render");
+            m_IsWindowFocused = ImGui::IsWindowFocused();
+            // Log::Trace("Focused: {0}", ImGui::IsWindowFocused());
+            //  Get the size of the child (i.e. the whole draw size of the
+            //  windows).
             ImVec2 wsize = ImGui::GetWindowSize();
             // Because I use the texture from OpenGL, I need to invert the V
             // from the UV.
@@ -193,11 +196,11 @@ class ExampleLayer : public Layer {
         }
         ImGui::End();
 
-        ImGui::Begin("View :: UV");
+        ImGui::Begin("ViewPort :: UV");
         {
             // Using a Child allow to fill all the space of the window.
             // It also alows customization
-            ImGui::BeginChild("GameRender");
+            ImGui::BeginChild("Render");
             // Get the size of the child (i.e. the whole draw size of the
             // windows).
             ImVec2 wsize = ImGui::GetWindowSize();
@@ -207,9 +210,12 @@ class ExampleLayer : public Layer {
                                                 (uint32_t)wsize.y);
             ImGui::Image(m_FrameRenderBuffer_uv->GetTextureID(), wsize,
                          ImVec2(0, 1), ImVec2(1, 0));
+
             ImGui::EndChild();
         }
         ImGui::End();
+
+        ImGui::ShowExampleAppLog(NULL);
     }
 
     void OnEvent(Event& event) override { m_Camera->OnEvent(event); }
@@ -233,18 +239,19 @@ class ExampleLayer : public Layer {
 
    private:
     glm::vec4 backGroundColor{0.7f, 0.7f, 0.7f, 1.0f};
+    bool m_IsWindowFocused;
 };
 
 class Sandbox : public Application {
    public:
     Sandbox() : Application("Sandbox", 2400, 1500) {
-        ENGINE_TRACE("Sandbox Initialization.");
+        Log::Trace("Sandbox Initialization.");
         PushLayer(std::make_shared<DockSpaceLayer>(m_Running));
         PushLayer(std::make_shared<ExampleLayer>());
-        ENGINE_TRACE("Sandbox Initialization Success.");
+        Log::Trace("Sandbox Initialization Success.");
     }
 
-    ~Sandbox() { ENGINE_TRACE("Sandbox Shutdown."); }
+    ~Sandbox() { Log::Trace("Sandbox Shutdown."); }
 };
 
 Scope<Application> CreateApplication() { return std::make_unique<Sandbox>(); }

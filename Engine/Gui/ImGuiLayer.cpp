@@ -10,7 +10,7 @@ namespace Engine {
 Ref<ImGuiLayer> ImGuiLayer::Create(const std::string& name) {
     switch (Renderer::GetAPI()) {
         case RendererAPI::API::None:
-            ENGINE_CORE_ERROR("RendererAPI::None is currently not supported.");
+            Log::Core_Error("RendererAPI::None is currently not supported.");
             break;
 
         case RendererAPI::API::OpenGL:
@@ -18,7 +18,7 @@ Ref<ImGuiLayer> ImGuiLayer::Create(const std::string& name) {
             break;
 
         default:
-            ENGINE_CORE_ERROR("RendererAPI::Unknow API.");
+            Log::Core_Error("RendererAPI::Unknow API.");
             break;
     }
 

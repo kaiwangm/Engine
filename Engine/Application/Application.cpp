@@ -9,8 +9,8 @@ Application* Application::s_Instance = nullptr;
 Application::Application(std::string appName, uint32_t windowWidth,
                          uint32_t windowHeight)
     : m_Minimized(false), m_Running(true) {
-    Engine::Log::Init();
-    ENGINE_CORE_TRACE("Engine Initialization.");
+    Log::Init();
+    Log::Core_Trace("Engine Initialization.");
 
     s_Instance = this;
     m_Window = Window::Create({appName, windowWidth, windowHeight});
@@ -22,10 +22,10 @@ Application::Application(std::string appName, uint32_t windowWidth,
     m_ImGuiLayer = ImGuiLayer::Create("ImGuiLayer");
     PushOverlay(m_ImGuiLayer);
 
-    ENGINE_CORE_TRACE("Engine Initialization Success.");
+    Log::Core_Trace("Engine Initialization Success.");
 }
 
-Application::~Application() { ENGINE_CORE_TRACE("Engine Shutdown."); }
+Application::~Application() { Log::Core_Trace("Engine Shutdown."); }
 
 void Application::PushLayer(Ref<Layer> layer) {
     m_LayerStack.PushLayer(layer);

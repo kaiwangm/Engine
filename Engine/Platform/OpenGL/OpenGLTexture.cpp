@@ -7,7 +7,7 @@ OpenGLTexture2D::OpenGLTexture2D(const std::string& path) : m_Path(path) {
     int width, height, channels;
     stbi_uc* data = stbi_load(path.c_str(), &width, &height, &channels, 0);
     if (data == nullptr) {
-        ENGINE_CORE_ERROR("Could not open texture file \"{0}\".", path);
+        Log::Core_Error("Could not open texture file \"{0}\".", path);
     }
 
     m_Width = width;

@@ -11,6 +11,7 @@ A Modern OpenGL Game Engine.
 - 2022-03-05 ✨ Camera Controller.
 - 2022-03-05 ✨ Frame Buffer Object.
 - 2022-03-05 ✨ Render to Gui.
+- 2022-03-06 ✨ Log to Gui.
 - ......
 
 ![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/GUI_FBO.png)
@@ -41,5 +42,12 @@ cmake ..
 ## Reference
 
 1. Hazel Engine [Github](https://github.com/TheCherno/Hazel)
+
+
+
+
+
+
+
 
 

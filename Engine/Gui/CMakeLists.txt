@@ -6,6 +6,7 @@ add_library(
     DockSpaceLayer.cpp
     GuiCommand.cpp
     ImGuiLayer.cpp
+    ImGuiLog.cpp
 )
 
 target_link_libraries(

@@ -83,9 +83,13 @@ void OpenGLImGuiLayer::Begin() {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
+
+    //ImGui::Begin("Imgui Test WIndow");
 }
 
 void OpenGLImGuiLayer::End() {
+    //ImGui::End();
+
     ImGuiIO& io = ImGui::GetIO();
     Application& app = Application::Get();
     io.DisplaySize = ImVec2((float)app.GetWindow().GetWidth(),
@@ -101,6 +105,8 @@ void OpenGLImGuiLayer::End() {
         ImGui::RenderPlatformWindowsDefault();
         glfwMakeContextCurrent(backup_current_context);
     }
+
+    
 }
 
 void OpenGLImGuiLayer::SetDarkThemeColors() {

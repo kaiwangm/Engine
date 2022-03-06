@@ -3,45 +3,72 @@
 #include "Core.h"
 
 namespace Engine {
-class Log_Imp {
+class Log {
    public:
     static void Init();
 
     inline static Ref<spdlog::logger>& GetCoreLogger() { return s_CoreLogger; }
+
     inline static Ref<spdlog::logger>& GetClientLogger() {
         return s_ClientLogger;
+    }
+
+    inline static Ref<std::ostringstream>& GetOString() { return s_OString; }
+
+    template <class... Args>
+    inline static void Core_Trace(Args... args) {
+        GetCoreLogger()->trace(args...);
+    }
+
+    template <class... Args>
+    inline static void Core_Info(Args... args) {
+        GetCoreLogger()->info(args...);
+    }
+
+    template <class... Args>
+    inline static void Core_Warn(Args... args) {
+        GetCoreLogger()->warn(args...);
+    }
+
+    template <class... Args>
+    inline static void Core_Error(Args... args) {
+        GetCoreLogger()->error(args...);
+    }
+
+    template <class... Args>
+    inline static void Core_Critical(Args... args) {
+        GetCoreLogger()->critical(args...);
+    }
+
+    template <class... Args>
+    inline static void Trace(Args... args) {
+        GetClientLogger()->trace(args...);
+    }
+
+    template <class... Args>
+    inline static void Info(Args... args) {
+        GetClientLogger()->info(args...);
+    }
+
+    template <class... Args>
+    inline static void Warn(Args... args) {
+        GetClientLogger()->warn(args...);
+    }
+
+    template <class... Args>
+    inline static void Error(Args... args) {
+        GetClientLogger()->error(args...);
+    }
+
+    template <class... Args>
+    inline static void Critical(Args... args) {
+        GetClientLogger()->critical(args...);
     }
 
    private:
     static Ref<spdlog::logger> s_CoreLogger;
     static Ref<spdlog::logger> s_ClientLogger;
-};
 
-class Log {
-   public:
-    static void Init();
-
-    inline static Ref<spdlog::logger>& GetCoreLogger() {
-        return Log_Imp::GetCoreLogger();
-    }
-    inline static Ref<spdlog::logger>& GetClientLogger() {
-        return Log_Imp::GetClientLogger();
-    }
+    static Ref<std::ostringstream> s_OString;
 };
 }  // namespace Engine
-
-#define ENGINE_CORE_TRACE(...) \
-    ::Engine::Log::GetCoreLogger()->trace(__VA_ARGS__)
-#define ENGINE_CORE_INFO(...) ::Engine::Log::GetCoreLogger()->info(__VA_ARGS__)
-#define ENGINE_CORE_WARN(...) ::Engine::Log::GetCoreLogger()->warn(__VA_ARGS__)
-#define ENGINE_CORE_ERROR(...) \
-    ::Engine::Log::GetCoreLogger()->error(__VA_ARGS__)
-#define ENGINE_CORE_CRITICAL(...) \
-    ::Engine::Log::GetCoreLogger()->critical(__VA_ARGS__)
-
-#define ENGINE_TRACE(...) ::Engine::Log::GetClientLogger()->trace(__VA_ARGS__)
-#define ENGINE_INFO(...) ::Engine::Log::GetClientLogger()->info(__VA_ARGS__)
-#define ENGINE_WARN(...) ::Engine::Log::GetClientLogger()->warn(__VA_ARGS__)
-#define ENGINE_ERROR(...) ::Engine::Log::GetClientLogger()->error(__VA_ARGS__)
-#define ENGINE_CRITICAL(...) \
-    ::Engine::Log::GetClientLogger()->critical(__VA_ARGS__)

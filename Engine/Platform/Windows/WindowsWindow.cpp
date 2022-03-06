@@ -15,15 +15,18 @@ void WindowsWindow::Init(const WindowProps& props) {
     m_Data.Width = props.Width;
     m_Data.Height = props.Height;
 
-    ENGINE_CORE_TRACE("Creating window \"{0}\" ({1}, {2})", props.Title,
-                      props.Width, props.Height);
+    Log::Core_Trace("Creating window \"{0}\" ({1}, {2})", props.Title,
+                    props.Width, props.Height);
 
     if (!s_GLFWInitialized) {
         int success = glfwInit();
         s_GLFWInitialized = true;
     }
 
-    //glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+	//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    //glfwWindowHint(GLFW_DECORATED, GL_FALSE);
     m_Window = glfwCreateWindow((int)m_Data.Width, (int)m_Data.Height,
                                 m_Data.Title.c_str(), nullptr, nullptr);
 
