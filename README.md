@@ -14,7 +14,7 @@ A Modern OpenGL Game Engine.
 - 2022-03-06 ✨ Log to Gui.
 - ......
 
-![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/GUI_FBO.png)
+![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/Log_Gui.png)
 
 <!--
 ## Framework Architecture:
