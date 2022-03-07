@@ -17,14 +17,14 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            visual_studio: "Visual Studio 17 2022"
-            triplet: x64-windows
+            toolset: "14.16"
+            arch: x64
           - os: windows-latest
-            visual_studio: "Visual Studio 16 2019"
-            triplet: x64-windows
+            toolset: "14.29"
+            arch: x64
           - os: windows-latest
-            visual_studio: "Visual Studio 15 2017"
-            triplet: x64-windows
+            toolset: "14.31"
+            arch: x64
     env:
       VCPKG_ROOT: '${{ github.workspace }}/vcpkg'
 
@@ -56,7 +56,7 @@ jobs:
           # The key includes: hash of the vcpkg.json file, the hash of the vcpkg Git commit id, and the used vcpkg's triplet. The vcpkg's commit id would suffice, but computing an hash out it does not harm.
           # Note: given a key, the cache content is immutable. If a cache entry has been created improperly, in order the recreate the right content the key must be changed as well, and it must be brand new (i.e. not existing already).
           key: |
-            ${{ hashFiles( 'vcpkg.json' ) }}-${{ matrix.os }}-${{ matrix.visual_studio }}-${{ matrix.triplet }}-cache-key
+            ${{ hashFiles( 'vcpkg.json' ) }}-${{ matrix.os }}-${{ matrix.toolset }}-${{ matrix.arch }}-cache-key
         
       - name: Get vcpkg(windows)
         working-directory: ${{github.workspace}}
@@ -73,7 +73,8 @@ jobs:
       - uses: ilammy/msvc-dev-cmd@v1
         if: runner.os == 'Windows'
         with:
-          arch: x64
+          arch: ${{ matrix.arch }}
+          toolset: ${{ matrix.toolset }}
       
       - name: Running cmake
         # Build with Ninja
