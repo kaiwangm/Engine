@@ -70,25 +70,32 @@ jobs:
         shell: bash
 
       - name: Get vcpkg(windows)
-        working-directory: ${{github.workspace}}
+        working-directory: ${{ github.workspace }}
         if: ${{ runner.os == 'Windows' && steps.vcpkg-cache.outputs.cache-hit != 'true' }}
         run: |
           git clone https://github.com/Microsoft/vcpkg.git
           .\vcpkg\bootstrap-vcpkg.bat
 
+      - name: Fix vcpkg(windows)
+        working-directory: ${{ env.VCPKG_ROOT }}
+        if: ${{ runner.os == 'Windows' && steps.vcpkg-cache.outputs.cache-hit != 'true' && matrix.toolset == "14.16" }}
+        run: |
+          'set(VCPKG_PLATFORM_TOOLSET "v141")' | Out-File -Append .\triplets\x64-windows
+          'set(VCPKG_DEP_INFO_OVERRIDE_VARS "v141")' | Out-File -Append .\triplets\x64-windows
+
       - name: Running cmake
         # Build with Ninja
-        working-directory: ${{github.workspace}}
+        working-directory: ${{ github.workspace }}
         run: |
           cmake -B build -G Ninja -DCMAKE_TOOLCHAIN_FILE=${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake
 
       - name: Build Solution
-        working-directory: ${{github.workspace}}
+        working-directory: ${{ github.workspace }}
         run: |
           cmake --build build --parallel --config Release
 
       - name: Test
-        working-directory: ${{github.workspace}}/build
+        working-directory: ${{ github.workspace }}/build
         # Execute tests defined by the CMake configuration.
         # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
         run: ctest -C Release
