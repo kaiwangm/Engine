@@ -78,7 +78,7 @@ jobs:
 
       - name: Fix vcpkg(windows)
         working-directory: ${{ env.VCPKG_ROOT }}
-        if: ${{ runner.os == 'Windows' && steps.vcpkg-cache.outputs.cache-hit != 'true' && matrix.toolset == "14.16" }}
+        if: ${{ runner.os == 'Windows' && steps.vcpkg-cache.outputs.cache-hit != 'true' && matrix.toolset == '14.16' }}
         run: |
           'set(VCPKG_PLATFORM_TOOLSET "v141")' | Out-File -Append .\triplets\x64-windows
           'set(VCPKG_DEP_INFO_OVERRIDE_VARS "v141")' | Out-File -Append .\triplets\x64-windows
