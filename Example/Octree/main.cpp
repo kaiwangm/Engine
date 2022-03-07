@@ -1,3 +1,5 @@
+#define NOMINMAX
+
 #include <Engine.h>
 
 #include <future>

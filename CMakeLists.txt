@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.22.0)
 project(EngineProject VERSION 0.1.0)
 set(CMAKE_CXX_STANDARD 17)
 
@@ -13,6 +13,7 @@ find_package(glfw3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 find_package(freetype CONFIG REQUIRED)
+find_package(EnTT CONFIG REQUIRED)
 find_package(GTest CONFIG REQUIRED)
 
 include (GenerateExportHeader)

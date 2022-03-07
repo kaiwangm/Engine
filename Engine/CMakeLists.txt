@@ -37,3 +37,9 @@ target_link_libraries(
     PUBLIC 
     Platform
 )
+
+target_link_libraries(
+    Engine 
+    PUBLIC 
+    glm::glm
+)

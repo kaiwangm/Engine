@@ -27,6 +27,7 @@ target_link_libraries(
     PRIVATE 
     OpenGL_Imgui
     Stb
+    glm::glm
 )
 
 target_include_directories(Platform_OpenGL INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})

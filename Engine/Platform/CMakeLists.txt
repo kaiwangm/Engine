@@ -20,6 +20,7 @@ IF (WIN32)
         PRIVATE 
         Platform_Windows 
         Platform_OpenGL 
+        glm::glm
     )
 ENDIF ()
 

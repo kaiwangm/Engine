@@ -2,6 +2,8 @@
 
 #include "Core.h"
 
+#include <spdlog/spdlog.h>
+
 namespace Engine {
 class Log {
    public:

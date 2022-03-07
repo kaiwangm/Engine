@@ -18,7 +18,10 @@ target_link_libraries(
 target_link_libraries(
     Core 
     PRIVATE 
+    spdlog::spdlog 
     spdlog::spdlog_header_only
+    glm::glm
+    glad::glad
 )
 
 target_include_directories(Core INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})

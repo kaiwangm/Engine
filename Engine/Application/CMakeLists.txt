@@ -12,4 +12,10 @@ target_link_libraries(
     Renderer
 )
 
+target_link_libraries(
+    Application 
+    PRIVATE 
+    glm::glm
+)
+
 target_include_directories(Application INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})

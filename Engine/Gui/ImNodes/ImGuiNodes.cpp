@@ -1,16 +1,28 @@
 #include "ImGuiNodes.h"
 
-std::map<std::string, MyNode*(*)()> available_nodes{
-    {"Compose", []() -> MyNode* { return new MyNode("Compose", {
-        {"Position", NodeSlotPosition}, {"Rotation", NodeSlotRotation}  // Input slots
-    }, {
-        {"Matrix", NodeSlotMatrix}                                      // Output slots
-    }); }},
-    {"Decompose", []() -> MyNode* { return new MyNode("Decompose", {
-        {"Matrix", NodeSlotMatrix}                                      // Input slots
-    }, {
-        {"Position", NodeSlotPosition}, {"Rotation", NodeSlotRotation}  // Output slots
-    }); }},
+std::map<std::string, MyNode* (*)()> available_nodes{
+    {"Compose",
+     []() -> MyNode* {
+         return new MyNode("Compose",
+                           {
+                               {"Position", NodeSlotPosition},
+                               {"Rotation", NodeSlotRotation}  // Input slots
+                           },
+                           {
+                               {"Matrix", NodeSlotMatrix}  // Output slots
+                           });
+     }},
+    {"Decompose",
+     []() -> MyNode* {
+         return new MyNode("Decompose",
+                           {
+                               {"Matrix", NodeSlotMatrix}  // Input slots
+                           },
+                           {
+                               {"Position", NodeSlotPosition},
+                               {"Rotation", NodeSlotRotation}  // Output slots
+                           });
+     }},
 };
 
 std::vector<MyNode*> nodes;
@@ -36,14 +48,14 @@ void ShowImNodesDemoWindow() {
                                        &node->Selected)) {
                 // Render input nodes first (order is important)
                 ImNodes::Ez::InputSlots(node->InputSlots.data(),
-                                        node->InputSlots.size());
+                                        (int)node->InputSlots.size());
 
                 // Custom node content may go here
                 ImGui::Text("Content of %s", node->Title);
 
                 // Render output nodes first (order is important)
                 ImNodes::Ez::OutputSlots(node->OutputSlots.data(),
-                                         node->OutputSlots.size());
+                                         (int)node->OutputSlots.size());
 
                 // Store new connections when they are created
                 Connection new_connection;

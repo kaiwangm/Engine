@@ -1,5 +1,6 @@
 #include "Log.h"
 
+#include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/ostream_sink.h>
 #include <spdlog/sinks/rotating_file_sink.h>
 
@@ -13,7 +14,7 @@ void Log::Init() {
 
     auto sink1 = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
     auto sink2 = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
-        "Logs/Log.txt", 1024 * 1024 * 5, 1);
+        "Logs/Log.txt", 1024 * 1024 * 5, 3);
     auto sink3 = std::make_shared<spdlog::sinks::ostream_sink_mt>(*s_OString);
     std::vector<spdlog::sink_ptr> sinks = {sink1, sink2, sink3};
 
