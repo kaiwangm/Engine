@@ -19,25 +19,48 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: windows-2019
-            visual_studio: "Visual Studio 15 2017"
-            cuda: "11.3.1"
-            arch: 86
+          - os: windows-latest
+            triplet: x64-windows
     env:
       build_dir: "build"
       config: "Release"
-      TCNN_CUDA_ARCHITECTURES: ${{ matrix.arch }}
-          
+      VCPKG_ROOT: '${{ github.workspace }}/vcpkg'
 
     steps:
-    - uses: actions/checkout@v2
-    
-    - name: Install CUDA
-      env:
-        cuda: ${{ matrix.cuda }}
-        visual_studio: ${{ matrix.visual_studio }}
-      shell: powershell
-      run: .\CI\cuda-cmake-github-actions\scripts\actions\install_cuda_windows.ps1
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      
+      - name: Get cmake
+        # Install latest CMake.
+        uses: lukka/get-cmake@latest
+
+      - name: Get vcpkg(windows)
+        if: ${{ runner.os == 'Windows' }}
+        run: |
+          cd ${{ github.workspace }}
+          git clone https://github.com/Microsoft/vcpkg.git
+          .\vcpkg\bootstrap-vcpkg.bat
+
+      - name: remove system vcpkg(windows)
+        if: runner.os == 'Windows'
+        run: rm -rf "$VCPKG_INSTALLATION_ROOT"
+        shell: bash
+      
+      - uses: ilammy/msvc-dev-cmd@v1
+        if: runner.os == 'Windows'
+        with:
+          arch: x64
+      
+      - name: Running cmake
+        run: |
+          cd ${{ github.workspace }}
+          cmake -B build -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
+
+      - name: Build Solution
+        run: |
+          cmake --build build --parallel --config Release
 
     # - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.

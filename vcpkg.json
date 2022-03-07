@@ -1,0 +1,21 @@
+{
+  "name": "engine",
+  "version-string": "0.0.1",
+  "dependencies": [
+    "spdlog",
+    "glad",
+    "glfw3",
+    "glm",
+    {
+      "name": "imgui",
+      "default-features": false,
+      "features": [
+        "docking-experimental"
+      ]
+    },
+    "freetype",
+    "entt",
+    "gtest",
+    "pcl"
+  ]
+}
