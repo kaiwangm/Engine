@@ -1,5 +1,6 @@
 add_library(
     Renderer
+    STATIC
     GraphicsContext.cpp
     Shader.cpp
     Buffer.cpp

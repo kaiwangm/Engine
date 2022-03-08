@@ -87,6 +87,8 @@ void OpenGLFrameRenderBuffer::SetViewPort(uint32_t width, uint32_t height) {
                                GL_TEXTURE_2D, m_Texture_RendererID, 0);
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width,
                               height);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
+                                  GL_RENDERBUFFER, m_RenderBuffer_RendererID);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glBindTexture(GL_TEXTURE_2D, 0);

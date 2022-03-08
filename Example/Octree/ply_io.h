@@ -1,50 +1,33 @@
 #pragma once
 
-// pcl
-#include <pcl/common/io.h>
-#include <pcl/io/ply_io.h>
-#include <pcl/point_cloud.h>
-
 //
 #include <Engine.h>
 
 #include <iostream>
 
 #include "Octree/Octree.h"
+#include "happly.h"
 
 void save_ply(const std::vector<Engine::Ref<Engine::OctreeNode> >& levelnodes,
-              const std::string& name) {
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_ptr =
-        pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
-
-    for (size_t i = 0; i < levelnodes.size(); ++i) {
-        pcl::PointXYZ p;
-        p.x = levelnodes[i]->GetX();
-        p.y = levelnodes[i]->GetY();
-        p.z = levelnodes[i]->GetZ();
-
-        cloud_ptr->points.push_back(p);
-    }
-    std::cout << "Saving to file " << name << std::endl;
-    pcl::io::savePLYFile(name, *cloud_ptr);
-}
+              const std::string& name) {}
 
 std::vector<std::array<uint32_t, 6> > load_ply(const std::string& name) {
-    pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud(
-        new pcl::PointCloud<pcl::PointXYZRGBA>);
+    happly::PLYData plyIn(name);
+    auto x = plyIn.getElement("vertex").getProperty<float>("x");
+    auto y = plyIn.getElement("vertex").getProperty<float>("y");
+    auto z = plyIn.getElement("vertex").getProperty<float>("z");
+    auto r = plyIn.getElement("vertex").getProperty<unsigned char>("red");
+    auto g = plyIn.getElement("vertex").getProperty<unsigned char>("green");
+    auto b = plyIn.getElement("vertex").getProperty<unsigned char>("blue");
+    std::vector<std::array<uint32_t, 6> > points(x.size());
 
-    if (pcl::io::loadPLYFile<pcl::PointXYZRGBA>(name, *cloud) == -1) {
-        PCL_ERROR("Couldn't read file. \n");
-    }
-
-    std::vector<std::array<uint32_t, 6> > points(cloud->points.size());
-    for (int i = 0; i < cloud->points.size(); ++i) {
-        points[i][0] = cloud->points[i].x;
-        points[i][1] = cloud->points[i].y;
-        points[i][2] = cloud->points[i].z;
-        points[i][3] = cloud->points[i].r;
-        points[i][4] = cloud->points[i].g;
-        points[i][5] = cloud->points[i].b;
+    for (int i = 0; i < points.size(); ++i) {
+        points[i][0] = x[i];
+        points[i][1] = y[i];
+        points[i][2] = z[i];
+        points[i][3] = r[i];
+        points[i][4] = g[i];
+        points[i][5] = b[i];
     }
 
     return points;

@@ -2,7 +2,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/OctreeExample)
 
 add_definitions(-DENGINE_USE_ENTRYPOINT)
 
-find_package(PCL CONFIG REQUIRED)
 add_subdirectory(Octree)
 
 add_executable(OctreeExample main.cpp)

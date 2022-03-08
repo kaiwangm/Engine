@@ -14,16 +14,8 @@ class ExampleLayer : public Layer {
    public:
     ExampleLayer() : Layer("Example") {
         // ------------ Octree -------- //
-
-        m_Octree_future =
-            std::make_shared<std::future<Ref<Octree> > >(std::async(
-                std::launch::deferred,
-                [](const std::string& name) {
-                    return std::make_shared<Octree>(load_ply(name), 10);
-                },
-                "Assert/longdress_vox10_1300.ply"));
-
-        auto octree = m_Octree_future->get();
+        auto octree = std::make_shared<Octree>(
+            load_ply("Assert/longdress_vox10_1300.ply"), 10);
         m_Octree = octree;
         Log::Trace("Octree built successfully.");
 
@@ -32,37 +24,9 @@ class ExampleLayer : public Layer {
 
         m_Camera = std::make_shared<PerspectiveCamera>(45.0f, 1.778f, 0.1f,
                                                        3000.0f * 8);
-        m_Camera->SetPosition(m_Camera_Position);
+        m_Camera->SetPosition({224.0f, 453.0f, 729.0f});
         m_Camera->SetCameraTranslationSpeed(300.0f);
         m_Camera->SetCameraRotationSpeed(10.0f);
-
-        // ------------ OpenGL Tree -------- //
-
-        float Tree_vertices[4 * 9] = {
-            -0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,  //
-            0.5f,  -0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,  //
-            0.5f,  0.5f,  0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,  //
-            -0.5f, 0.5f,  0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,  //
-        };
-        uint32_t Tree_indices[6] = {0, 1, 2, 2, 3, 0};
-
-        // Set Vertex Buffer
-        Ref<VertexBuffer> Tree_VertexBuffer =
-            VertexBuffer::Create(Tree_vertices, sizeof(Tree_vertices), 4);
-        Tree_VertexBuffer->SetLayout({
-            {0, ShaderDataType::Float3, "a_Position"},
-            {1, ShaderDataType::Float4, "a_Color"},
-            {2, ShaderDataType::Float2, "a_TexCoord"},
-        });
-
-        // Set Index Buffer
-        Ref<IndexBuffer> Tree_IndexBuffer = IndexBuffer::Create(
-            Tree_indices, sizeof(Tree_indices) / sizeof(uint32_t));
-
-        // Set Vertex Arrays
-        m_Tree_VertexArray = VertexArray::Create();
-        m_Tree_VertexArray->AddVertexBuffer(Tree_VertexBuffer, false);
-        m_Tree_VertexArray->AddIndexBuffer(Tree_IndexBuffer);
 
         for (int i = 0; i <= 10; ++i) {
             Ref<VertexArray> vertexArray;
@@ -156,69 +120,53 @@ class ExampleLayer : public Layer {
         }
 
         // ---------------Shader--------------- //
-        m_ShaderLibrary.Load("TextureShader", "Assert/vertex.glsl",
-                             "Assert/fragment.glsl", "Path");
-        m_ShaderLibrary.Load("BoxShader", "Assert/box_vertex.glsl",
-                             "Assert/box_fragment.glsl", "Path");
         m_ShaderLibrary.Load("OctreeShader", "Assert/octree_vertex.glsl",
                              "Assert/octree_fragment.glsl", "Path");
 
-        // ---------------Texture--------------- //
-        m_Texture = Texture2D::Create("Assert/Checkerboard.png");
-        m_Icons_Texture = Texture2D::Create("Assert/Icons.png");
+        // Set FrameRenderBuffer
+        m_FrameRenderBuffer = FrameRenderBuffer::Create();
     }
 
-    void OnAttach() override {
-        threadObj = std::thread([=]() {});
-    }
+    void OnAttach() override {}
 
-    void OnDetach() override { threadObj.join(); }
+    void OnDetach() override {}
 
     void OnUpdate() override {
-        m_Camera->OnUpdate(m_LayerUpdateMeta.m_timeStep);
+        if (m_IsWindowFocused == true)
+            m_Camera->OnUpdate(m_LayerUpdateMeta.m_timeStep);
 
         // Render
+        Renderer::BeginScene(m_Camera, m_FrameRenderBuffer);
+
         RenderCommand::SetClearColor(backGroundColor);
         RenderCommand::Clear();
 
-        Renderer::BeginScene(m_Camera);
-
-        m_Tree_Transform = glm::translate(glm::mat4(1.0f), m_Tree_Position);
-
-        auto m_Shader = m_ShaderLibrary.Get("TextureShader");
-
-        Renderer::SetShaderUniform(m_Shader, "u_Color",
-                                   glm::vec4(0.9f, 0.7f, 0.9f, 1.0f));
-        Renderer::SetShaderUniform(m_Shader, "u_Texture", 0);
-
-        m_Icons_Texture->Bind(0);
-        Renderer::Submit(m_Tree_VertexArray, m_Shader, m_Tree_Transform);
-        m_Icons_Texture->UnBind(0);
-
         this->RenderOctree(m_Octree);
 
-        Renderer::EndScene();
+        Renderer::EndScene(m_FrameRenderBuffer);
     }
 
     void OnImGuiRender() override {
         float timeStep = m_LayerUpdateMeta.m_timeStep;
         float nowTime = m_LayerUpdateMeta.m_nowTime;
 
-        Gui::Begin("Octree Rendering.");
+        Gui::Begin("Scence Collection");
         Gui::Text("Time Step: {0}", timeStep);
         Gui::Text("Now Time: {0}", nowTime);
 
-        // ImGui::ColorEdit4("backGroundColor",
-        // glm::value_ptr(backGroundColor)); ImGui::SliderFloat("transSpeed",
-        // &transSpeed, 0.0f, 6.0f); ImGui::SliderFloat("rotSpeed", &rotSpeed,
-        // 0.0f, 6.0f);
+        static std::vector<float> arr(600, 0.0);
+        arr.push_back(timeStep);
+        arr.erase(arr.begin());
+        ImGui::PlotLines("Frame Times", &arr[0], 600);
 
-        // ImGui::SliderFloat3("m_Tree_Position",
-        // glm::value_ptr(m_Tree_Position),
-        //                     -1.0f, 1.0f);
+        Gui::ColorEdit4("backGroundColor", backGroundColor);
+        // ImGui::SliderFloat("transSpeed", &transSpeed, 0.0f, 6.0f);
+        // ImGui::SliderFloat("rotSpeed", &rotSpeed, 0.0f, 6.0f);
 
-        ImGui::DragFloat3("m_Camera_Position",
-                          glm::value_ptr(m_Camera_Position), -0.0f, 3000.0f);
+        Gui::SliderFloat3("m_Camera_Position", m_Camera->GetPosition(), -10.0f,
+                          10.0f);
+        Gui::SliderFloat("m_Camera_Rotation", m_Camera->GetRotation(), -180.0f,
+                         180.0f);
 
         uint32_t nowLevel_min = 0;
         uint32_t nowLevel_max = 10;
@@ -227,6 +175,30 @@ class ExampleLayer : public Layer {
 
         Gui::End();
 
+        ImGui::ShowDemoWindow();
+
+        ImGui::Begin("ViewPort :: Color");
+        {
+            // Using a Child allow to fill all the space of the window.
+            // It also alows customization
+            ImGui::BeginChild("Render");
+            m_IsWindowFocused = ImGui::IsWindowFocused();
+            // Log::Trace("Focused: {0}", ImGui::IsWindowFocused());
+            //  Get the size of the child (i.e. the whole draw size of the
+            //  windows).
+            ImVec2 wsize = ImGui::GetWindowSize();
+            // Because I use the texture from OpenGL, I need to invert the V
+            // from the UV.
+            m_FrameRenderBuffer->SetViewPort((uint32_t)wsize.x,
+                                             (uint32_t)wsize.y);
+            ImGui::Image(m_FrameRenderBuffer->GetTextureID(), wsize,
+                         ImVec2(0, 1), ImVec2(1, 0));
+            ImGui::EndChild();
+        }
+        ImGui::End();
+
+        ImGui::ShowExampleAppLog(NULL);
+        
         this->RenderOctreeGui(m_Octree);
     }
 
@@ -277,32 +249,25 @@ class ExampleLayer : public Layer {
 
    private:
     Ref<Camera> m_Camera;
-    glm::vec3 m_Camera_Position{224.0f, 453.0f, 729.0f};
-
     ShaderLibrary m_ShaderLibrary;
-    Ref<Texture2D> m_Texture;
-    Ref<Texture2D> m_Icons_Texture;
 
-    Ref<VertexArray> m_Tree_VertexArray;
-    glm::vec3 m_Tree_Position{0.0f, 0.0f, 0.0f};
-    glm::mat4 m_Tree_Transform{1.0f};
-
-    std::thread threadObj;
-    Ref<std::future<Ref<Octree> > > m_Octree_future;
     Ref<Octree> m_Octree;
-
     std::vector<Ref<VertexArray> > m_Octree_VertexArrays;
+
+    Ref<FrameRenderBuffer> m_FrameRenderBuffer;
 
    private:
     glm::vec4 backGroundColor{0.7f, 0.7f, 0.7f, 1.0f};
+    bool m_IsWindowFocused;
 
     uint32_t nowLevel = 10;
 };
 
 class Sandbox : public Application {
    public:
-    Sandbox() : Application("OctreeExample", 1600, 900) {
+    Sandbox() : Application("OctreeExample", 2500, 1800) {
         Log::Trace("Sandbox Initialization.");
+        PushLayer(std::make_shared<DockSpaceLayer>(m_Running));
         PushLayer(std::make_shared<ExampleLayer>());
         Log::Trace("Sandbox Initialization Success.");
     }

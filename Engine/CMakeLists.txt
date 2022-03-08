@@ -7,6 +7,7 @@ add_subdirectory(Application)
 add_subdirectory(Gui)
 add_subdirectory(Platform)
 add_subdirectory(Renderer)
+add_subdirectory(Utils)
 
 add_library(
     Engine
@@ -30,6 +31,7 @@ target_link_libraries(
     Application 
     Gui 
     Renderer
+    Utils
 )
 
 target_link_libraries(
