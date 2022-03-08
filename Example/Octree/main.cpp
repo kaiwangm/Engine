@@ -5,7 +5,6 @@
 #include <future>
 #include <thread>
 
-#include "Octree/Octree.h"
 #include "ply_io.h"
 
 namespace Engine {
@@ -13,10 +12,14 @@ namespace Engine {
 class ExampleLayer : public Layer {
    public:
     ExampleLayer() : Layer("Example") {
+        auto [coords, feats] = load_ply("Assert/longdress_vox10_1300.ply");
+
+        m_HashOctree = std::make_shared<HashOctree<std::array<uint32_t, 3>>>(
+            coords, feats, 10);
+
         // ------------ Octree -------- //
-        auto octree = std::make_shared<Octree>(
-            load_ply("Assert/longdress_vox10_1300.ply"), 10);
-        m_Octree = octree;
+        // auto octree = std::make_shared<Octree>(coords, feats, 10);
+        // m_Octree = octree;
         Log::Trace("Octree built successfully.");
 
         // ------------ Game -------- //
@@ -92,18 +95,22 @@ class ExampleLayer : public Layer {
             // ------------ OpenGL Octree -------- //
 
             std::vector<float> points;
-            for (const Ref<OctreeNode>& p : octree->GetLevelNodes(i)) {
-                points.push_back(float(p->GetX()));
-                points.push_back(float(p->GetY()));
-                points.push_back(float(p->GetZ()));
-                points.push_back(float(p->GetR()) / 255.0);
-                points.push_back(float(p->GetG()) / 255.0);
-                points.push_back(float(p->GetB()) / 255.0);
+            auto [coords, feats] = m_HashOctree->GetLevelNodes(i);
+            float scale = (float)m_HashOctree->GetScale(i);
+            for (int idx = 0; idx < coords.size(); ++idx) {
+                points.push_back(float(coords[idx][0]) * scale + scale / 2.0f);
+                points.push_back(float(coords[idx][1]) * scale + scale / 2.0f);
+                points.push_back(float(coords[idx][2]) * scale + scale / 2.0f);
+                points.push_back(float(feats[idx][0]) / 255.0);
+                points.push_back(float(feats[idx][1]) / 255.0);
+                points.push_back(float(feats[idx][2]) / 255.0);
                 points.push_back(1.0f);
             }
 
             // points = std::vector<float>{0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0,
             // 0, 1};
+
+            //Log::Core_Trace("{0}", points.size() / 7);
 
             Ref<VertexBuffer> octree_VertexBuffer = VertexBuffer::Create(
                 &points[0], sizeof(float) * points.size(), points.size() / 7.0);
@@ -141,7 +148,7 @@ class ExampleLayer : public Layer {
         RenderCommand::SetClearColor(backGroundColor);
         RenderCommand::Clear();
 
-        this->RenderOctree(m_Octree);
+        this->RenderOctree(m_HashOctree);
 
         Renderer::EndScene(m_FrameRenderBuffer);
     }
@@ -198,13 +205,13 @@ class ExampleLayer : public Layer {
         ImGui::End();
 
         ImGui::ShowExampleAppLog(NULL);
-        
-        this->RenderOctreeGui(m_Octree);
+
+        this->RenderOctreeGui(m_HashOctree);
     }
 
     void OnEvent(Event& event) override { m_Camera->OnEvent(event); }
 
-    void RenderOctree(const Ref<Octree>& octree) {
+    void RenderOctree(const Ref<HashOctree<std::array<uint32_t, 3>>>& octree) {
         if (octree == nullptr) {
             return;
         } else {
@@ -225,7 +232,8 @@ class ExampleLayer : public Layer {
         }
     }
 
-    void RenderOctreeGui(const Ref<Octree>& octree) {
+    void RenderOctreeGui(
+        const Ref<HashOctree<std::array<uint32_t, 3>>>& octree) {
         if (octree == nullptr) {
             ImGui::Begin("Octree");
             ImGui::Text("Loading Octree.");
@@ -251,8 +259,9 @@ class ExampleLayer : public Layer {
     Ref<Camera> m_Camera;
     ShaderLibrary m_ShaderLibrary;
 
-    Ref<Octree> m_Octree;
-    std::vector<Ref<VertexArray> > m_Octree_VertexArrays;
+    // Ref<Octree> m_Octree;
+    Ref<HashOctree<std::array<uint32_t, 3>>> m_HashOctree;
+    std::vector<Ref<VertexArray>> m_Octree_VertexArrays;
 
     Ref<FrameRenderBuffer> m_FrameRenderBuffer;
 

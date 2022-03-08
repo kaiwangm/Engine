@@ -2,12 +2,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/OctreeExample)
 
 add_definitions(-DENGINE_USE_ENTRYPOINT)
 
-add_subdirectory(Octree)
-
 add_executable(OctreeExample main.cpp)
 
 target_link_libraries(OctreeExample PRIVATE Engine)
-target_link_libraries(OctreeExample PRIVATE Octree)
 target_link_libraries(OctreeExample PRIVATE ${PCL_LIBRARIES})
 
 #add_custom_command(

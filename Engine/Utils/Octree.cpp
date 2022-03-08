@@ -8,15 +8,17 @@ Octree::Octree(const uint32_t maxLevel)
       m_LevelHead(maxLevel + 1),
       m_LevelNodes(maxLevel + 1) {}
 
-Octree::Octree(const std::vector<std::array<uint32_t, 6> >& points,
+Octree::Octree(const std::vector<std::array<int, 3>>& coords,
+               const std::vector<std::array<uint32_t, 3>>& feats,
                const uint32_t maxLevel)
     : m_MaxLevel(maxLevel),
       m_MaxBound(1 << maxLevel),
       m_Root(nullptr),
       m_LevelHead(maxLevel + 1),
       m_LevelNodes(maxLevel + 1) {
-    for (const auto& p : points) {
-        this->insert(p[0], p[1], p[2], p[3], p[4], p[5]);
+    for (int idx = 0; idx < coords.size(); ++idx) {
+        this->insert(coords[idx][0], coords[idx][1], coords[idx][2],
+                     feats[idx][0], feats[idx][1], feats[idx][2]);
     }
 
     this->Update();
@@ -24,9 +26,9 @@ Octree::Octree(const std::vector<std::array<uint32_t, 6> >& points,
 
 void Octree::insert(uint32_t x, uint32_t y, uint32_t z, uint32_t r, uint32_t g,
                     uint32_t b) {
-    std::vector<std::array<uint32_t, 3> > coords(m_MaxLevel + 1);
-    std::vector<std::array<uint32_t, 3> > real_coords(m_MaxLevel + 1);
-    std::vector<std::array<uint32_t, 3> > real_cols(m_MaxLevel + 1);
+    std::vector<std::array<uint32_t, 3>> coords(m_MaxLevel + 1);
+    std::vector<std::array<uint32_t, 3>> real_coords(m_MaxLevel + 1);
+    std::vector<std::array<uint32_t, 3>> real_cols(m_MaxLevel + 1);
     for (uint32_t level = 0; level <= m_MaxLevel; ++level) {
         uint32_t div = 1 << (m_MaxLevel - level);
         coords[level] = {x / div, y / div, z / div};
@@ -88,7 +90,7 @@ void Octree::insert(uint32_t x, uint32_t y, uint32_t z, uint32_t r, uint32_t g,
 }
 
 void Octree::Update() {
-    std::queue<Ref<OctreeNode> > que;
+    std::queue<Ref<OctreeNode>> que;
     que.push(m_Root);
 
     Ref<OctreeNode> pre_ptr = nullptr;

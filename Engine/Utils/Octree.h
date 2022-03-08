@@ -6,6 +6,8 @@
 #include <queue>
 #include <vector>
 
+#include "Spare.h"
+
 namespace Engine {
 template <typename T>
 using Ref = std::shared_ptr<T>;
@@ -71,10 +73,11 @@ class OctreeNode {
 class Octree {
    public:
     Octree(const uint32_t maxLevel);
-    Octree(const std::vector<std::array<uint32_t, 6> >& points,
+    Octree(const std::vector<std::array<int, 3>>& coords,
+           const std::vector<std::array<uint32_t, 3>>& feats,
            const uint32_t maxLevel);
 
-    const std::vector<Ref<OctreeNode> >& GetLevelNodes(const uint32_t level) {
+    const std::vector<Ref<OctreeNode>> GetLevelNodes(const uint32_t level) {
         return m_LevelNodes[level];
     }
 
@@ -83,7 +86,7 @@ class Octree {
     uint32_t GetNumLeafs() { return m_NumLeafs; }
 
     uint32_t GetLevelNumNodes(const uint32_t& level) {
-        return (uint32_t) m_LevelNodes[level].size();
+        return (uint32_t)m_LevelNodes[level].size();
     }
 
    private:
@@ -99,7 +102,71 @@ class Octree {
     uint32_t m_NumNodes = 0;
     uint32_t m_NumLeafs = 0;
 
-    std::vector<Ref<OctreeNode> > m_LevelHead;
-    std::vector<std::vector<Ref<OctreeNode> > > m_LevelNodes;
+    std::vector<Ref<OctreeNode>> m_LevelHead;
+    std::vector<std::vector<Ref<OctreeNode>>> m_LevelNodes;
+};
+
+template <class T>
+class HashOctree {
+    using OctreeLayer = RootBlock3D<
+        T, HashBlock3D<PointerBlock3D<2, DenseBlock3D<2, LeafData<T>>>>>;
+
+   public:
+    HashOctree(const std::vector<std::array<int, 3>>& coords,
+               const std::vector<T>& feats, const uint32_t maxLevel)
+        : m_Layers(coords.size()),
+          m_MaxLevel(maxLevel),
+          m_Scales(maxLevel + 1) {
+        for (int l = 0; l <= maxLevel; ++l) {
+            m_Scales[l] = 1 << (m_MaxLevel - l);
+            for (int idx = 0; idx < coords.size(); ++idx) {
+                int lshift = (m_MaxLevel - l);
+                int x = coords[idx][0] >> lshift;
+                int y = coords[idx][1] >> lshift;
+                int z = coords[idx][2] >> lshift;
+                m_Layers[l].write(x, y, z, feats[idx]);
+            }
+
+            std::vector<std::array<int, 3>> LevelNode;
+            m_Layers[l].foreach ([l, &LevelNode](int x, int y, int z, T& val) {
+                LevelNode.push_back({x, y, z});
+            });
+            m_LevelNodes.push_back(LevelNode);
+        }
+    }
+
+    const std::tuple<std::vector<std::array<int, 3>>, std::vector<T>>
+    GetLevelNodes(const uint32_t level) {
+        std::vector<std::array<int, 3>> coords = m_LevelNodes[level];
+        std::vector<T> feats;
+        for (const auto& co : coords) {
+            feats.push_back(m_Layers[level].read(co[0], co[1], co[2]));
+        }
+
+        return {coords, feats};
+    }
+
+    uint32_t GetMaxLevel() { return m_MaxLevel; }
+    uint32_t GetNumNodes() {
+        uint32_t count = 0;
+        for (const auto& lever : m_LevelNodes) {
+            count += (uint32_t)lever.size();
+        }
+        return count;
+    }
+    uint32_t GetNumLeafs() { return (uint32_t)m_LevelNodes[m_MaxLevel].size(); }
+
+    uint32_t GetLevelNumNodes(const uint32_t& level) {
+        return (uint32_t)m_LevelNodes[level].size();
+    }
+
+    uint32_t GetScale(const uint32_t& level) { return m_Scales[level]; }
+
+   private:
+    std::vector<OctreeLayer> m_Layers;
+    std::vector<int> m_Scales;
+    uint32_t m_MaxLevel;
+
+    std::vector<std::vector<std::array<int, 3>>> m_LevelNodes;
 };
 }  // namespace Engine

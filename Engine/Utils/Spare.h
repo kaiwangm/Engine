@@ -5,7 +5,7 @@
 
 namespace Engine {
 template <class T>
-struct LeafDate {
+struct LeafData {
     static constexpr bool isLeaf = true;
 
     static constexpr int LeafNum = 1;
@@ -15,6 +15,11 @@ struct LeafDate {
     T read() { return m_Value; }
 
     void write(T value) { m_Value = value; }
+
+    template <class Func>
+    void visit(const Func& func) {
+        func(m_Value);
+    }
 };
 
 template <int Dim, class Node>
@@ -26,10 +31,34 @@ struct DenseBlock3D {
     static constexpr int SubLeafNum = Node::LeafNum;
 
     Node m_Data[B][B][B];
+    bool m_Occp[B][B][B];
 
-    Node* fetch(int x, int y, int z) { return &m_Data[x][y][z]; }
+    Node* fetch(int x, int y, int z) {
+        auto& block_occ = m_Occp[x][y][z];
+        if (block_occ == false) return nullptr;
+        return &m_Data[x][y][z];
+    }
 
-    Node* touch(int x, int y, int z) { return &m_Data[x][y][z]; }
+    Node* touch(int x, int y, int z) {
+        auto& block_occ = m_Occp[x][y][z];
+        if (block_occ == false) {
+            m_Occp[x][y][z] = true;
+        }
+        return &m_Data[x][y][z];
+    }
+
+    template <class Func>
+    void foreach (Func const& func) {
+        for (int x = 0; x < B; ++x) {
+            for (int y = 0; y < B; ++y) {
+                for (int z = 0; z < B; ++z) {
+                    if (m_Occp[x][y][z] == true) {
+                        func(x, y, z, &m_Data[x][y][z]);
+                    }
+                }
+            }
+        }
+    }
 };
 
 template <int Dim, class Node>
@@ -42,12 +71,30 @@ struct PointerBlock3D {
 
     std::unique_ptr<Node> m_Data[B][B][B];
 
-    Node* fetch(int x, int y, int z) { return m_Data[x][y][z].get(); }
+    Node* fetch(int x, int y, int z) {
+        auto& block = m_Data[x][y][z];
+        if (!block) return nullptr;
+        return block.get();
+    }
 
     Node* touch(int x, int y, int z) {
         auto& block = m_Data[x][y][z];
         if (!block) block = std::make_unique<Node>();
         return block.get();
+    }
+
+    template <class Func>
+    void foreach (Func const& func) {
+        for (int x = 0; x < B; ++x) {
+            for (int y = 0; y < B; ++y) {
+                for (int z = 0; z < B; ++z) {
+                    auto ptr = m_Data[x][y][z].get();
+                    if (ptr != nullptr) {
+                        func(x, y, z, ptr);
+                    }
+                }
+            }
+        }
     }
 };
 
@@ -80,6 +127,19 @@ struct HashBlock3D {
         if (it == m_Data.end())
             return &m_Data.try_emplace(std::make_tuple(x, y, z)).first->second;
         return &it->second;
+    }
+
+    template <class Func>
+    void foreach (Func func) {
+        std::vector<std::tuple<int, int, int, Node*>> vec;
+        for (auto& [key, block] : m_Data) {
+            auto const& [x, y, z] = key;
+            vec.emplace_back(x, y, z, &block);
+        }
+        for (int i = 0; i < vec.size(); ++i) {
+            auto const& [x, y, z, block] = vec[i];
+            func(x, y, z, block);
+        }
     }
 };
 
@@ -132,6 +192,30 @@ struct RootBlock3D {
     void write(int x, int y, int z, T value) {
         _write(&m_Root, x, y, z, value);
         return;
+    }
+
+    template <class Node, class Func>
+    static void _foreach(Node& node, int x, int y, int z, Func const& func) {
+        if constexpr (node.isLeaf) {
+            node.visit([&](T& val) { func(x, y, z, val); });
+            return;
+        } else {
+            node.foreach ([&](int nx, int ny, int nz, auto* child) {
+                x += nx * node.SubLeafNum;
+                y += ny * node.SubLeafNum;
+                z += nz * node.SubLeafNum;
+                _foreach(*child, x, y, z, func);
+                x -= nx * node.SubLeafNum;
+                y -= ny * node.SubLeafNum;
+                z -= nz * node.SubLeafNum;
+            });
+            return;
+        }
+    }
+
+    template <class Func>
+    void foreach (Func const& func) {
+        _foreach(m_Root, 0, 0, 0, func);
     }
 };
 
