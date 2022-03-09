@@ -107,15 +107,15 @@ jobs:
         # Build with Ninja
         working-directory: ${{ github.workspace }}
         run: |
-          cmake -B ${{ env.build }} -G ${{ env.build_system }} -DCMAKE_TOOLCHAIN_FILE=${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake
+          cmake -B ${{ env.build_dir }} -G ${{ env.build_system }} -DCMAKE_TOOLCHAIN_FILE=${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake
 
       - name: Build Solution
         working-directory: ${{ github.workspace }}
         run: |
-          cmake --build ${{ env.build }} --parallel --config ${{ env.config }} --target ALL_BUILD --verbose
+          cmake --build ${{ env.build_dir }} --parallel --config ${{ env.config }} --verbose
 
       - name: Test
-        working-directory: ${{ github.workspace }}/${{ env.build }}
+        working-directory: ${{ github.workspace }}/${{ env.build_dir }}
         # Execute tests defined by the CMake configuration.
         # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
         run: ctest -C ${{ env.config }}
