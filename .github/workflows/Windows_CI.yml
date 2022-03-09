@@ -37,6 +37,7 @@ jobs:
     env:
       VCPKG_ROOT: "${{ github.workspace }}/vcpkg"
       TCNN_CUDA_ARCHITECTURES: ${{ matrix.cuda_arch }}
+      config: "Release"
 
     steps:
       - name: Checkout
@@ -109,7 +110,7 @@ jobs:
       - name: Build Solution
         working-directory: ${{ github.workspace }}
         run: |
-          cmake --build build --parallel --config Release
+          cmake --build build --parallel --config ${{ env.config }} --target ALL_BUILD --verbose
 
       - name: Test
         working-directory: ${{ github.workspace }}/build
