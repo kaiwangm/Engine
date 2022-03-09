@@ -23,6 +23,7 @@ add_library(
 #)
 
 target_include_directories(Engine INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+set_target_properties(Engine PROPERTIES CUDA_ARCHITECTURES "86")
 
 target_link_libraries(
     Engine 
