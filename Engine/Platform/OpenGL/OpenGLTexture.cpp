@@ -3,6 +3,10 @@
 #include "Stb/stb_image.h"
 
 namespace Engine {
+OpenGLTexture2D::OpenGLTexture2D() {
+    glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererID);
+}
+
 OpenGLTexture2D::OpenGLTexture2D(const std::string& path) : m_Path(path) {
     int width, height, channels;
     stbi_uc* data = stbi_load(path.c_str(), &width, &height, &channels, 0);
@@ -41,5 +45,23 @@ void OpenGLTexture2D::Bind(const uint32_t& slot) const {
 
 void OpenGLTexture2D::UnBind(const uint32_t& slot) const {
     glBindTextureUnit(slot, 0);
+}
+
+void OpenGLTexture2D::Load(void* data, uint32_t width, uint32_t height) {
+    m_Width = width;
+    m_Height = height;
+    m_Channels = 3;
+    // glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererID);
+    glTextureStorage2D(m_RendererID, 1, GL_RGB8, m_Width, m_Height);
+
+    glTextureParameteri(m_RendererID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(m_RendererID, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    glTextureSubImage2D(m_RendererID, 0, 0, 0, m_Width, m_Height, GL_RGB,
+                        GL_UNSIGNED_BYTE, data);
+}
+
+void* OpenGLTexture2D::GetTextureID() const {
+    return (void*)(uint64_t)m_RendererID;
 }
 }  // namespace Engine

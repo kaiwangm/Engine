@@ -8,6 +8,7 @@
     "glm",
     "xtensor",
     "assimp",
+    "tbb",
     {
       "name": "imgui",
       "default-features": false,

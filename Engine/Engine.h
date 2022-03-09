@@ -8,7 +8,7 @@
 #include "Renderer.h"
 
 //-----------------------EntryPoint-------------------------------
-#include "EntryPoint.h"
+//#include "EntryPoint.h"
 //----------------------------------------------------------------
 
 #include "Gui/GuiCommand.h"

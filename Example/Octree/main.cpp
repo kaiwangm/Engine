@@ -1,29 +1,42 @@
 #include <Engine.h>
+#include <EntryPoint.h>
 
-#include <future>
-#include <thread>
+//
+#include <tbb/tbb.h>
 
-#include "ply_io.h"
+//#include "ply_io.h"
+#include "OctreeObject.h"
 
 namespace Engine {
-
 class ExampleLayer : public Layer {
    public:
     ExampleLayer() : Layer("Example") {
-        std::string ply_name = "longdress_vox10_1300";
-        std::string ply_path = "Assert/" + ply_name + ".ply";
-        auto [coords, feats] = load_ply(ply_path);
+        m_Octrees.resize(19);
 
-        m_HashOctree = std::make_shared<HashOctree<std::array<uint32_t, 3>>>(
-            coords, feats, 10);
-        xt::xarray<int> batch = m_HashOctree->GetContexBatch(8, 5);
+        /*
+        tbb::parallel_for(0, 19, [&](size_t i) {
+            uint32_t idx = 1450 + i;
 
-        xt::dump_npy(ply_name + "_out.npy", batch);
+            std::cout << i << std::endl;
+            m_Octrees[i] = std::make_shared<OctreeObject>(
+                "Assert/redandblack/Ply/redandblack_vox10_" +
+                    std::to_string(idx) + ".ply",
+                10);
+            std::cout << i << std::endl;
+        });
+        */
 
-        // std::cout << hiks;
-        //  ------------ Octree -------- //
-        //  auto octree = std::make_shared<Octree>(coords, feats, 10);
-        //  m_Octree = octree;
+        for (int i = 0; i < m_Octrees.size(); ++i) {
+            uint32_t idx = 1450 + i;
+            std::cout << i << std::endl;
+
+            m_Octrees[i] = std::make_shared<OctreeObject>(
+                "Assert/redandblack/Ply/redandblack_vox10_" +
+                    std::to_string(idx) + ".ply",
+                10);
+            m_Octrees[i]->CacheGL();
+        }
+
         Log::Trace("Octree built successfully.");
 
         // ------------ Game -------- //
@@ -34,101 +47,6 @@ class ExampleLayer : public Layer {
         m_Camera->SetPosition({224.0f, 453.0f, 729.0f});
         m_Camera->SetCameraTranslationSpeed(300.0f);
         m_Camera->SetCameraRotationSpeed(10.0f);
-
-        for (int i = 0; i <= 10; ++i) {
-            Ref<VertexArray> vertexArray;
-
-            // ------------ OpenGL Box -------- //
-
-            float box_vertices[36 * 5] = {
-                -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,  //
-                0.5f,  -0.5f, -0.5f, 1.0f, 0.0f,  //
-                0.5f,  0.5f,  -0.5f, 1.0f, 1.0f,  //
-                0.5f,  0.5f,  -0.5f, 1.0f, 1.0f,  //
-                -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f,  //
-                -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,  //
-
-                -0.5f, -0.5f, 0.5f,  0.0f, 0.0f,  //
-                0.5f,  -0.5f, 0.5f,  1.0f, 0.0f,  //
-                0.5f,  0.5f,  0.5f,  1.0f, 1.0f,  //
-                0.5f,  0.5f,  0.5f,  1.0f, 1.0f,  //
-                -0.5f, 0.5f,  0.5f,  0.0f, 1.0f,  //
-                -0.5f, -0.5f, 0.5f,  0.0f, 0.0f,  //
-
-                -0.5f, 0.5f,  0.5f,  1.0f, 0.0f,  //
-                -0.5f, 0.5f,  -0.5f, 1.0f, 1.0f,  //
-                -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,  //
-                -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,  //
-                -0.5f, -0.5f, 0.5f,  0.0f, 0.0f,  //
-                -0.5f, 0.5f,  0.5f,  1.0f, 0.0f,  //
-
-                0.5f,  0.5f,  0.5f,  1.0f, 0.0f,  //
-                0.5f,  0.5f,  -0.5f, 1.0f, 1.0f,  //
-                0.5f,  -0.5f, -0.5f, 0.0f, 1.0f,  //
-                0.5f,  -0.5f, -0.5f, 0.0f, 1.0f,  //
-                0.5f,  -0.5f, 0.5f,  0.0f, 0.0f,  //
-                0.5f,  0.5f,  0.5f,  1.0f, 0.0f,  //
-
-                -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,  //
-                0.5f,  -0.5f, -0.5f, 1.0f, 1.0f,  //
-                0.5f,  -0.5f, 0.5f,  1.0f, 0.0f,  //
-                0.5f,  -0.5f, 0.5f,  1.0f, 0.0f,  //
-                -0.5f, -0.5f, 0.5f,  0.0f, 0.0f,  //
-                -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,  //
-
-                -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f,  //
-                0.5f,  0.5f,  -0.5f, 1.0f, 1.0f,  //
-                0.5f,  0.5f,  0.5f,  1.0f, 0.0f,  //
-                0.5f,  0.5f,  0.5f,  1.0f, 0.0f,  //
-                -0.5f, 0.5f,  0.5f,  0.0f, 0.0f,  //
-                -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f,  //
-            };
-
-            Ref<VertexBuffer> box_VertexBuffer =
-                VertexBuffer::Create(box_vertices, sizeof(box_vertices), 36);
-            box_VertexBuffer->SetLayout({
-                {0, ShaderDataType::Float3, "a_Position"},
-                {1, ShaderDataType::Float2, "a_TexCoord"},
-                //{2, ShaderDataType::Float3, "a_Offset"},
-                //{3, ShaderDataType::Float4, "a_Color"},
-            });
-
-            vertexArray = VertexArray::Create();
-            vertexArray->AddVertexBuffer(box_VertexBuffer, false);
-
-            // ------------ OpenGL Octree -------- //
-
-            std::vector<float> points;
-            auto [coords, feats] = m_HashOctree->GetLevelNodes(i);
-            float scale = (float)m_HashOctree->GetScale(i);
-            for (int idx = 0; idx < coords.size(); ++idx) {
-                points.push_back(float(coords[idx][0]) * scale + scale / 2.0f);
-                points.push_back(float(coords[idx][1]) * scale + scale / 2.0f);
-                points.push_back(float(coords[idx][2]) * scale + scale / 2.0f);
-                points.push_back(float(feats[idx][0]) / 255.0);
-                points.push_back(float(feats[idx][1]) / 255.0);
-                points.push_back(float(feats[idx][2]) / 255.0);
-                points.push_back(1.0f);
-            }
-
-            // points = std::vector<float>{0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0,
-            // 0, 1};
-
-            // Log::Core_Trace("{0}", points.size() / 7);
-
-            Ref<VertexBuffer> octree_VertexBuffer = VertexBuffer::Create(
-                &points[0], sizeof(float) * points.size(), points.size() / 7.0);
-            octree_VertexBuffer->SetLayout({
-                //{0, ShaderDataType::Float3, "a_Position"},
-                //{1, ShaderDataType::Float2, "a_TexCoord"},
-                {2, ShaderDataType::Float3, "a_Offset"},
-                {3, ShaderDataType::Float4, "a_Color"},
-            });
-
-            vertexArray->AddVertexBuffer(octree_VertexBuffer, true);
-
-            m_Octree_VertexArrays.push_back(vertexArray);
-        }
 
         // ---------------Shader--------------- //
         m_ShaderLibrary.Load("OctreeShader", "Assert/octree_vertex.glsl",
@@ -152,7 +70,8 @@ class ExampleLayer : public Layer {
         RenderCommand::SetClearColor(backGroundColor);
         RenderCommand::Clear();
 
-        this->RenderOctree(m_HashOctree);
+        m_Octrees[nowFrame]->RenderOctree(nowLevel,
+                                          m_ShaderLibrary.Get("OctreeShader"));
 
         Renderer::EndScene(m_FrameRenderBuffer);
     }
@@ -184,6 +103,11 @@ class ExampleLayer : public Layer {
         ImGui::SliderScalar("nowLevel", ImGuiDataType_U32, &nowLevel,
                             &nowLevel_min, &nowLevel_max);
 
+        uint32_t nowFrame_min = 0;
+        uint32_t nowFrame_max = m_Octrees.size() - 1;
+        ImGui::SliderScalar("nowFrame", ImGuiDataType_U32, &nowFrame,
+                            &nowFrame_min, &nowFrame_max);
+
         Gui::End();
 
         ImGui::ShowDemoWindow();
@@ -210,70 +134,25 @@ class ExampleLayer : public Layer {
 
         ImGui::ShowExampleAppLog(NULL);
 
-        this->RenderOctreeGui(m_HashOctree);
+        m_Octrees[nowFrame]->RenderOctreeGui();
     }
 
-    void OnEvent(Event& event) override { m_Camera->OnEvent(event); }
-
-    void RenderOctree(const Ref<HashOctree<std::array<uint32_t, 3>>>& octree) {
-        if (octree == nullptr) {
-            return;
-        } else {
-            auto transform =
-                glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-
-            auto m_Shader = m_ShaderLibrary.Get("OctreeShader");
-
-            Renderer::SetShaderUniform(m_Shader, "u_Color",
-                                       glm::vec4(0.3f, 0.0f, 0.0f, 1.0f));
-
-            float scale = (1 << (octree->GetMaxLevel() - nowLevel));
-            Renderer::SetShaderUniform(m_Shader, "u_Scale", scale);
-
-            Renderer::DrawArray(m_Octree_VertexArrays[nowLevel], m_Shader,
-                                transform);
-            return;
-        }
-    }
-
-    void RenderOctreeGui(
-        const Ref<HashOctree<std::array<uint32_t, 3>>>& octree) {
-        if (octree == nullptr) {
-            ImGui::Begin("Octree");
-            ImGui::Text("Loading Octree.");
-            ImGui::End();
-            return;
-        } else {
-            // threadObj.join();
-            ImGui::Begin("Octree");
-            ImGui::Text("NumMaxLevel: %d", octree->GetMaxLevel());
-            ImGui::Text("NumNodes: %d", octree->GetNumNodes());
-            ImGui::Text("NumLeafs: %d", octree->GetNumLeafs());
-
-            for (int i = 0; i <= octree->GetMaxLevel(); ++i) {
-                ImGui::Text("Laver %d has %d Nodes", i,
-                            (int)octree->GetLevelNumNodes(i));
-            }
-            ImGui::End();
-            return;
-        }
-    }
+    void OnEvent(Event &event) override { m_Camera->OnEvent(event); }
 
    private:
     Ref<Camera> m_Camera;
     ShaderLibrary m_ShaderLibrary;
 
-    // Ref<Octree> m_Octree;
-    Ref<HashOctree<std::array<uint32_t, 3>>> m_HashOctree;
-    std::vector<Ref<VertexArray>> m_Octree_VertexArrays;
-
     Ref<FrameRenderBuffer> m_FrameRenderBuffer;
+
+    tbb::concurrent_vector<Ref<OctreeObject>> m_Octrees;
 
    private:
     glm::vec4 backGroundColor{0.7f, 0.7f, 0.7f, 1.0f};
     bool m_IsWindowFocused;
 
     uint32_t nowLevel = 10;
+    uint32_t nowFrame = 0;
 };
 
 class Sandbox : public Application {

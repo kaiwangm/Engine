@@ -17,6 +17,10 @@ class Texture {
 
 class Texture2D : public Texture {
    public:
+    static Ref<Texture2D> Create();
     static Ref<Texture2D> Create(const std::string& path);
+
+    virtual void Load(void* data, uint32_t width, uint32_t height) = 0;
+    virtual void* GetTextureID() const = 0;
 };
 }  // namespace Engine

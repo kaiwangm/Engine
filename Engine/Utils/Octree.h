@@ -9,10 +9,11 @@
 #include <xtensor/xarray.hpp>
 #include <xtensor/xio.hpp>
 #include <xtensor/xmath.hpp>
-#include <xtensor/xview.hpp>
 #include <xtensor/xnpy.hpp>
+#include <xtensor/xview.hpp>
 
 #include "Spare.h"
+#include "hilbert.h"
 
 namespace Engine {
 template <typename T>
@@ -115,7 +116,7 @@ class Octree {
 template <class T>
 class HashOctree {
     using OctreeLayer = RootBlock3D<
-        T, HashBlock3D<PointerBlock3D<2, DenseBlock3D<2, LeafData<T>>>>>;
+        T, HashBlock3D<PointerBlock3D<2, DenseBlock3D<1, LeafData<T>>>>>;
 
    public:
     HashOctree(const std::vector<std::array<int, 3>>& coords,
@@ -139,6 +140,69 @@ class HashOctree {
             });
             m_LevelNodes.push_back(LevelNode);
         }
+
+        /*
+        m_LevelNodes =
+            std::vector<std::vector<std::array<int, 3>>>(m_MaxLevel + 1);
+
+        std::queue<std::array<int, 4>> que;
+        que.push({0, 0, 0, 0});
+        while (!que.empty()) {
+            std::array<int, 4> pos = que.front();
+            que.pop();
+            int x = pos[0];
+            int y = pos[1];
+            int z = pos[2];
+            int nowLevel = pos[3];
+
+            m_LevelNodes[nowLevel].push_back({pos[0], pos[1], pos[2]});
+
+            // std::cout << x << " " << y << " " << z << " " << nowLevel
+            //           << std::endl;
+
+            for (int bbz = 0; bbz <= 1; ++bbz) {
+                for (int bby = 0; bby <= 1; ++bby) {
+                    for (int bbx = 0; bbx <= 1; ++bbx) {
+                        std::array<int, 3> occ_coord = {
+                            (x << 1) | bbx,  //
+                            (y << 1) | bby,  //
+                            (z << 1) | bbz   //
+                        };
+
+                        bool occ_coord_has = m_Layers[nowLevel + 1].has(
+                            occ_coord[0], occ_coord[1], occ_coord[2]);
+
+                        if (occ_coord_has == true) {
+                            que.push({occ_coord[0], occ_coord[1], occ_coord[2],
+                                      nowLevel + 1});
+                        }
+                    }
+                }
+            }
+        }
+        */
+
+        /*
+        for (int i = 0; i <= m_MaxLevel; ++i) {
+            auto& level = m_LevelNodes[i];
+            std::sort(
+                level.begin(), level.end(),
+                [&i](const std::array<int, 3>& po1,
+                     const std::array<int, 3>& po2) {
+                    bitmask_t p1[3] = {(bitmask_t)po1[0], (bitmask_t)po1[1],
+                                       (bitmask_t)po1[2]};
+                    bitmask_t p2[3] = {(bitmask_t)po2[0], (bitmask_t)po2[1],
+                                       (bitmask_t)po2[2]};
+                    bitmask_t h1 = hilbert_c2i(3, 12, p1);
+                    bitmask_t h2 = hilbert_c2i(3, 12, p2);
+                    return h1 > h2;
+                }
+
+            );
+        }
+        */
+
+        return;
     }
 
     const std::tuple<std::vector<std::array<int, 3>>, std::vector<T>>
@@ -246,9 +310,9 @@ class HashOctree {
     int GetOccupy(int x, int y, int z, uint32_t level) {
         int occupy = 0;
 
-        for (int bbx = 0; bbx <= 1; ++bbx) {
+        for (int bbz = 0; bbz <= 1; ++bbz) {
             for (int bby = 0; bby <= 1; ++bby) {
-                for (int bbz = 0; bbz <= 1; ++bbz) {
+                for (int bbx = 0; bbx <= 1; ++bbx) {
                     std::array<int, 3> occ_coord = {
                         (x << 1) | bbx,  //
                         (y << 1) | bby,  //

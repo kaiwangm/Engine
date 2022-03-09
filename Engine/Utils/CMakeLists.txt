@@ -3,6 +3,7 @@ add_library(
     OBJECT
     Spare.cpp
     Octree.cpp
+    hilbert.c
 )
 
 target_link_libraries(Utils PRIVATE xtensor xtensor::optimize)

@@ -5,6 +5,7 @@
 namespace Engine {
 class OpenGLTexture2D : public Texture2D {
    public:
+    OpenGLTexture2D();
     OpenGLTexture2D(const std::string& path);
     virtual ~OpenGLTexture2D() { glDeleteTextures(1, &m_RendererID); }
 
@@ -15,7 +16,9 @@ class OpenGLTexture2D : public Texture2D {
     virtual void Bind(const uint32_t& slot) const override;
     virtual void UnBind(const uint32_t& slot) const override;
 
+    virtual void Load(void* data, uint32_t width, uint32_t height);
     std::string GetPath() const { return m_Path; }
+    virtual void* GetTextureID() const;
 
    private:
     std::string m_Path;

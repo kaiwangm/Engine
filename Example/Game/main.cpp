@@ -1,7 +1,7 @@
 #include <Engine.h>
+#include <EntryPoint.h>
 
 namespace Engine {
-
 class ExampleLayer : public Layer {
    public:
     ExampleLayer() : Layer("Example"), m_IsWindowFocused(false) {

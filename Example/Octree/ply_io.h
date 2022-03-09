@@ -1,6 +1,5 @@
 #pragma once
 
-//
 #include <Engine.h>
 
 #include <iostream>
@@ -14,6 +13,7 @@ std::tuple<std::vector<std::array<int, 3>>,
            std::vector<std::array<uint32_t, 3>>>
 load_ply(const std::string& name) {
     happly::PLYData plyIn(name);
+    //plyIn.write(name, happly::DataFormat::Binary);
     auto x = plyIn.getElement("vertex").getProperty<float>("x");
     auto y = plyIn.getElement("vertex").getProperty<float>("y");
     auto z = plyIn.getElement("vertex").getProperty<float>("z");
