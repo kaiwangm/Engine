@@ -39,6 +39,7 @@ jobs:
       TCNN_CUDA_ARCHITECTURES: ${{ matrix.cuda_arch }}
       build_dir: "build"
       config: "Release"
+      build_system: "Ninja"
 
     steps:
       - name: Checkout
@@ -106,7 +107,7 @@ jobs:
         # Build with Ninja
         working-directory: ${{ github.workspace }}
         run: |
-          cmake -B ${{ env.build }} -G Ninja -DCMAKE_TOOLCHAIN_FILE=${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake
+          cmake -B ${{ env.build }} -G ${{ env.build_system }} -DCMAKE_TOOLCHAIN_FILE=${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake
 
       - name: Build Solution
         working-directory: ${{ github.workspace }}
