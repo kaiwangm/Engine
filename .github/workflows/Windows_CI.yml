@@ -19,17 +19,17 @@ jobs:
           - os: windows-latest
             toolset: "14.16"
             arch: x64
-            cuda: "11.3"
+            cuda: "11.3.0"
             cuda_arch: 86
           - os: windows-latest
             toolset: "14.29"
             arch: x64
-            cuda: "11.3"
+            cuda: "11.3.0"
             cuda_arch: 86
           - os: windows-latest
             toolset: "14.31"
             arch: x64
-            cuda: "11.3"
+            cuda: "11.3.0"
             cuda_arch: 86
     env:
       VCPKG_ROOT: "${{ github.workspace }}/vcpkg"
