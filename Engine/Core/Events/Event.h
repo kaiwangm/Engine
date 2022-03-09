@@ -2,6 +2,8 @@
 
 #include "Core.h"
 
+#define BIT(x) (1 << x)
+
 namespace Engine {
 // Events in Hazel are currently blocking, meaning when an event occurs it
 // immediately gets dispatched and must be dealt with right then an there.

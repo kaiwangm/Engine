@@ -194,6 +194,28 @@ struct RootBlock3D {
         return;
     }
 
+    template <class Node>
+    bool _has(Node* node, int x, int y, int z) {
+        if (node == nullptr) {
+            return false;
+        }
+        if constexpr (node->isLeaf) {
+            return true;
+        } else {
+            int SLN = node->SubLeafNum;
+            int nx = x / SLN;
+            int ny = y / SLN;
+            int nz = z / SLN;
+            int mx = (x % SLN + SLN) % SLN;
+            int my = (y % SLN + SLN) % SLN;
+            int mz = (z % SLN + SLN) % SLN;
+            auto* child = node->fetch(nx, ny, nz);
+            return _has(child, mx, my, mz);
+        }
+    }
+
+    bool has(int x, int y, int z) { return _has(&m_Root, x, y, z); }
+
     template <class Node, class Func>
     static void _foreach(Node& node, int x, int y, int z, Func const& func) {
         if constexpr (node.isLeaf) {

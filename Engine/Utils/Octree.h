@@ -5,6 +5,12 @@
 #include <memory>
 #include <queue>
 #include <vector>
+#include <xtensor/xadapt.hpp>
+#include <xtensor/xarray.hpp>
+#include <xtensor/xio.hpp>
+#include <xtensor/xmath.hpp>
+#include <xtensor/xview.hpp>
+#include <xtensor/xnpy.hpp>
 
 #include "Spare.h"
 
@@ -120,10 +126,10 @@ class HashOctree {
         for (int l = 0; l <= maxLevel; ++l) {
             m_Scales[l] = 1 << (m_MaxLevel - l);
             for (int idx = 0; idx < coords.size(); ++idx) {
-                int lshift = (m_MaxLevel - l);
-                int x = coords[idx][0] >> lshift;
-                int y = coords[idx][1] >> lshift;
-                int z = coords[idx][2] >> lshift;
+                int rshift = (m_MaxLevel - l);
+                int x = coords[idx][0] >> rshift;
+                int y = coords[idx][1] >> rshift;
+                int z = coords[idx][2] >> rshift;
                 m_Layers[l].write(x, y, z, feats[idx]);
             }
 
@@ -156,11 +162,111 @@ class HashOctree {
     }
     uint32_t GetNumLeafs() { return (uint32_t)m_LevelNodes[m_MaxLevel].size(); }
 
-    uint32_t GetLevelNumNodes(const uint32_t& level) {
+    uint32_t GetLevelNumNodes(const uint32_t level) {
         return (uint32_t)m_LevelNodes[level].size();
     }
 
-    uint32_t GetScale(const uint32_t& level) { return m_Scales[level]; }
+    uint32_t GetScale(const uint32_t level) { return m_Scales[level]; }
+
+    xt::xarray<int> GetContexBatch(const int numNeighbor,
+                                   const int numAncLevel) {
+        int numBatches = 0;
+        for (int i = 0; i <= m_MaxLevel - 1; ++i) {
+            numBatches += m_LevelNodes[i].size();
+        }
+
+        xt::xarray<int> Batch =
+            xt::zeros<int>({numBatches, numNeighbor, numAncLevel + 1, 3});
+
+        int idxBatch = 0;
+        for (int level = 0; level <= m_MaxLevel - 1; ++level) {
+            for (int idxNode = 0; idxNode < m_LevelNodes[level].size();
+                 ++idxNode) {
+                xt::view(Batch, idxBatch, xt::all(), xt::all(), xt::all()) =
+                    GetContex(level, idxNode, numNeighbor, numAncLevel);
+                // std::cout << idxBatch << " " << numBatches << std::endl;
+                ++idxBatch;
+            }
+        }
+
+        return Batch;
+    }
+
+    xt::xarray<int> GetContex(const int level, const int idx,
+                              const int numNeighbor, const int numAncLevel) {
+        xt::xarray<int> hiks =
+            xt::zeros<int>({numNeighbor, numAncLevel + 1, 3});
+        if (level >= m_MaxLevel) {
+            return hiks;
+        }
+
+        std::vector<std::array<int, 3>> neighbor_coords;
+        for (int i = idx; i >= idx - (numNeighbor - 1) && i >= 0; --i) {
+            neighbor_coords.push_back(m_LevelNodes[level][i]);
+        }
+
+        for (int i = 0; i < neighbor_coords.size(); ++i) {
+            auto nowNode = neighbor_coords[i];
+            for (int sLevel = 0; sLevel <= numAncLevel && level - sLevel >= 0;
+                 ++sLevel) {
+                int rShift = sLevel;
+                int nowLevel = level - sLevel;
+                std::array<int, 3> anc_coords = {nowNode[0] >> rShift,
+                                                 nowNode[1] >> rShift,
+                                                 nowNode[2] >> rShift};
+                auto& anc_Level = m_Layers[nowLevel];
+
+                auto anc_feat =
+                    anc_Level.read(anc_coords[0], anc_coords[1], anc_coords[2]);
+
+                int anc_coords_octant =
+                    GetOctant(anc_coords[0], anc_coords[1], anc_coords[2]);
+
+                int anc_coords_occupy = GetOccupy(anc_coords[0], anc_coords[1],
+                                                  anc_coords[2], nowLevel);
+
+                hiks(i, sLevel, 0) = anc_coords_octant;
+                hiks(i, sLevel, 1) = anc_coords_occupy;
+                hiks(i, sLevel, 2) = nowLevel;
+            }
+        }
+
+        return hiks;
+    }
+
+    int GetOctant(int x, int y, int z) {
+        int octant = ((x & 0x1) << 0) |  //
+                     ((y & 0x1) << 1) |  //
+                     ((z & 0x1) << 2);
+
+        // std::cout << octant << std::endl;
+        return octant;
+    }
+
+    int GetOccupy(int x, int y, int z, uint32_t level) {
+        int occupy = 0;
+
+        for (int bbx = 0; bbx <= 1; ++bbx) {
+            for (int bby = 0; bby <= 1; ++bby) {
+                for (int bbz = 0; bbz <= 1; ++bbz) {
+                    std::array<int, 3> occ_coord = {
+                        (x << 1) | bbx,  //
+                        (y << 1) | bby,  //
+                        (z << 1) | bbz   //
+                    };
+
+                    bool occ_coord_has = m_Layers[level + 1].has(
+                        occ_coord[0], occ_coord[1], occ_coord[2]);
+
+                    occupy = occupy << 1;
+                    occupy = occupy | (int)occ_coord_has;
+                    // std::cout << occupy << std::endl;
+                }
+            }
+        }
+
+        return occupy;
+    }
 
    private:
     std::vector<OctreeLayer> m_Layers;

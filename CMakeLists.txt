@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 3.22.0)
+cmake_minimum_required(VERSION 3.22.3)
 project(EngineProject 
-    VERSION 0.1.0
+    VERSION 0.0.1
     DESCRIPTION "My Toy Modern OpenGL Game Engine."
     LANGUAGES C CXX
 )
@@ -16,6 +16,7 @@ find_package(spdlog CONFIG REQUIRED)
 find_package(glad CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
+find_package(xtensor CONFIG REQUIRED)
 find_package(assimp CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 find_package(freetype CONFIG REQUIRED)

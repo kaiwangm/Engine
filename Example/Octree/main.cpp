@@ -1,5 +1,3 @@
-#define NOMINMAX
-
 #include <Engine.h>
 
 #include <future>
@@ -12,14 +10,20 @@ namespace Engine {
 class ExampleLayer : public Layer {
    public:
     ExampleLayer() : Layer("Example") {
-        auto [coords, feats] = load_ply("Assert/longdress_vox10_1300.ply");
+        std::string ply_name = "longdress_vox10_1300";
+        std::string ply_path = "Assert/" + ply_name + ".ply";
+        auto [coords, feats] = load_ply(ply_path);
 
         m_HashOctree = std::make_shared<HashOctree<std::array<uint32_t, 3>>>(
             coords, feats, 10);
+        xt::xarray<int> batch = m_HashOctree->GetContexBatch(8, 5);
 
-        // ------------ Octree -------- //
-        // auto octree = std::make_shared<Octree>(coords, feats, 10);
-        // m_Octree = octree;
+        xt::dump_npy(ply_name + "_out.npy", batch);
+
+        // std::cout << hiks;
+        //  ------------ Octree -------- //
+        //  auto octree = std::make_shared<Octree>(coords, feats, 10);
+        //  m_Octree = octree;
         Log::Trace("Octree built successfully.");
 
         // ------------ Game -------- //
@@ -110,7 +114,7 @@ class ExampleLayer : public Layer {
             // points = std::vector<float>{0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0,
             // 0, 1};
 
-            //Log::Core_Trace("{0}", points.size() / 7);
+            // Log::Core_Trace("{0}", points.size() / 7);
 
             Ref<VertexBuffer> octree_VertexBuffer = VertexBuffer::Create(
                 &points[0], sizeof(float) * points.size(), points.size() / 7.0);

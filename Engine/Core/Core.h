@@ -10,9 +10,9 @@
 #error Engine only support Windows!
 #endif
 
-#define BIT(x) (1 << x)
-#define PI 3.1415926f
+namespace Engines {
 #define BIND_EVENT(x) std::bind(&x, this, std::placeholders::_1)
+}
 
 #include <functional>
 #include <cstdint>
@@ -29,6 +29,7 @@
 #include <fmt/core.h>
 
 #ifdef ENGINE_PLATFORM_WINDOWS
+#define NOMINMAX
 #include <windows.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
