@@ -36,6 +36,7 @@ jobs:
             cuda_arch: 86
     env:
       VCPKG_ROOT: "${{ github.workspace }}/vcpkg"
+      TCNN_CUDA_ARCHITECTURES: ${{ matrix.cuda_arch }}
 
     steps:
       - name: Checkout
