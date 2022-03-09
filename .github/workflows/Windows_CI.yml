@@ -17,16 +17,19 @@ jobs:
       matrix:
         include:
           - os: windows-latest
+            visual_studio: "Visual Studio 15 2017"
             toolset: "14.16"
             arch: x64
             cuda: "11.3.0"
             cuda_arch: 86
           - os: windows-latest
+            visual_studio: "Visual Studio 16 2019"
             toolset: "14.29"
             arch: x64
             cuda: "11.3.0"
             cuda_arch: 86
           - os: windows-latest
+            visual_studio: "Visual Studio 17 2022"
             toolset: "14.31"
             arch: x64
             cuda: "11.3.0"
@@ -49,6 +52,7 @@ jobs:
       - name: Install CUDA
         env:
           cuda: ${{ matrix.cuda }}
+          visual_studio: ${{ matrix.visual_studio }}
         shell: powershell
         run: .\.github\workflows\install_cuda_windows.ps1
 
