@@ -50,7 +50,7 @@ jobs:
         env:
           cuda: ${{ matrix.cuda }}
         shell: powershell
-        run: .\install_cuda_windows.ps1
+        run: .\.github\workflows\install_cuda_windows.ps1
 
       - name: Get cmake
         # Install latest CMake.
