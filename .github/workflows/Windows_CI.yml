@@ -37,6 +37,7 @@ jobs:
     env:
       VCPKG_ROOT: "${{ github.workspace }}/vcpkg"
       TCNN_CUDA_ARCHITECTURES: ${{ matrix.cuda_arch }}
+      build_dir: "build"
       config: "Release"
 
     steps:
@@ -105,18 +106,18 @@ jobs:
         # Build with Ninja
         working-directory: ${{ github.workspace }}
         run: |
-          cmake -B build -G Ninja -DCMAKE_TOOLCHAIN_FILE=${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake
+          cmake -B ${{ env.build }} -G Ninja -DCMAKE_TOOLCHAIN_FILE=${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake
 
       - name: Build Solution
         working-directory: ${{ github.workspace }}
         run: |
-          cmake --build build --parallel --config ${{ env.config }} --target ALL_BUILD --verbose
+          cmake --build ${{ env.build }} --parallel --config ${{ env.config }} --target ALL_BUILD --verbose
 
       - name: Test
-        working-directory: ${{ github.workspace }}/build
+        working-directory: ${{ github.workspace }}/${{ env.build }}
         # Execute tests defined by the CMake configuration.
         # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-        run: ctest -C Release
+        run: ctest -C ${{ env.config }}
 
       # - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
