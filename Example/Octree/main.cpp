@@ -1,17 +1,45 @@
+#define ENGINE_USE_ENTRYPOINT
 #include <Engine.h>
 #include <EntryPoint.h>
 
 //
 #include <tbb/tbb.h>
 
-//#include "ply_io.h"
 #include "OctreeObject.h"
+#include "ply_io.h"
 
 namespace Engine {
 class ExampleLayer : public Layer {
    public:
     ExampleLayer() : Layer("Example") {
-        m_Octrees.resize(19);
+        // std::string ply_name = "soldier_vox10_0835";
+        // std::string ply_path = "Assert/" + ply_name + ".ply";
+
+        /*
+        for (int i = 0; i <= 330; ++i) {
+            std::string ply_name = fmt::format("{:06d}", i);
+            std::string ply_path = "Assert/Kitti/" + ply_name + ".ply";
+            auto [coords, feats] = load_ply(ply_path);
+
+            auto hashOctree =
+                std::make_shared<HashOctree<std::array<uint32_t, 3>>>(
+                    coords, feats, 10);
+            xt::xarray<int> batch = hashOctree->GetContexBatch(16, 4);
+            xt::dump_npy("out/" + ply_name + "_out.npy", batch);
+        }
+        */
+
+        m_Octrees.resize(15);
+
+        /*
+        for (int i = 0; i < m_Octrees.size(); ++i) {
+            std::string ply_name = fmt::format("{:06d}", i);
+            std::string ply_path = "Assert/Kitti/" + ply_name + ".ply";
+
+            m_Octrees[i] = std::make_shared<OctreeObject>(ply_path, 12);
+            m_Octrees[i]->CacheGL();
+        }
+        */
 
         /*
         tbb::parallel_for(0, 19, [&](size_t i) {
@@ -26,6 +54,7 @@ class ExampleLayer : public Layer {
         });
         */
 
+        
         for (int i = 0; i < m_Octrees.size(); ++i) {
             uint32_t idx = 1450 + i;
             std::cout << i << std::endl;
@@ -36,6 +65,7 @@ class ExampleLayer : public Layer {
                 10);
             m_Octrees[i]->CacheGL();
         }
+        
 
         Log::Trace("Octree built successfully.");
 
@@ -99,7 +129,7 @@ class ExampleLayer : public Layer {
                          180.0f);
 
         uint32_t nowLevel_min = 0;
-        uint32_t nowLevel_max = 10;
+        uint32_t nowLevel_max = 12;
         ImGui::SliderScalar("nowLevel", ImGuiDataType_U32, &nowLevel,
                             &nowLevel_min, &nowLevel_max);
 

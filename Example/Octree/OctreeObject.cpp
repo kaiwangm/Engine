@@ -11,7 +11,7 @@ OctreeObject::OctreeObject(const std::string& path, uint32_t maxLevel) {
 }
 
 void OctreeObject::CacheGL() {
-    for (int i = 0; i <= 10; ++i) {
+    for (int i = 0; i <= m_HashOctree->GetMaxLevel(); ++i) {
         Ref<VertexArray> vertexArray;
 
         // ------------ OpenGL Box -------- //

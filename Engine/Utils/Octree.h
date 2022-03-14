@@ -121,9 +121,7 @@ class HashOctree {
    public:
     HashOctree(const std::vector<std::array<int, 3>>& coords,
                const std::vector<T>& feats, const uint32_t maxLevel)
-        : m_Layers(coords.size()),
-          m_MaxLevel(maxLevel),
-          m_Scales(maxLevel + 1) {
+        : m_Layers(maxLevel + 1), m_MaxLevel(maxLevel), m_Scales(maxLevel + 1) {
         for (int l = 0; l <= maxLevel; ++l) {
             m_Scales[l] = 1 << (m_MaxLevel - l);
             for (int idx = 0; idx < coords.size(); ++idx) {
@@ -134,17 +132,19 @@ class HashOctree {
                 m_Layers[l].write(x, y, z, feats[idx]);
             }
 
+            /*
             std::vector<std::array<int, 3>> LevelNode;
             m_Layers[l].foreach ([l, &LevelNode](int x, int y, int z, T& val) {
                 LevelNode.push_back({x, y, z});
             });
             m_LevelNodes.push_back(LevelNode);
+            */
         }
 
-        /*
         m_LevelNodes =
             std::vector<std::vector<std::array<int, 3>>>(m_MaxLevel + 1);
 
+        // Oct sort
         std::queue<std::array<int, 4>> que;
         que.push({0, 0, 0, 0});
         while (!que.empty()) {
@@ -157,9 +157,6 @@ class HashOctree {
 
             m_LevelNodes[nowLevel].push_back({pos[0], pos[1], pos[2]});
 
-            // std::cout << x << " " << y << " " << z << " " << nowLevel
-            //           << std::endl;
-
             for (int bbz = 0; bbz <= 1; ++bbz) {
                 for (int bby = 0; bby <= 1; ++bby) {
                     for (int bbx = 0; bbx <= 1; ++bbx) {
@@ -169,18 +166,19 @@ class HashOctree {
                             (z << 1) | bbz   //
                         };
 
-                        bool occ_coord_has = m_Layers[nowLevel + 1].has(
-                            occ_coord[0], occ_coord[1], occ_coord[2]);
+                        if (nowLevel + 1 <= m_MaxLevel) {
+                            bool occ_coord_has = m_Layers[nowLevel + 1].has(
+                                occ_coord[0], occ_coord[1], occ_coord[2]);
 
-                        if (occ_coord_has == true) {
-                            que.push({occ_coord[0], occ_coord[1], occ_coord[2],
-                                      nowLevel + 1});
+                            if (occ_coord_has == true) {
+                                que.push({occ_coord[0], occ_coord[1],
+                                          occ_coord[2], nowLevel + 1});
+                            }
                         }
                     }
                 }
             }
         }
-        */
 
         /*
         for (int i = 0; i <= m_MaxLevel; ++i) {

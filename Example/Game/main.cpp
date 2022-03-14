@@ -1,3 +1,4 @@
+#define ENGINE_USE_ENTRYPOINT
 #include <Engine.h>
 #include <EntryPoint.h>
 

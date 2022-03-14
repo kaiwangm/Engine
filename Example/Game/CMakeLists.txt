@@ -1,6 +1,6 @@
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/Game)
 
-add_definitions(-DENGINE_USE_ENTRYPOINT)
+#add_definitions(-DENGINE_USE_ENTRYPOINT)
 
 add_executable(Game main.cpp)
 

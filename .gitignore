@@ -36,6 +36,3 @@ build
 imgui.ini
 dependencies
 Example/Octree/Assert/redandblack
-Example/Octree/Assert/soldier_vox10_0536.ply
-Example/Octree/Assert/redandblack_vox10_1450.ply
-Example/Octree/Assert/loot_vox10_1000.ply

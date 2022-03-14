@@ -42,5 +42,5 @@ class Application {
     Timer m_Timer;
 };
 
-Scope<Application> CreateApplication();
+//Scope<Application> CreateApplication();
 }  // namespace Engine

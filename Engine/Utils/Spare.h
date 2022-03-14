@@ -123,9 +123,10 @@ struct HashBlock3D {
     }
 
     Node* touch(int x, int y, int z) {
-        auto it = m_Data.find(std::make_tuple(x, y, z));
+        auto pos = std::make_tuple(x, y, z);
+        auto it = m_Data.find(pos);
         if (it == m_Data.end())
-            return &m_Data.try_emplace(std::make_tuple(x, y, z)).first->second;
+            return &m_Data.try_emplace(pos).first->second;
         return &it->second;
     }
 
