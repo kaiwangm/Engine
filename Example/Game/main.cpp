@@ -1,6 +1,5 @@
 #define ENGINE_USE_ENTRYPOINT
 #include <Engine.h>
-#include <EntryPoint.h>
 
 namespace Engine {
 class ExampleLayer : public Layer {

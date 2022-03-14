@@ -5,6 +5,7 @@
     "spdlog",
     "glad",
     "glfw3",
+    "stb",
     "glm",
     "xtensor",
     "assimp",
@@ -16,8 +17,11 @@
         "docking-experimental"
       ]
     },
+    "imguizmo",
     "freetype",
     "entt",
+    "cereal",
+    "sol2",
     "gtest"
   ]
 }

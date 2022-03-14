@@ -43,9 +43,7 @@ class GuiCommand {
                             glm::value_ptr(values), v_min, v_max);
     }
 
-    static void ShowImNodesDemoWindow() {
-        ImGui::ShowImNodesDemoWindow();
-    }
+    static void ShowImNodesDemoWindow();
 
     static void DockSpace(bool& app_open_ref);
 };

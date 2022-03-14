@@ -1,3 +1,5 @@
+add_subdirectory(OpenGL_Renderer)
+
 add_library(
     Renderer
     STATIC
@@ -16,7 +18,7 @@ target_link_libraries(
     Renderer 
     PRIVATE 
     Core 
-    Platform
+    OpenGL_Renderer
 )
 
 target_link_libraries(

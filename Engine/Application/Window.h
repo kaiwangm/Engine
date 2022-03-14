@@ -2,9 +2,9 @@
 
 #include "Core.h"
 #include "Events/ApplicationEvent.h"
-#include "KeyEvent.h"
+#include "Events/KeyEvent.h"
+#include "Events/MouseEvent.h"
 #include "Log.h"
-#include "MouseEvent.h"
 
 namespace Engine {
 struct WindowProps {

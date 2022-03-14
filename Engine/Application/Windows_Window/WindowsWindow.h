@@ -1,6 +1,6 @@
 #pragma once
 
-#include "OpenGLContext.h"
+#include "OpenGL_Renderer/OpenGLContext.h"
 #include "Window.h"
 
 namespace Engine {

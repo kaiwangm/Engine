@@ -1,12 +1,10 @@
 #include "OpenGLImGuiLayer.h"
 
 #include "Application.h"
-#include "Renderer.h"
 
 // imgui
 #include <imgui.h>
 
-#include "OpenGL_Imgui/imgui_freetype.h"
 #include "OpenGL_Imgui/imgui_impl_glfw.h"
 #include "OpenGL_Imgui/imgui_impl_opengl3.h"
 

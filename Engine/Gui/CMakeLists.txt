@@ -5,7 +5,6 @@ add_library(
     STATIC
     DockSpaceLayer.cpp
     GuiCommand.cpp
-    ImGuiLayer.cpp
     ImGuiLog.cpp
 )
 
@@ -13,7 +12,6 @@ target_link_libraries(
     Gui 
     PRIVATE 
     Core 
-    Platform 
     Renderer
 )
 

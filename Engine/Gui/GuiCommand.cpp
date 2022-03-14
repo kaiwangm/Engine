@@ -89,8 +89,8 @@ void GuiCommand::DockSpace(bool& app_open_ref) {
             // without finer window depth/z control.
             ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen);
             ImGui::MenuItem("Padding", NULL, &opt_padding);
-            
-            //ImGui::Separator();
+
+            // ImGui::Separator();
 
             ImGui::Separator();
 
@@ -103,4 +103,6 @@ void GuiCommand::DockSpace(bool& app_open_ref) {
 
     ImGui::End();
 }
+
+void GuiCommand::ShowImNodesDemoWindow() { ImGui::ShowImNodesDemoWindow(); }
 }  // namespace Engine

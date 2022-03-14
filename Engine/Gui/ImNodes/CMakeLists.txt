@@ -1,6 +1,6 @@
 add_library(
     ImNodes
-    STATIC
+    OBJECT
     ImGuiNodes.cpp
     ImNodes.cpp
     ImNodesEz.cpp

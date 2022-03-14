@@ -2,7 +2,7 @@
 
 #include "Renderer.h"
 #ifdef ENGINE_PLATFORM_WINDOWS
-#include "OpenGL/OpenGLVertexArray.h"
+#include "OpenGL_Renderer/OpenGLVertexArray.h"
 #endif
 
 namespace Engine {

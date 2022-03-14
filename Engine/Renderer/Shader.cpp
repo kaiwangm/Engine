@@ -4,7 +4,7 @@
 #include "Renderer.h"
 
 #ifdef ENGINE_PLATFORM_WINDOWS
-#include "OpenGL/OpenGLShader.h"
+#include "OpenGL_Renderer/OpenGLShader.h"
 #endif
 
 namespace Engine {

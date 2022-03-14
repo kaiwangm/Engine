@@ -1,6 +1,7 @@
 #include "OpenGLTexture.h"
 
-#include "Stb/stb_image.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 namespace Engine {
 OpenGLTexture2D::OpenGLTexture2D() {

@@ -1,7 +1,7 @@
 #include "RendererAPI.h"
 
 #ifdef ENGINE_PLATFORM_WINDOWS
-#include "OpenGL/OpenGLRendererAPI.h"
+#include "OpenGL_Renderer/OpenGLRendererAPI.h"
 #endif
 
 namespace Engine {

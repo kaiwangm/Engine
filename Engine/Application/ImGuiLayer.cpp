@@ -3,7 +3,7 @@
 #include "Renderer.h"
 
 #ifdef ENGINE_PLATFORM_WINDOWS
-#include "OpenGL/OpenGLImGuiLayer.h"
+#include "OpenGLImGuiLayer.h"
 #endif
 
 namespace Engine {

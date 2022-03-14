@@ -3,7 +3,7 @@
 #include "Renderer.h"
 
 #ifdef ENGINE_PLATFORM_WINDOWS
-#include "OpenGL/OpenGLBuffer.h"
+#include "OpenGL_Renderer/OpenGLBuffer.h"
 #endif
 
 namespace Engine {

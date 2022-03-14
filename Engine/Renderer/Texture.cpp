@@ -3,7 +3,7 @@
 #include "Renderer.h"
 
 #ifdef ENGINE_PLATFORM_WINDOWS
-#include "OpenGL/OpenGLTexture.h"
+#include "OpenGL_Renderer/OpenGLTexture.h"
 #endif
 
 namespace Engine {
