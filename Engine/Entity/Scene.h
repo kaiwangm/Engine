@@ -21,6 +21,19 @@ class Scene {
 
     void OnUpdateRuntimeGui(float timeStep, float nowTime);
 
+    void LoadShader(const std::string& name, const std::string& vertexSrc,
+                    const std::string& fragmentSrc, const std::string& mode);
+
+   public:
+    ShaderLibrary m_ShaderLibrary;
+
+    Ref<FrameRenderBuffer> m_FrameRenderBuffer;
+    Ref<FrameRenderBuffer> m_FrameRenderBuffer_normal;
+
+    glm::vec4 backGroundColor{0.7f, 0.7f, 0.7f, 1.0f};
+
+    Ref<Camera> m_Camera;
+
    private:
     entt::registry m_Registry;
 

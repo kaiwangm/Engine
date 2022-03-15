@@ -8,7 +8,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
-#include "Renderer.h"
+#include "Model.h"
 
 namespace Engine {
 struct TagComponent {
@@ -18,7 +18,7 @@ struct TagComponent {
     TagComponent(const TagComponent&) = default;
     TagComponent(const std::string& tag) : Tag(tag) {}
 
-    std::string GetString(){return Tag;}
+    std::string GetString() { return Tag; }
 };
 
 struct TransformComponent {
@@ -54,5 +54,13 @@ struct RenderableMeshComponent {
     Ref<VertexArray> GetVertexArray() { return m_VertexArray.lock(); }
     Ref<Shader> GetShader() { return m_Shader.lock(); }
     Ref<Texture2D> GetTexture() { return m_Texture.lock(); }
+};
+
+struct StaticModelComponent {
+    WeakRef<Model> m_Model;
+
+    StaticModelComponent(const Ref<Model> model) : m_Model(model) {}
+
+    Ref<Model> GetModel() { return m_Model.lock(); }
 };
 }  // namespace Engine
