@@ -77,6 +77,24 @@ class ExampleLayer : public Layer {
         m_FrameRenderBuffer = FrameRenderBuffer::Create();
         m_FrameRenderBuffer_uv = FrameRenderBuffer::Create();
         // m_FrameRenderBuffer->SetViewPort(800, 600);
+
+        m_Scene = std::make_shared<Scene>();
+
+        auto& tree = Scene::CreateEntity(m_Scene, "tree");
+
+        tree.AddComponent<TransformComponent>();
+        tree.AddComponent<RenderableMeshComponent>(
+            m_Tree_VertexArray, m_ShaderLibrary.Get("TextureShader"),
+            m_Icons_Texture);
+        tree.GetComponent<TransformComponent>().Translation = {0.0f, 0.0f,
+                                                               0.3f};
+
+        auto& square = Scene::CreateEntity(m_Scene, "square");
+
+        square.AddComponent<TransformComponent>();
+        square.AddComponent<RenderableMeshComponent>(
+            m_Square_VertexArray, m_ShaderLibrary.Get("TextureShader"),
+            m_Texture);
     }
 
     void OnAttach() override {}
@@ -93,26 +111,7 @@ class ExampleLayer : public Layer {
         RenderCommand::SetClearColor(backGroundColor);
         RenderCommand::Clear();
 
-        m_Tree_Transform = glm::translate(glm::mat4(1.0f), m_Tree_Position);
-        m_Square_Transform = glm::translate(glm::mat4(1.0f), m_Square_Position);
-
-        auto m_Shader = m_ShaderLibrary.Get("TextureShader");
-
-        Renderer::SetShaderUniform(m_Shader, "u_Color",
-                                   glm::vec4(0.9f, 0.9f, 0.9f, 1.0f));
-        Renderer::SetShaderUniform(m_Shader, "u_Texture", 0);
-
-        m_Texture->Bind(0);
-        Renderer::Submit(m_Square_VertexArray, m_Shader, m_Square_Transform);
-        m_Texture->UnBind(0);
-
-        Renderer::SetShaderUniform(m_Shader, "u_Color",
-                                   glm::vec4(0.9f, 0.7f, 0.9f, 1.0f));
-        Renderer::SetShaderUniform(m_Shader, "u_Texture", 0);
-
-        m_Icons_Texture->Bind(0);
-        Renderer::Submit(m_Tree_VertexArray, m_Shader, m_Tree_Transform);
-        m_Icons_Texture->UnBind(0);
+        m_Scene->OnUpdateRuntime(m_LayerUpdateMeta.m_timeStep);
 
         Renderer::EndScene(m_FrameRenderBuffer);
 
@@ -122,26 +121,7 @@ class ExampleLayer : public Layer {
         RenderCommand::SetClearColor(backGroundColor);
         RenderCommand::Clear();
 
-        m_Tree_Transform = glm::translate(glm::mat4(1.0f), m_Tree_Position);
-        m_Square_Transform = glm::translate(glm::mat4(1.0f), m_Square_Position);
-
-        auto m_Shader_uv = m_ShaderLibrary.Get("TextureShader_uv");
-
-        Renderer::SetShaderUniform(m_Shader_uv, "u_Color",
-                                   glm::vec4(0.9f, 0.9f, 0.9f, 1.0f));
-        Renderer::SetShaderUniform(m_Shader_uv, "u_Texture", 0);
-
-        m_Texture->Bind(0);
-        Renderer::Submit(m_Square_VertexArray, m_Shader_uv, m_Square_Transform);
-        m_Texture->UnBind(0);
-
-        Renderer::SetShaderUniform(m_Shader_uv, "u_Color",
-                                   glm::vec4(0.9f, 0.7f, 0.9f, 1.0f));
-        Renderer::SetShaderUniform(m_Shader_uv, "u_Texture", 0);
-
-        m_Icons_Texture->Bind(0);
-        Renderer::Submit(m_Tree_VertexArray, m_Shader_uv, m_Tree_Transform);
-        m_Icons_Texture->UnBind(0);
+        m_Scene->OnUpdateRuntime(m_LayerUpdateMeta.m_timeStep);
 
         Renderer::EndScene(m_FrameRenderBuffer_uv);
     }
@@ -150,22 +130,13 @@ class ExampleLayer : public Layer {
         float timeStep = m_LayerUpdateMeta.m_timeStep;
         float nowTime = m_LayerUpdateMeta.m_nowTime;
 
-        Gui::Begin("Scence Collection");
-        Gui::Text("Hello, a Tree and a Square !");
-        Gui::Text("Time Step: {0}", timeStep);
-        Gui::Text("Now Time: {0}", nowTime);
+        m_Scene->OnUpdateRuntimeGui(timeStep, nowTime);
 
-        static std::vector<float> arr(600, 0.0);
-        arr.push_back(timeStep);
-        arr.erase(arr.begin());
-        ImGui::PlotLines("Frame Times", &arr[0], 600);
+        // Gui::ColorEdit4("backGroundColor", backGroundColor);
+        //  ImGui::SliderFloat("transSpeed", &transSpeed, 0.0f, 6.0f);
+        //  ImGui::SliderFloat("rotSpeed", &rotSpeed, 0.0f, 6.0f);
 
-        Gui::ColorEdit4("backGroundColor", backGroundColor);
-        // ImGui::SliderFloat("transSpeed", &transSpeed, 0.0f, 6.0f);
-        // ImGui::SliderFloat("rotSpeed", &rotSpeed, 0.0f, 6.0f);
-
-        Gui::SliderFloat3("m_Tree_Position", m_Tree_Position, -3.0f, 3.0f);
-        Gui::SliderFloat3("m_Square_Position", m_Square_Position, -3.0f, 3.0f);
+        Gui::Begin("Camera");
         Gui::SliderFloat3("m_Camera_Position", m_Camera->GetPosition(), -10.0f,
                           10.0f);
         Gui::SliderFloat("m_Camera_Rotation", m_Camera->GetRotation(), -180.0f,
@@ -221,6 +192,7 @@ class ExampleLayer : public Layer {
     void OnEvent(Event& event) override { m_Camera->OnEvent(event); }
 
    private:
+    Ref<Scene> m_Scene;
     Ref<Camera> m_Camera;
     ShaderLibrary m_ShaderLibrary;
     Ref<Texture2D> m_Texture;

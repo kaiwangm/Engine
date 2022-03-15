@@ -3,6 +3,7 @@
 add_definitions(-DENGINE_BUILD_DLL)
 
 add_subdirectory(Core)
+add_subdirectory(Entity)
 add_subdirectory(Application)
 add_subdirectory(Gui)
 add_subdirectory(Renderer)
@@ -31,10 +32,12 @@ target_link_libraries(
     Gui 
     Renderer
     Utils
+    Entity
 )
 
 target_link_libraries(
     Engine 
     PUBLIC 
     glm::glm
+    EnTT::EnTT 
 )

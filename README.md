@@ -12,6 +12,7 @@ A Modern OpenGL Game Engine.
 - 2022-03-05 ✨ Frame Buffer Object.
 - 2022-03-05 ✨ Render to Gui.
 - 2022-03-06 ✨ Log to Gui.
+- 2022-03-15 ✨ Entt.
 - ......
 
 ![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/Log_Gui.png)

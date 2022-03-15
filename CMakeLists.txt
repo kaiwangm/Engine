@@ -8,7 +8,7 @@ project(EngineProject
 set(CMAKE_CXX_STANDARD 17)
 
 IF (WIN32)
-	MESSAGE(STATUS "Now is windows")
+	MESSAGE(STATUS "Now is windows.")
     add_definitions(-DENGINE_PLATFORM_WINDOWS)
 ENDIF ()
 

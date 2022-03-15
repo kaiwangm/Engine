@@ -14,6 +14,9 @@
 #include "Utils/Spare.h"
 #include "Utils/Octree.h"
 
+#include "Entity/Entity.h"
+//#include "Entity/Scene.h"
+
 #ifdef ENGINE_PLATFORM_WINDOWS
 
 #ifdef ENGINE_USE_ENTRYPOINT
