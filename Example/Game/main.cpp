@@ -13,6 +13,13 @@ class ExampleLayer : public Layer {
         m_Scene->LoadShader("TextureShader_normal", "Assert/vertex_normal.glsl",
                             "Assert/fragment_normal.glsl", "Path");
 
+        auto& camera = Scene::CreateEntity(m_Scene, "camera");
+        m_Camera = std::make_shared<PerspectiveCamera>(45.0f, 1.778f, 0.1f,
+                                                       3000.0f * 8);
+
+        camera.AddComponent<CameraComponent>(m_Camera);
+        camera.AddComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, 5.0f});
+
         auto& board = Scene::CreateEntity(m_Scene, "board");
         m_Board = std::make_shared<Model>();
 
@@ -32,7 +39,7 @@ class ExampleLayer : public Layer {
 
     void OnUpdate() override {
         if (m_IsWindowFocused == true)
-            m_Scene->m_Camera->OnUpdate(m_LayerUpdateMeta.m_timeStep);
+            m_Camera->OnUpdate(m_LayerUpdateMeta.m_timeStep);
 
         m_Scene->OnUpdateRuntime(m_LayerUpdateMeta.m_timeStep);
     }
@@ -48,10 +55,10 @@ class ExampleLayer : public Layer {
         //  ImGui::SliderFloat("rotSpeed", &rotSpeed, 0.0f, 6.0f);
 
         Gui::Begin("Camera");
-        Gui::SliderFloat3("m_Camera_Position", m_Scene->m_Camera->GetPosition(),
-                          -10.0f, 10.0f);
-        Gui::SliderFloat("m_Camera_Rotation", m_Scene->m_Camera->GetRotation(),
-                         -180.0f, 180.0f);
+        Gui::SliderFloat3("m_Camera_Position", m_Camera->GetPosition(), -10.0f,
+                          10.0f);
+        Gui::SliderFloat("m_Camera_Rotation", m_Camera->GetRotation(), -180.0f,
+                         180.0f);
 
         Gui::End();
 
@@ -100,11 +107,12 @@ class ExampleLayer : public Layer {
         ImGui::ShowExampleAppLog(NULL);
     }
 
-    void OnEvent(Event& event) override { m_Scene->m_Camera->OnEvent(event); }
+    void OnEvent(Event& event) override { m_Camera->OnEvent(event); }
 
    private:
     Ref<Scene> m_Scene;
 
+    Ref<Camera> m_Camera;
     Ref<Model> m_Board;
     Ref<Model> m_Bunny;
 

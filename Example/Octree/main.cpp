@@ -28,7 +28,7 @@ class ExampleLayer : public Layer {
         }
         */
 
-        m_Octrees.resize(15);
+        m_Octrees.resize(100);
 
         /*
         for (int i = 0; i < m_Octrees.size(); ++i) {

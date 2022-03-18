@@ -32,8 +32,6 @@ class Scene {
 
     glm::vec4 backGroundColor{0.7f, 0.7f, 0.7f, 1.0f};
 
-    Ref<Camera> m_Camera;
-
    private:
     entt::registry m_Registry;
 

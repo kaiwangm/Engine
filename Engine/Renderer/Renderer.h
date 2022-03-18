@@ -87,6 +87,10 @@ class Renderer {
     static void Submit(const Ref<VertexArray>& vertexArray,
                        const Ref<Shader>& shader, const glm::mat4& transform);
 
+    static void Submit(const Ref<VertexArray>& vertexArray,
+                       const Ref<Shader>& shader, const glm::mat4& pvMatrix,
+                       const glm::mat4& transform);
+
     static void DrawArray(const Ref<VertexArray>& vertexArray,
                           const Ref<Shader>& shader,
                           const glm::mat4& transform);

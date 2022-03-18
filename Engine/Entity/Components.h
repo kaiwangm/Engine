@@ -39,28 +39,19 @@ struct TransformComponent {
     }
 };
 
-struct RenderableMeshComponent {
-    WeakRef<VertexArray> m_VertexArray;
-    WeakRef<Shader> m_Shader;
-    WeakRef<Texture2D> m_Texture;
-
-    RenderableMeshComponent() = default;
-
-    RenderableMeshComponent(const Ref<VertexArray> vertexArray,
-                            const Ref<Shader> shader,
-                            const Ref<Texture2D> texture)
-        : m_VertexArray(vertexArray), m_Shader(shader), m_Texture(texture) {}
-
-    Ref<VertexArray> GetVertexArray() { return m_VertexArray.lock(); }
-    Ref<Shader> GetShader() { return m_Shader.lock(); }
-    Ref<Texture2D> GetTexture() { return m_Texture.lock(); }
-};
-
 struct StaticModelComponent {
     WeakRef<Model> m_Model;
 
     StaticModelComponent(const Ref<Model> model) : m_Model(model) {}
 
     Ref<Model> GetModel() { return m_Model.lock(); }
+};
+
+struct CameraComponent {
+    WeakRef<Camera> m_Camera;
+
+    CameraComponent(const Ref<Camera> camera) : m_Camera(camera) {}
+
+    Ref<Camera> GetCamera() { return m_Camera.lock(); }
 };
 }  // namespace Engine
