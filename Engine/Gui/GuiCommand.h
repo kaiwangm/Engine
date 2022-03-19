@@ -4,6 +4,7 @@
 
 #include "Core.h"
 #include "ImNodes/ImGuiNodes.h"
+#include "Renderer.h"
 
 namespace Engine {
 class GuiCommand {
@@ -62,6 +63,24 @@ class GuiCommand {
     static void ShowImNodesDemoWindow();
 
     static void DockSpace(bool& app_open_ref);
+
+    template <class... Args>
+    static void ShowViewport(const std::string& text,
+                             Ref<FrameRenderBuffer> framebuffer,
+                             bool& is_focused, Args... args) {
+        ImGui::Begin(fmt::format(text, args...).c_str());
+        {
+            ImGui::BeginChild("Render");
+            is_focused = ImGui::IsWindowFocused();
+            ImVec2 wsize = ImGui::GetWindowSize();
+            framebuffer->SetViewPort((uint32_t)wsize.x, (uint32_t)wsize.y);
+            ImGui::Image(framebuffer->GetTextureID(), wsize, ImVec2(0, 1),
+                         ImVec2(1, 0));
+
+            ImGui::EndChild();
+        }
+        ImGui::End();
+    }
 };
 using Gui = GuiCommand;
 }  // namespace Engine

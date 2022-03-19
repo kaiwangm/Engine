@@ -35,29 +35,31 @@ void Scene::OnUpdateRuntime(float timeStep) {
 
     // use a range-for
     for (auto [entity, name, trans, camera] : camrea_view.each()) {
-        if (Input::IsKeyPressed(GLFW_KEY_A)) {
-            trans.Translation.x -= m_CameraTranslationSpeed * timeStep;
-        }
-        if (Input::IsKeyPressed(GLFW_KEY_D)) {
-            trans.Translation.x += m_CameraTranslationSpeed * timeStep;
-        }
-        if (Input::IsKeyPressed(GLFW_KEY_LEFT_CONTROL)) {
-            trans.Translation.y -= m_CameraTranslationSpeed * timeStep;
-        }
-        if (Input::IsKeyPressed(GLFW_KEY_SPACE)) {
-            trans.Translation.y += m_CameraTranslationSpeed * timeStep;
-        }
-        if (Input::IsKeyPressed(GLFW_KEY_W)) {
-            trans.Translation.z -= m_CameraTranslationSpeed * timeStep;
-        }
-        if (Input::IsKeyPressed(GLFW_KEY_S)) {
-            trans.Translation.z += m_CameraTranslationSpeed * timeStep;
-        }
-        if (Input::IsKeyPressed(GLFW_KEY_E)) {
-            trans.Rotation.y -= m_CameraRotationSpeed * timeStep;
-        }
-        if (Input::IsKeyPressed(GLFW_KEY_Q)) {
-            trans.Rotation.y += m_CameraRotationSpeed * timeStep;
+        if (camera.GetCamera()->m_IsWindowFocused) {
+            if (Input::IsKeyPressed(GLFW_KEY_A)) {
+                trans.Translation.x -= m_CameraTranslationSpeed * timeStep;
+            }
+            if (Input::IsKeyPressed(GLFW_KEY_D)) {
+                trans.Translation.x += m_CameraTranslationSpeed * timeStep;
+            }
+            if (Input::IsKeyPressed(GLFW_KEY_LEFT_CONTROL)) {
+                trans.Translation.y -= m_CameraTranslationSpeed * timeStep;
+            }
+            if (Input::IsKeyPressed(GLFW_KEY_SPACE)) {
+                trans.Translation.y += m_CameraTranslationSpeed * timeStep;
+            }
+            if (Input::IsKeyPressed(GLFW_KEY_W)) {
+                trans.Translation.z -= m_CameraTranslationSpeed * timeStep;
+            }
+            if (Input::IsKeyPressed(GLFW_KEY_S)) {
+                trans.Translation.z += m_CameraTranslationSpeed * timeStep;
+            }
+            if (Input::IsKeyPressed(GLFW_KEY_E)) {
+                trans.Rotation.y -= m_CameraRotationSpeed * timeStep;
+            }
+            if (Input::IsKeyPressed(GLFW_KEY_Q)) {
+                trans.Rotation.y += m_CameraRotationSpeed * timeStep;
+            }
         }
 
         auto& camera_ref = camera.GetCamera();

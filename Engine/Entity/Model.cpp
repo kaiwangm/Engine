@@ -43,7 +43,8 @@ Model::Model() {
     m_Meshes[0].AddTexture(Texture2D::Create("Assert/Checkerboard.png"));
 }
 
-Model::Model(const std::string& path) {
+Model::Model(const std::string& path)
+    : m_Directory(path.substr(0, path.find_last_of('/'))) {
     Assimp::Importer import;
     const aiScene* scene =
         import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
@@ -57,7 +58,11 @@ Model::Model(const std::string& path) {
 
     processNode(scene->mRootNode, scene);
 
-    m_Meshes[0].AddTexture(Texture2D::Create("Assert/Checkerboard.png"));
+    for (auto& mesh : m_Meshes) {
+        if (mesh.m_Textures.size() == 0) {
+            mesh.AddTexture(Texture2D::Create("Assert/Checkerboard.png"));
+        }
+    }
 }
 
 void Model::processNode(aiNode* node, const aiScene* scene) {
@@ -86,8 +91,13 @@ Mesh Model::processMesh(aiMesh* amesh, const aiScene* scene) {
         vertices.push_back(amesh->mNormals[i].y);
         vertices.push_back(amesh->mNormals[i].z);
 
-        vertices.push_back(amesh->mTextureCoords[0][i].x);
-        vertices.push_back(amesh->mTextureCoords[0][i].y);
+        if (amesh->mTextureCoords[0]) {
+            vertices.push_back(amesh->mTextureCoords[0][i].x);
+            vertices.push_back(amesh->mTextureCoords[0][i].y);
+        } else {
+            vertices.push_back(0.0f);
+            vertices.push_back(0.0f);
+        }
     }
 
     for (unsigned int i = 0; i < amesh->mNumFaces; i++) {
@@ -104,6 +114,40 @@ Mesh Model::processMesh(aiMesh* amesh, const aiScene* scene) {
                   {2, ShaderDataType::Float2, "a_TexCoord"},
               });
 
+    if (amesh->mMaterialIndex >= 0) {
+        aiMaterial* material = scene->mMaterials[amesh->mMaterialIndex];
+        auto diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE,
+                                                "texture_diffuse");
+        m_Textures.insert(m_Textures.end(), diffuseMaps.begin(),
+                          diffuseMaps.end());
+        if (diffuseMaps.size() != 0) {
+            mesh.AddTexture(diffuseMaps[0]);
+        }
+
+        auto specularMaps = loadMaterialTextures(
+            material, aiTextureType_SPECULAR, "texture_specular");
+        m_Textures.insert(m_Textures.end(), specularMaps.begin(),
+                          specularMaps.end());
+        if (specularMaps.size() != 0) {
+            mesh.AddTexture(specularMaps[0]);
+        }
+    }
+
     return mesh;
+}
+
+std::vector<Ref<Texture2D>> Model::loadMaterialTextures(aiMaterial* mat,
+                                                        aiTextureType type,
+                                                        std::string typeName) {
+    std::vector<Ref<Texture2D>> textures;
+    for (unsigned int i = 0; i < mat->GetTextureCount(type); i++) {
+        aiString str;
+        mat->GetTexture(type, i, &str);
+        std::string path(str.C_Str());
+        path = m_Directory + "/" + path;
+        Ref<Texture2D> texture = Texture2D::Create(path);
+        textures.push_back(texture);
+    }
+    return textures;
 }
 }  // namespace Engine

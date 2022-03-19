@@ -38,6 +38,8 @@ class Camera {
     virtual void RecalculateProjectionMatrix() = 0;
     virtual void RecalculateViewProjectMatrix();
 
+    bool m_IsWindowFocused;
+
    protected:
     glm::mat4 m_ProjectionMatrix;
     glm::mat4 m_ViewMatrix;
