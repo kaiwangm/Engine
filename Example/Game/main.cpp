@@ -12,13 +12,16 @@ class ExampleLayer : public Layer {
                             "Assert/fragment.glsl", "Path");
         m_Scene->LoadShader("TextureShader_normal", "Assert/vertex_normal.glsl",
                             "Assert/fragment_normal.glsl", "Path");
+        m_Scene->LoadShader("Animated", "Assert/vertex_animated.glsl",
+                            "Assert/fragment_animated.glsl", "Path");
 
         auto& camera = Scene::CreateEntity(m_Scene, "camera");
         m_Camera = std::make_shared<PerspectiveCamera>(45.0f, 1.778f, 0.1f,
                                                        3000.0f * 8);
 
         camera.AddComponent<CameraComponent>(m_Camera);
-        camera.AddComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, 5.0f});
+        camera.AddComponent<TransformComponent>(
+            glm::vec3{0.246f, 0.250f, 8.100f});
 
         auto& board = Scene::CreateEntity(m_Scene, "board");
         m_Board = std::make_shared<Model>();
@@ -27,10 +30,19 @@ class ExampleLayer : public Layer {
         board.AddComponent<TransformComponent>();
 
         auto& gallery = Scene::CreateEntity(m_Scene, "gallery");
-        m_Gallery = std::make_shared<Model>("Assert/gallery/gallery.obj");
+        // m_Gallery = std::make_shared<Model>("Assert/gallery/gallery.obj");
 
-        gallery.AddComponent<StaticModelComponent>(m_Gallery);
-        gallery.AddComponent<TransformComponent>();
+        // gallery.AddComponent<StaticModelComponent>(m_Gallery);
+        // gallery.AddComponent<TransformComponent>();
+
+        auto& animan = Scene::CreateEntity(m_Scene, "animan");
+        m_Animan = std::make_shared<AnimatedModel>("Assert/animan/model.dae");
+
+        animan.AddComponent<AnimatedModelComponent>(m_Animan);
+        animan.AddComponent<TransformComponent>(
+            glm::vec3{-0.010f, -1.980f, 1.340f},
+            glm::vec3{-1.675f, -1.660f, 0.000f},
+            glm::vec3{0.500f, 0.500f, 0.500f});
     }
 
     void OnAttach() override {}
@@ -62,7 +74,7 @@ class ExampleLayer : public Layer {
                           is_normal_focused);
 
         m_IsWindowFocused = is_color_focused | is_normal_focused;
-        
+
         ImGui::ShowExampleAppLog(NULL);
     }
 
@@ -70,10 +82,11 @@ class ExampleLayer : public Layer {
 
    private:
     Ref<Scene> m_Scene;
-
     Ref<Camera> m_Camera;
+
     Ref<Model> m_Board;
     Ref<Model> m_Gallery;
+    Ref<AnimatedModel> m_Animan;
 
     bool m_IsWindowFocused;
 };

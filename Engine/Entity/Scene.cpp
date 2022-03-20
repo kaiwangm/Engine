@@ -99,6 +99,19 @@ void Scene::OnUpdateRuntime(float timeStep) {
         }
     }
 
+    auto animated_view =
+        m_Registry
+            .view<TagComponent, TransformComponent, AnimatedModelComponent>();
+
+    // use a range-for
+    for (auto [entity, name, trans, model] : animated_view.each()) {
+        auto shader = m_ShaderLibrary.Get("Animated");
+        // Renderer::SetShaderUniform(shader, "u_Texture", 0);
+
+        model.GetModel()->Update(timeStep);
+        model.GetModel()->Draw(shader, vp_Mat, trans.GetTransform());
+    }
+
     Renderer::EndScene(m_FrameRenderBuffer);
 
     // Render

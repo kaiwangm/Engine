@@ -13,6 +13,7 @@ A Modern OpenGL Game Engine.
 - 2022-03-05 ✨ Render to Gui.
 - 2022-03-06 ✨ Log to Gui.
 - 2022-03-15 ✨ Entt.
+- 2022-03-20 ✨ Animation System.
 - ......
 
 ![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/Log_Gui.png)

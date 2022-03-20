@@ -1,6 +1,7 @@
 add_library(
     Entity
     OBJECT
+    Animation.cpp
     Entity.cpp
     Model.cpp
     Scene.cpp
