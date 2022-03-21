@@ -327,45 +327,45 @@ class AnimatedModel {
             }
         }
 
-        std::vector<float> vertices;
+        std::vector<float> positions;
+        std::vector<float> texutreCoords;
+        std::vector<float> normals;
+        std::vector<int> bindJointIDs;
+        std::vector<float> weights;
         std::vector<uint32_t> indices;
 
         for (unsigned int i = 0; i < amesh->mNumVertices; i++) {
-            vertices.push_back(amesh->mVertices[i].x);
-            vertices.push_back(amesh->mVertices[i].y);
-            vertices.push_back(amesh->mVertices[i].z);
+            positions.push_back(amesh->mVertices[i].x);
+            positions.push_back(amesh->mVertices[i].y);
+            positions.push_back(amesh->mVertices[i].z);
 
             if (amesh->mTextureCoords[0]) {
-                vertices.push_back(amesh->mTextureCoords[0][i].x);
-                vertices.push_back(amesh->mTextureCoords[0][i].y);
+                texutreCoords.push_back(amesh->mTextureCoords[0][i].x);
+                texutreCoords.push_back(amesh->mTextureCoords[0][i].y);
             } else {
-                vertices.push_back(0.0f);
-                vertices.push_back(0.0f);
+                texutreCoords.push_back(0.0f);
+                texutreCoords.push_back(0.0f);
             }
 
-            vertices.push_back(amesh->mNormals[i].x);
-            vertices.push_back(amesh->mNormals[i].y);
-            vertices.push_back(amesh->mNormals[i].z);
+            normals.push_back(amesh->mNormals[i].x);
+            normals.push_back(amesh->mNormals[i].y);
+            normals.push_back(amesh->mNormals[i].z);
 
             for (int j = 0; j < 3; ++j) {
                 if (j < jointIDs[i].size()) {
-                    vertices.push_back(float(jointIDs[i][j]));
+                    bindJointIDs.push_back(jointIDs[i][j]);
                 } else {
-                    vertices.push_back(0.0f);
+                    bindJointIDs.push_back(0);
                 }
             }
 
             for (int j = 0; j < 3; ++j) {
                 if (j < vertexWeights[i].size()) {
-                    vertices.push_back(float(vertexWeights[i][j]));
+                    weights.push_back(float(vertexWeights[i][j]));
                 } else {
-                    vertices.push_back(0.0f);
+                    weights.push_back(0.0f);
                 }
             }
-
-            // vertices.push_back(1.0f);
-            // vertices.push_back(0.0f);
-            // vertices.push_back(0.0f);
         }
 
         for (unsigned int i = 0; i < amesh->mNumFaces; i++) {
@@ -374,15 +374,25 @@ class AnimatedModel {
                 indices.push_back(face.mIndices[j]);
         }
 
-        Mesh mesh(vertices.data(), indices.data(), amesh->mNumVertices, 14,
-                  amesh->mNumFaces * 3,
-                  {
-                      {0, ShaderDataType::Float3, "in_position"},
-                      {1, ShaderDataType::Float2, "in_textureCoords"},
-                      {2, ShaderDataType::Float3, "in_normal"},
-                      {3, ShaderDataType::Float3, "in_jointIndices"},
-                      {4, ShaderDataType::Float3, "in_weights"},
-                  });
+        Mesh mesh;
+
+        mesh.AddVertexBuffer(positions.data(), amesh->mNumVertices, 3,
+                             sizeof(float),
+                             {{0, ShaderDataType::Float3, "in_position"}});
+        mesh.AddVertexBuffer(texutreCoords.data(), amesh->mNumVertices, 2,
+                             sizeof(float),
+                             {{1, ShaderDataType::Float2, "in_textureCoords"}});
+        mesh.AddVertexBuffer(normals.data(), amesh->mNumVertices, 3,
+                             sizeof(float),
+                             {{2, ShaderDataType::Float3, "in_normal"}});
+        mesh.AddVertexBuffer(bindJointIDs.data(), amesh->mNumVertices, 3,
+                             sizeof(int),
+                             {{3, ShaderDataType::Int3, "in_jointIndices"}});
+        mesh.AddVertexBuffer(weights.data(), amesh->mNumVertices, 3,
+                             sizeof(float),
+                             {{4, ShaderDataType::Float3, "in_weights", true}});
+
+        mesh.AddIndexBuffer(indices.data(), amesh->mNumFaces * 3);
 
         if (amesh->mMaterialIndex >= 0) {
             aiMaterial* material = scene->mMaterials[amesh->mMaterialIndex];
@@ -458,7 +468,6 @@ class AnimatedModel {
         Ref<Joint> joint, glm::mat4 parentTransform) {
         auto currentLocalTransform =
             currentPose[joint->m_Name].GetLocalTransform();
-        // Log::Core_Trace("{0}", glm::to_string(currentLocalTransform));
         auto currentTransform = parentTransform * currentLocalTransform;
 
         for (auto chindJoint : joint->m_Children) {

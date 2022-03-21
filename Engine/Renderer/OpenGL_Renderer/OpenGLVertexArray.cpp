@@ -41,17 +41,36 @@ void OpenGLVertexArray::UnBind() const { glBindVertexArray(0); }
 void OpenGLVertexArray::AddVertexBuffer(const Ref<VertexBuffer>& buffer,
                                         const bool instance) {
     glBindVertexArray(m_RendererID);
-    
+
     const auto& layout = buffer->GetLayout();
     for (const auto& element : layout) {
         glEnableVertexAttribArray(element.GetIndex());
-        
+
+        auto type = ShaderDataTypeToOpenGLBaseType(element.GetGLType());
+
         buffer->Bind();
-        glVertexAttribPointer(
-            element.GetIndex(), element.GetComponentCount(),
-            ShaderDataTypeToOpenGLBaseType(element.GetGLType()),
-            element.GetNormalized() ? GL_TRUE : GL_FALSE, layout.GetStride(),
-            element.GetOffset());
+        switch (type) {
+            case GL_FLOAT:
+                glVertexAttribPointer(
+                    element.GetIndex(),
+                    element.GetComponentCount(),  //
+                    type,                         //
+                    element.GetNormalized() ? GL_TRUE : GL_FALSE,
+                    layout.GetStride(), element.GetOffset());
+                break;
+            case GL_INT:
+                glVertexAttribIPointer(element.GetIndex(),
+                                       element.GetComponentCount(),  //
+                                       type, layout.GetStride(),
+                                       element.GetOffset());
+                break;
+            case GL_BOOL:
+                glVertexAttribIPointer(element.GetIndex(),
+                                       element.GetComponentCount(),  //
+                                       type, layout.GetStride(),
+                                       element.GetOffset());
+                break;
+        }
         buffer->UnBind();
 
         if (instance) {

@@ -1,6 +1,6 @@
 #pragma once
-#include "Core.h"
 #include "Buffer.h"
+#include "Core.h"
 
 namespace Engine {
 static GLenum ShaderDataTypeToOpenGLBaseType(ShaderDataType type) {
@@ -34,7 +34,7 @@ static GLenum ShaderDataTypeToOpenGLBaseType(ShaderDataType type) {
 
 class OpenGLVertexBuffer : public VertexBuffer {
    public:
-    OpenGLVertexBuffer(float* vertices, uint32_t size, uint32_t count);
+    OpenGLVertexBuffer(const void * vertices, uint32_t size, uint32_t count);
     virtual ~OpenGLVertexBuffer();
 
     virtual void Bind() const override;
@@ -49,7 +49,7 @@ class OpenGLVertexBuffer : public VertexBuffer {
 
 class OpenGLIndexBuffer : public IndexBuffer {
    public:
-    OpenGLIndexBuffer(uint32_t* indices, uint32_t count);
+    OpenGLIndexBuffer(const uint32_t* indices, uint32_t count);
     virtual ~OpenGLIndexBuffer();
 
     virtual void Bind() const override;

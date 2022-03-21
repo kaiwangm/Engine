@@ -6,7 +6,7 @@ const int MAX_WEIGHTS = 3;  // max number of joints that can affect a vertex
 layout(location = 0) in vec3 in_position;
 layout(location = 1) in vec2 in_textureCoords;
 layout(location = 2) in vec3 in_normal;
-layout(location = 3) in vec3 in_jointIndices;
+layout(location = 3) in ivec3 in_jointIndices;
 layout(location = 4) in vec3 in_weights;
 
 out vec2 pass_textureCoords;
@@ -21,7 +21,7 @@ void main(void) {
     vec4 totalNormal = vec4(0.0);
 
     for (int i = 0; i < MAX_WEIGHTS; i++) {
-        mat4 jointTransform = jointTransforms[int(in_jointIndices[i])];
+        mat4 jointTransform = jointTransforms[in_jointIndices[i]];
         vec4 posePosition = jointTransform * vec4(in_position, 1.0);
         totalLocalPos += posePosition * in_weights[i];
 
