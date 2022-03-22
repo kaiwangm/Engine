@@ -28,7 +28,10 @@ class ExampleLayer : public Layer {
         }
         */
 
-        m_Octrees.resize(100);
+        m_Octrees.resize(1);
+        m_Octrees[0] = std::make_shared<OctreeObject>(
+            "Assert/longdress_vox10_1300.ply", 10);
+        m_Octrees[0]->CacheGL();
 
         /*
         for (int i = 0; i < m_Octrees.size(); ++i) {
@@ -53,7 +56,7 @@ class ExampleLayer : public Layer {
         });
         */
 
-        
+        /*
         for (int i = 0; i < m_Octrees.size(); ++i) {
             uint32_t idx = 1450 + i;
             std::cout << i << std::endl;
@@ -64,7 +67,7 @@ class ExampleLayer : public Layer {
                 10);
             m_Octrees[i]->CacheGL();
         }
-        
+        */
 
         Log::Trace("Octree built successfully.");
 
@@ -89,10 +92,12 @@ class ExampleLayer : public Layer {
 
     void OnDetach() override {}
 
-    void OnUpdate() override {
+    void TickLogic() override {
         if (m_IsWindowFocused == true)
             m_Camera->OnUpdate(m_LayerUpdateMeta.m_timeStep);
+    }
 
+    void TickRender() override {
         // Render
         Renderer::BeginScene(m_Camera, m_FrameRenderBuffer);
 
@@ -103,9 +108,7 @@ class ExampleLayer : public Layer {
                                           m_ShaderLibrary.Get("OctreeShader"));
 
         Renderer::EndScene(m_FrameRenderBuffer);
-    }
 
-    void OnImGuiRender() override {
         float timeStep = m_LayerUpdateMeta.m_timeStep;
         float nowTime = m_LayerUpdateMeta.m_nowTime;
 
@@ -186,7 +189,7 @@ class ExampleLayer : public Layer {
 
 class Sandbox : public Application {
    public:
-    Sandbox() : Application("OctreeExample", 2500, 1800) {
+    Sandbox() : Application("OctreeExample", 2700, 1500) {
         Log::Trace("Sandbox Initialization.");
         PushLayer(std::make_shared<DockSpaceLayer>(m_Running));
         PushLayer(std::make_shared<ExampleLayer>());
