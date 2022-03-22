@@ -2,6 +2,8 @@
 
 A Modern OpenGL Game Engine.
 
+![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/v0.0.2.png)
+
 ## Features and Plan
 
 - 2022-02-17 ✨ First Triangle.
@@ -16,13 +18,10 @@ A Modern OpenGL Game Engine.
 - 2022-03-20 ✨ Animation System.
 - ......
 
-![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/v0.0.2.png)
-
 <!--
 ## Framework Architecture:
 ![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/engine.png)
 -->
-
 
 ## Getting Started
 
@@ -45,8 +44,6 @@ cmake ..
 ## Reference
 
 1. Hazel Engine [Github](https://github.com/TheCherno/Hazel)
-
-
 
 
 
