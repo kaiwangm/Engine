@@ -49,20 +49,25 @@ void Application::Run() {
             layer->SetLayerUpdateMeta(updateMeta);
         }
 
-        // if (m_Minimized == false) {
-        for (const auto& layer : m_LayerStack) {
-            layer->OnUpdate();
-        }
-        //}
-
-        m_ImGuiLayer->Begin();
-        for (const auto& layer : m_LayerStack) {
-            layer->OnImGuiRender();
-        }
-        m_ImGuiLayer->End();
-
-        m_Window->OnUpdate();
+        TickLogic();
+        TickRender();
     }
+}
+
+void Application::TickLogic() {
+    for (const auto& layer : m_LayerStack) {
+        layer->TickLogic();
+    }
+}
+
+void Application::TickRender() {
+    m_ImGuiLayer->Begin();
+    for (const auto& layer : m_LayerStack) {
+        layer->TickRender();
+    }
+    m_ImGuiLayer->End();
+
+    m_Window->OnUpdate();
 }
 
 void Application::OnEvent(Event& event) {
@@ -71,8 +76,6 @@ void Application::OnEvent(Event& event) {
         BIND_EVENT(Application::OnWindowClose));
     dispatcher.Dispatch<WindowResizeEvent>(
         BIND_EVENT(Application::OnWindowResizeEvent));
-
-    // ENGINE_CORE_INFO("Application <-- Event::{}", e);
 
     for (auto it = m_LayerStack.rbegin(); it != m_LayerStack.rend(); ++it) {
         if (event.m_Handled) break;

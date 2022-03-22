@@ -24,6 +24,10 @@ class Application {
 
     static Application& Get() { return *s_Instance; }
 
+    void TickLogic();
+
+    void TickRender();
+
     // Event Callbacks
    private:
     bool OnWindowClose(WindowCloseEvent& event);

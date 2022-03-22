@@ -22,6 +22,8 @@ void GuiCommand::DockSpace(bool& app_open_ref) {
 
     static bool opt_fullscreen = true;
     static bool opt_padding = false;
+    static bool show_app_about = false;
+
     static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
 
     // We are using the ImGuiWindowFlags_NoDocking flag to make the parent
@@ -66,6 +68,15 @@ void GuiCommand::DockSpace(bool& app_open_ref) {
 
     if (opt_fullscreen) ImGui::PopStyleVar(2);
 
+    if (show_app_about) {
+        if (!ImGui::Begin("About", &show_app_about)) {
+            
+        }
+        ImGui::Text("Dear ImGui %s", ImGui::GetVersion());
+
+        ImGui::End();
+    }
+
     // Submit the DockSpace
     ImGuiIO& io = ImGui::GetIO();
     if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable) {
@@ -83,19 +94,33 @@ void GuiCommand::DockSpace(bool& app_open_ref) {
     }
 
     if (ImGui::BeginMenuBar()) {
-        if (ImGui::BeginMenu("Options")) {
-            // Disabling fullscreen would allow the window to be moved to
-            // the front of other windows, which we can't undo at the moment
-            // without finer window depth/z control.
+        if (ImGui::BeginMenu("File")) {
+            ImGui::MenuItem("About", NULL, &show_app_about);
+
+            ImGui::Separator();
+
             ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen);
             ImGui::MenuItem("Padding", NULL, &opt_padding);
-
-            // ImGui::Separator();
 
             ImGui::Separator();
 
             if (ImGui::MenuItem("Exit", NULL, false, p_open != NULL))
                 *p_open = false;
+
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Edit")) {
+            if (ImGui::MenuItem("Undo", "CTRL+Z")) {
+            }
+            if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {
+            }  // Disabled item
+            ImGui::Separator();
+            if (ImGui::MenuItem("Cut", "CTRL+X")) {
+            }
+            if (ImGui::MenuItem("Copy", "CTRL+C")) {
+            }
+            if (ImGui::MenuItem("Paste", "CTRL+V")) {
+            }
             ImGui::EndMenu();
         }
         ImGui::EndMenuBar();

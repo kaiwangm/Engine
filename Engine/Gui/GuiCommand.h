@@ -67,7 +67,8 @@ class GuiCommand {
     template <class... Args>
     static void ShowViewport(const std::string& text,
                              Ref<FrameRenderBuffer> framebuffer,
-                             bool& is_focused, Args... args) {
+                             const bool show_overlap, bool& is_focused,
+                             Args... args) {
         ImGui::Begin(fmt::format(text, args...).c_str());
         {
             ImGui::BeginChild("Render");
@@ -76,6 +77,10 @@ class GuiCommand {
             framebuffer->SetViewPort((uint32_t)wsize.x, (uint32_t)wsize.y);
             ImGui::Image(framebuffer->GetTextureID(), wsize, ImVec2(0, 1),
                          ImVec2(1, 0));
+
+            if (show_overlap) {
+                
+            }
 
             ImGui::EndChild();
         }

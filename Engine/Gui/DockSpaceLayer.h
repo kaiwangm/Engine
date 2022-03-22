@@ -11,9 +11,10 @@ class DockSpaceLayer : public Layer {
 
     virtual void OnAttach() override {}
     virtual void OnDetach() override {}
-    virtual void OnUpdate() override {}
-    virtual void OnImGuiRender() override;
     virtual void OnEvent(Event& event) override {}
+
+    virtual void TickLogic() override {}
+    virtual void TickRender() override;
 
    private:
     bool& m_app_open;

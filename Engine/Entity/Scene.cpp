@@ -25,43 +25,12 @@ void Scene::DestroyEntity(const Ref<Scene> scene, Entity entity) {
 }
 
 void Scene::OnUpdateRuntime(float timeStep) {
-    // Render
-    float m_CameraTranslationSpeed = 3.0;
-    float m_CameraRotationSpeed = 3.0;
-
     auto camrea_view =
         m_Registry.view<TagComponent, TransformComponent, CameraComponent>();
     glm::mat4 vp_Mat;
 
     // use a range-for
     for (auto [entity, name, trans, camera] : camrea_view.each()) {
-        if (camera.GetCamera()->m_IsWindowFocused) {
-            if (Input::IsKeyPressed(GLFW_KEY_A)) {
-                trans.Translation.x -= m_CameraTranslationSpeed * timeStep;
-            }
-            if (Input::IsKeyPressed(GLFW_KEY_D)) {
-                trans.Translation.x += m_CameraTranslationSpeed * timeStep;
-            }
-            if (Input::IsKeyPressed(GLFW_KEY_LEFT_CONTROL)) {
-                trans.Translation.y -= m_CameraTranslationSpeed * timeStep;
-            }
-            if (Input::IsKeyPressed(GLFW_KEY_SPACE)) {
-                trans.Translation.y += m_CameraTranslationSpeed * timeStep;
-            }
-            if (Input::IsKeyPressed(GLFW_KEY_W)) {
-                trans.Translation.z -= m_CameraTranslationSpeed * timeStep;
-            }
-            if (Input::IsKeyPressed(GLFW_KEY_S)) {
-                trans.Translation.z += m_CameraTranslationSpeed * timeStep;
-            }
-            if (Input::IsKeyPressed(GLFW_KEY_E)) {
-                trans.Rotation.y -= m_CameraRotationSpeed * timeStep;
-            }
-            if (Input::IsKeyPressed(GLFW_KEY_Q)) {
-                trans.Rotation.y += m_CameraRotationSpeed * timeStep;
-            }
-        }
-
         auto& camera_ref = camera.GetCamera();
 
         camera_ref->SetViewPort(m_FrameRenderBuffer->GetWidth(),
@@ -181,6 +150,51 @@ void Scene::OnUpdateRuntimeGui(float timeStep, float nowTime) {
     }
 
     Gui::End();
+}
+
+void Scene::TickLogic(float timeStep, float nowTime) {
+    // Render
+    float m_CameraTranslationSpeed = 3.0;
+    float m_CameraRotationSpeed = 3.0;
+
+    auto camrea_view =
+        m_Registry.view<TagComponent, TransformComponent, CameraComponent>();
+    glm::mat4 vp_Mat;
+
+    // use a range-for
+    for (auto [entity, name, trans, camera] : camrea_view.each()) {
+        if (camera.GetCamera()->m_IsWindowFocused) {
+            if (Input::IsKeyPressed(GLFW_KEY_A)) {
+                trans.Translation.x -= m_CameraTranslationSpeed * timeStep;
+            }
+            if (Input::IsKeyPressed(GLFW_KEY_D)) {
+                trans.Translation.x += m_CameraTranslationSpeed * timeStep;
+            }
+            if (Input::IsKeyPressed(GLFW_KEY_LEFT_CONTROL)) {
+                trans.Translation.y -= m_CameraTranslationSpeed * timeStep;
+            }
+            if (Input::IsKeyPressed(GLFW_KEY_SPACE)) {
+                trans.Translation.y += m_CameraTranslationSpeed * timeStep;
+            }
+            if (Input::IsKeyPressed(GLFW_KEY_W)) {
+                trans.Translation.z -= m_CameraTranslationSpeed * timeStep;
+            }
+            if (Input::IsKeyPressed(GLFW_KEY_S)) {
+                trans.Translation.z += m_CameraTranslationSpeed * timeStep;
+            }
+            if (Input::IsKeyPressed(GLFW_KEY_E)) {
+                trans.Rotation.y -= m_CameraRotationSpeed * timeStep;
+            }
+            if (Input::IsKeyPressed(GLFW_KEY_Q)) {
+                trans.Rotation.y += m_CameraRotationSpeed * timeStep;
+            }
+        }
+    }
+}
+
+void Scene::TickRender(float timeStep, float nowTime) {
+    OnUpdateRuntime(timeStep);
+    OnUpdateRuntimeGui(timeStep, nowTime);
 }
 
 void Scene::LoadShader(const std::string& name, const std::string& vertexSrc,

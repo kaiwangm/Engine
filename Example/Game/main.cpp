@@ -30,10 +30,10 @@ class ExampleLayer : public Layer {
         board.AddComponent<TransformComponent>();
 
         auto& gallery = Scene::CreateEntity(m_Scene, "gallery");
-        // m_Gallery = std::make_shared<Model>("Assert/gallery/gallery.obj");
+        m_Gallery = std::make_shared<Model>("Assert/gallery/gallery.obj");
 
-        // gallery.AddComponent<StaticModelComponent>(m_Gallery);
-        // gallery.AddComponent<TransformComponent>();
+        gallery.AddComponent<StaticModelComponent>(m_Gallery);
+        gallery.AddComponent<TransformComponent>();
 
         auto& animan = Scene::CreateEntity(m_Scene, "animan");
         m_Animan = std::make_shared<AnimatedModel>("Assert/animan/model.dae");
@@ -49,36 +49,36 @@ class ExampleLayer : public Layer {
 
     void OnDetach() override {}
 
-    void OnUpdate() override {
-        m_Camera->m_IsWindowFocused = m_IsWindowFocused;
+    void OnEvent(Event& event) override { m_Camera->OnEvent(event); }
 
-        m_Scene->OnUpdateRuntime(m_LayerUpdateMeta.m_timeStep);
+    void TickLogic() override {
+        m_Scene->TickLogic(m_LayerUpdateMeta.m_timeStep,
+                           m_LayerUpdateMeta.m_nowTime);
     }
 
-    void OnImGuiRender() override {
+    void TickRender() override {
+        m_Scene->TickRender(m_LayerUpdateMeta.m_timeStep,
+                            m_LayerUpdateMeta.m_nowTime);
+
         float timeStep = m_LayerUpdateMeta.m_timeStep;
         float nowTime = m_LayerUpdateMeta.m_nowTime;
-
-        m_Scene->OnUpdateRuntimeGui(timeStep, nowTime);
 
         Gui::ShowImNodesDemoWindow();
         ImGui::ShowDemoWindow();
 
         bool is_color_focused = false;
         Gui::ShowViewport("ViewPort :: Color", m_Scene->m_FrameRenderBuffer,
-                          is_color_focused);
+                          true, is_color_focused);
 
         bool is_normal_focused = false;
         Gui::ShowViewport("ViewPort :: Normal",
-                          m_Scene->m_FrameRenderBuffer_normal,
+                          m_Scene->m_FrameRenderBuffer_normal, false,
                           is_normal_focused);
 
         m_IsWindowFocused = is_color_focused | is_normal_focused;
 
         ImGui::ShowExampleAppLog(NULL);
     }
-
-    void OnEvent(Event& event) override { m_Camera->OnEvent(event); }
 
    private:
     Ref<Scene> m_Scene;
@@ -93,7 +93,7 @@ class ExampleLayer : public Layer {
 
 class Sandbox : public Application {
    public:
-    Sandbox() : Application("Sandbox", 2400, 1500) {
+    Sandbox() : Application("Sandbox", 2700, 1500) {
         Log::Trace("Sandbox Initialization.");
         PushLayer(std::make_shared<DockSpaceLayer>(m_Running));
         PushLayer(std::make_shared<ExampleLayer>());
