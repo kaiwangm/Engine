@@ -16,7 +16,7 @@ A Modern OpenGL Game Engine.
 - 2022-03-20 ✨ Animation System.
 - ......
 
-![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/Log_Gui.png)
+![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/v0.0.2.png)
 
 <!--
 ## Framework Architecture:
