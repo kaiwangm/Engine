@@ -21,13 +21,16 @@ class ExampleLayer : public Layer {
 
         camera.AddComponent<CameraComponent>(m_Camera);
         camera.AddComponent<TransformComponent>(
-            glm::vec3{0.246f, 0.250f, 8.100f});
+            glm::vec3{-1.774f, 4.034f, 9.425f},
+            glm::vec3{-0.153f, -6.606f, 0.000f},
+            glm::vec3{1.000f, 1.000f, 1.000f});
 
         auto& board = Scene::CreateEntity(m_Scene, "board");
         m_Board = std::make_shared<Model>();
 
         board.AddComponent<StaticModelComponent>(m_Board);
-        board.AddComponent<TransformComponent>();
+        board.AddComponent<TransformComponent>(
+            glm::vec3{-2.350f, 2.165f, 0.000f});
 
         auto& gallery = Scene::CreateEntity(m_Scene, "gallery");
         m_Gallery = std::make_shared<Model>("Assert/gallery/gallery.obj");
@@ -40,9 +43,9 @@ class ExampleLayer : public Layer {
 
         animan.AddComponent<AnimatedModelComponent>(m_Animan);
         animan.AddComponent<TransformComponent>(
-            glm::vec3{-0.010f, -1.980f, 1.340f},
-            glm::vec3{-1.675f, -1.660f, 0.000f},
-            glm::vec3{0.500f, 0.500f, 0.500f});
+            glm::vec3{1.655f, 0.685f, 0.120f},
+            glm::vec3{-1.330f, 0.000f, 0.000f},
+            glm::vec3{0.300f, 0.300f, 0.300f});
     }
 
     void OnAttach() override {}
@@ -53,7 +56,7 @@ class ExampleLayer : public Layer {
 
     void TickLogic() override {
         m_Scene->TickLogic(m_LayerUpdateMeta.m_timeStep,
-                           m_LayerUpdateMeta.m_nowTime);
+                           m_LayerUpdateMeta.m_nowTime, m_IsWindowFocused);
     }
 
     void TickRender() override {

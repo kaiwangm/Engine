@@ -152,44 +152,85 @@ void Scene::OnUpdateRuntimeGui(float timeStep, float nowTime) {
     Gui::End();
 }
 
-void Scene::TickLogic(float timeStep, float nowTime) {
+void Scene::TickLogic(float timeStep, float nowTime, bool handleInput) {
     // Render
-    float m_CameraTranslationSpeed = 3.0;
-    float m_CameraRotationSpeed = 3.0;
+    float m_CameraTranslationSpeed = 7.0;
+    float m_CameraTranslationSpeedMouse = 0.5;
+    float m_CameraRotationSpeed = 0.15;
 
     auto camrea_view =
         m_Registry.view<TagComponent, TransformComponent, CameraComponent>();
-    glm::mat4 vp_Mat;
+
+    auto [currentX, currentY] = Input::GetMousePostion();
+
+    static float lastX;
+    static float lastY;
+
+    float deltaX = currentX - lastX;
+    float deltaY = currentY - lastY;
 
     // use a range-for
     for (auto [entity, name, trans, camera] : camrea_view.each()) {
         if (camera.GetCamera()->m_IsWindowFocused) {
-            if (Input::IsKeyPressed(GLFW_KEY_A)) {
-                trans.Translation.x -= m_CameraTranslationSpeed * timeStep;
-            }
-            if (Input::IsKeyPressed(GLFW_KEY_D)) {
-                trans.Translation.x += m_CameraTranslationSpeed * timeStep;
-            }
-            if (Input::IsKeyPressed(GLFW_KEY_LEFT_CONTROL)) {
-                trans.Translation.y -= m_CameraTranslationSpeed * timeStep;
-            }
-            if (Input::IsKeyPressed(GLFW_KEY_SPACE)) {
-                trans.Translation.y += m_CameraTranslationSpeed * timeStep;
-            }
-            if (Input::IsKeyPressed(GLFW_KEY_W)) {
-                trans.Translation.z -= m_CameraTranslationSpeed * timeStep;
-            }
-            if (Input::IsKeyPressed(GLFW_KEY_S)) {
-                trans.Translation.z += m_CameraTranslationSpeed * timeStep;
-            }
-            if (Input::IsKeyPressed(GLFW_KEY_E)) {
-                trans.Rotation.y -= m_CameraRotationSpeed * timeStep;
-            }
-            if (Input::IsKeyPressed(GLFW_KEY_Q)) {
-                trans.Rotation.y += m_CameraRotationSpeed * timeStep;
+            if (handleInput) {
+                const glm::vec3 front = -glm::normalize(glm::rotate(
+                    glm::quat(trans.Rotation), glm::vec3(0.0f, 0.0f, 1.0f)));
+                const glm::vec3 right = glm::normalize(glm::rotate(
+                    glm::quat(trans.Rotation), glm::vec3(1.0f, 0.0f, 0.0f)));
+                const glm::vec3 up(0.0f, 1.0f, 0.0f);
+
+                if (Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_2)) {
+                    // io.ConfigFlags |= ImGuiConfigFlags_NoMouse;
+                    ImGui::SetMouseCursor(ImGuiMouseCursor_None);
+
+                    if (Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_1)) {
+                        trans.Translation -=
+                            deltaY *
+                            glm::normalize(glm::vec3(0.0f, 1.0f, 0.0f)) *
+                            m_CameraTranslationSpeedMouse * timeStep;
+                        trans.Translation += deltaX *
+                                             glm::normalize(glm::vec3(
+                                                 right[0], 0.0f, right[2])) *
+                                             m_CameraTranslationSpeedMouse *
+                                             timeStep;
+                    } else {
+                        trans.Rotation.y -=
+                            deltaX * m_CameraRotationSpeed * timeStep;
+                        trans.Rotation.x -=
+                            deltaY * m_CameraRotationSpeed * timeStep;
+                    }
+                }
+
+                if (Input::IsKeyPressed(GLFW_KEY_A)) {
+                    trans.Translation -=
+                        right * m_CameraTranslationSpeed * timeStep;
+                }
+                if (Input::IsKeyPressed(GLFW_KEY_D)) {
+                    trans.Translation +=
+                        right * m_CameraTranslationSpeed * timeStep;
+                }
+                if (Input::IsKeyPressed(GLFW_KEY_LEFT_CONTROL)) {
+                    trans.Translation -=
+                        up * m_CameraTranslationSpeed * timeStep;
+                }
+                if (Input::IsKeyPressed(GLFW_KEY_SPACE)) {
+                    trans.Translation +=
+                        up * m_CameraTranslationSpeed * timeStep;
+                }
+                if (Input::IsKeyPressed(GLFW_KEY_W)) {
+                    trans.Translation +=
+                        front * m_CameraTranslationSpeed * timeStep;
+                }
+                if (Input::IsKeyPressed(GLFW_KEY_S)) {
+                    trans.Translation -=
+                        front * m_CameraTranslationSpeed * timeStep;
+                }
             }
         }
     }
+
+    lastX = currentX;
+    lastY = currentY;
 }
 
 void Scene::TickRender(float timeStep, float nowTime) {

@@ -24,7 +24,7 @@ class Scene {
     void LoadShader(const std::string& name, const std::string& vertexSrc,
                     const std::string& fragmentSrc, const std::string& mode);
 
-    void TickLogic(float timeStep, float nowTime);
+    void TickLogic(float timeStep, float nowTime, bool handleInput);
 
     void TickRender(float timeStep, float nowTime);
 
