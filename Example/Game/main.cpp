@@ -15,7 +15,7 @@ class ExampleLayer : public Layer {
         m_Scene->LoadShader("Animated", "Assert/vertex_animated.glsl",
                             "Assert/fragment_animated.glsl", "Path");
 
-        auto& camera = Scene::CreateEntity(m_Scene, "camera");
+        auto camera = Scene::CreateEntity(m_Scene, "camera");
         m_Camera = std::make_shared<PerspectiveCamera>(45.0f, 1.778f, 0.1f,
                                                        3000.0f * 8);
 
@@ -25,20 +25,20 @@ class ExampleLayer : public Layer {
             glm::vec3{-0.153f, -6.606f, 0.000f},
             glm::vec3{1.000f, 1.000f, 1.000f});
 
-        auto& board = Scene::CreateEntity(m_Scene, "board");
+        auto board = Scene::CreateEntity(m_Scene, "board");
         m_Board = std::make_shared<Model>();
 
         board.AddComponent<StaticModelComponent>(m_Board);
         board.AddComponent<TransformComponent>(
             glm::vec3{-2.350f, 2.165f, 0.000f});
 
-        auto& gallery = Scene::CreateEntity(m_Scene, "gallery");
+        auto gallery = Scene::CreateEntity(m_Scene, "gallery");
         m_Gallery = std::make_shared<Model>("Assert/gallery/gallery.obj");
 
         gallery.AddComponent<StaticModelComponent>(m_Gallery);
         gallery.AddComponent<TransformComponent>();
 
-        auto& animan = Scene::CreateEntity(m_Scene, "animan");
+        auto animan = Scene::CreateEntity(m_Scene, "animan");
         m_Animan = std::make_shared<AnimatedModel>("Assert/animan/model.dae");
 
         animan.AddComponent<AnimatedModelComponent>(m_Animan);

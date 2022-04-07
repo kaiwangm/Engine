@@ -18,7 +18,8 @@ class GuiCommand {
 
     template <class... Args>
     static void Text(const std::string& text, Args... args) {
-        ImGui::Text(fmt::format(text, args...).c_str());
+        // Text("%s", fmt::format(text, args...).c_str())
+        ImGui::TextUnformatted(fmt::format(text, args...).c_str());
     }
 
     template <class... Args>

@@ -1,5 +1,5 @@
 #pragma once
-#include "Buffer.h"
+#include "../Buffer.h"
 #include "Core.h"
 
 namespace Engine {
@@ -27,6 +27,9 @@ static GLenum ShaderDataTypeToOpenGLBaseType(ShaderDataType type) {
             return GL_INT;
         case ShaderDataType::Bool:
             return GL_BOOL;
+        default:
+            Log::Core_Error("Unknown DataType!");
+            return -1;
     }
 
     return 0;

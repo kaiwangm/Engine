@@ -1,7 +1,7 @@
 #pragma once
 
 #include "OpenGL_Renderer/OpenGLContext.h"
-#include "Window.h"
+#include "../Window.h"
 
 namespace Engine {
 
@@ -21,7 +21,7 @@ class WindowsWindow : public Window {
     void SetVSync(bool enabled) override;
     bool IsVSync() const override;
 
-    inline virtual void* GetNativeWindow() const { return m_Window; };
+    inline virtual void* GetNativeWindow() const override { return m_Window; };
 
    private:
     virtual void Init(const WindowProps& props);

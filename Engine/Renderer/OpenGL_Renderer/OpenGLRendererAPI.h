@@ -1,6 +1,6 @@
 #pragma once
 #include "Core.h"
-#include "RendererAPI.h"
+#include "../RendererAPI.h"
 
 namespace Engine {
 class OpenGLRendererAPI : public RendererAPI {

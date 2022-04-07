@@ -41,6 +41,9 @@ static uint32_t ShaderDataTypeSize(ShaderDataType type) {
             return 4 * 4;
         case ShaderDataType::Bool:
             return 1;
+        default:
+            Log::Core_Error("Unknown ShaderDataType!");
+            return -1;
     }
 
     return 0;
@@ -89,6 +92,9 @@ struct BufferElement {
                 return 4;
             case ShaderDataType::Bool:
                 return 1;
+            default:
+                Log::Core_Error("Unknown ComponentCount!");
+                return -1;
         }
 
         return 0;

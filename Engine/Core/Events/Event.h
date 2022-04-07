@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core.h"
+#include "../Core.h"
 
 #define BIT(x) (1 << x)
 

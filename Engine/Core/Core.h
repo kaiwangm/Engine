@@ -14,7 +14,7 @@
 
 namespace Engines {
 #define BIND_EVENT(x) std::bind(&x, this, std::placeholders::_1)
-}
+}  // namespace Engines
 
 #include <functional>
 #include <cstdint>
@@ -51,4 +51,3 @@ using WeakRef = std::weak_ptr<T>;
 #include "Log.h"
 #include "Timer.h"
 #include "Events/Event.h"
-

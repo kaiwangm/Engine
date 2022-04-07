@@ -1,6 +1,6 @@
 #pragma once
 #include "Core.h"
-#include "Texture.h"
+#include "../Texture.h"
 
 namespace Engine {
 class OpenGLTexture2D : public Texture2D {
@@ -16,9 +16,9 @@ class OpenGLTexture2D : public Texture2D {
     virtual void Bind(const uint32_t& slot) const override;
     virtual void UnBind(const uint32_t& slot) const override;
 
-    virtual void Load(void* data, uint32_t width, uint32_t height);
+    virtual void Load(void* data, uint32_t width, uint32_t height) override;
     std::string GetPath() const { return m_Path; }
-    virtual void* GetTextureID() const;
+    virtual void* GetTextureID() const override;
 
    private:
     std::string m_Path;

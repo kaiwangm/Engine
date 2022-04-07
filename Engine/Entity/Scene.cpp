@@ -31,7 +31,7 @@ void Scene::OnUpdateRuntime(float timeStep) {
 
     // use a range-for
     for (auto [entity, name, trans, camera] : camrea_view.each()) {
-        auto& camera_ref = camera.GetCamera();
+        auto camera_ref = camera.GetCamera();
 
         camera_ref->SetViewPort(m_FrameRenderBuffer->GetWidth(),
                                 m_FrameRenderBuffer->GetHeight());
@@ -87,7 +87,7 @@ void Scene::OnUpdateRuntime(float timeStep) {
 
     // use a range-for
     for (auto [entity, name, trans, camera] : camrea_view.each()) {
-        auto& camera_ref = camera.GetCamera();
+        auto camera_ref = camera.GetCamera();
 
         camera_ref->SetViewPort(m_FrameRenderBuffer_normal->GetWidth(),
                                 m_FrameRenderBuffer_normal->GetHeight());

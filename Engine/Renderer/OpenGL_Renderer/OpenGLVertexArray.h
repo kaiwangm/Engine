@@ -1,6 +1,6 @@
 #pragma once
 #include "Core.h"
-#include "VertexArray.h"
+#include "../VertexArray.h"
 
 namespace Engine {
 class OpenGLVertexArray : public VertexArray {
@@ -15,10 +15,12 @@ class OpenGLVertexArray : public VertexArray {
                                  const bool instance) override;
     virtual void AddIndexBuffer(const Ref<IndexBuffer>& buffer) override;
 
-    virtual const std::vector<Ref<VertexBuffer> >& GetVertexBuffers() const {
+    virtual const std::vector<Ref<VertexBuffer> >& GetVertexBuffers()
+        const override {
         return m_VertexBuffers;
     };
-    virtual const Ref<IndexBuffer>& GetIndexBuffer() const {
+
+    virtual const Ref<IndexBuffer>& GetIndexBuffer() const override {
         return m_IndexBuffer;
     };
 

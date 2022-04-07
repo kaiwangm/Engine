@@ -20,37 +20,39 @@
 // THE SOFTWARE.
 //
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
-#   define IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 #include "ImNodesEz.h"
 
 #include <imgui_internal.h>
 
-namespace ImNodes
-{
+namespace ImNodes {
 
-namespace Ez
-{
+namespace Ez {
 
-static ImVec4& GetStyleColorRef(ImNodesStyleCol idx);
+static ImVec4 &GetStyleColorRef(ImNodesStyleCol idx);
 static ImU32 GetStyleColorU32(ImNodesStyleCol idx);
 
-struct StyleVarMod
-{
+struct StyleVarMod {
     ImNodesStyleVar Index;
     float Value[2];
-    StyleVarMod(ImNodesStyleVar idx, float val)          { Index = idx; Value[0] = val; }
-    StyleVarMod(ImNodesStyleVar idx, const ImVec2 &val)  { Index = idx; Value[0] = val.x; Value[1] = val.y; }
+    StyleVarMod(ImNodesStyleVar idx, float val) {
+        Index = idx;
+        Value[0] = val;
+    }
+    StyleVarMod(ImNodesStyleVar idx, const ImVec2 &val) {
+        Index = idx;
+        Value[0] = val.x;
+        Value[1] = val.y;
+    }
 };
 
-struct StyleColMod
-{
+struct StyleColMod {
     ImNodesStyleCol Index;
     ImVec4 Value;
 };
 
-struct Context
-{
+struct Context {
     StyleVars Style;
     ImVector<StyleVarMod> StyleVarStack;
     ImVector<StyleColMod> StyleColStack;
@@ -63,44 +65,31 @@ struct Context
 
 static Context *GContext = nullptr;
 
-
-Context* CreateContext()
-{
+Context *CreateContext() {
     Context *ctx = new Context();
-    if (GContext == nullptr)
-        GContext = ctx;
+    if (GContext == nullptr) GContext = ctx;
     return ctx;
 }
 
-void FreeContext(Context *ctx)
-{
-    if (GContext == ctx)
-        GContext = nullptr;
+void FreeContext(Context *ctx) {
+    if (GContext == ctx) GContext = nullptr;
     delete ctx;
 }
 
-void SetContext(Context *ctx)
-{
-    GContext = ctx;
-}
+void SetContext(Context *ctx) { GContext = ctx; }
 
+ImNodes::CanvasState &GetState() { return GContext->State; }
 
-ImNodes::CanvasState& GetState()
-{
-    return GContext->State;
-}
-
-
-void BeginCanvas()
-{
+void BeginCanvas() {
     IM_ASSERT(GContext != nullptr);
     Context &g = *GContext;
     auto draw_list = ImGui::GetWindowDrawList();
 
     //
-    // Setup and use this splitter to separate nodes and connections into layers. The connections should
-    // not be rendered until after the nodes to get correct positions in relation to the nodes' slots on
-    // the same frame, but be rendered behind the nodes.
+    // Setup and use this splitter to separate nodes and connections into
+    // layers. The connections should not be rendered until after the nodes to
+    // get correct positions in relation to the nodes' slots on the same frame,
+    // but be rendered behind the nodes.
     //
     g.CanvasSplitter.Clear();
     g.CanvasSplitter.Split(draw_list, 2);
@@ -108,20 +97,17 @@ void BeginCanvas()
     ImNodes::BeginCanvas(&GContext->State);
 }
 
-void EndCanvas()
-{
+void EndCanvas() {
     IM_ASSERT(GContext != nullptr);
     Context &g = *GContext;
     auto draw_list = ImGui::GetWindowDrawList();
 
     ImNodes::EndCanvas();
 
-    g.CanvasSplitter.Merge(draw_list);    
+    g.CanvasSplitter.Merge(draw_list);
 }
 
-
-bool BeginNode(void* node_id, const char* title, ImVec2* pos, bool* selected)
-{
+bool BeginNode(void *node_id, const char *title, ImVec2 *pos, bool *selected) {
     IM_ASSERT(GContext != nullptr);
     Context &g = *GContext;
     ImGuiStorage *storage = ImGui::GetStateStorage();
@@ -129,18 +115,20 @@ bool BeginNode(void* node_id, const char* title, ImVec2* pos, bool* selected)
 
     g.NodeSelected = selected;
 
-    g.CanvasSplitter.SetCurrentChannel(draw_list, 1);   // Node layer.
+    g.CanvasSplitter.SetCurrentChannel(draw_list, 1);  // Node layer.
 
     g.NodeSplitter.Clear();
     g.NodeSplitter.Split(draw_list, 2);
-    g.NodeSplitter.SetCurrentChannel(draw_list, 1);     // Front layer.
+    g.NodeSplitter.SetCurrentChannel(draw_list, 1);  // Front layer.
 
     bool result = ImNodes::BeginNode(node_id, pos, selected);
 
     ImVec2 title_size = ImGui::CalcTextSize(title);
     ImVec2 title_pos = ImGui::GetCursorScreenPos();
-    g.BodyPosY = title_pos.y + title_size.y + g.State.Style.NodeSpacing.y * g.State.Zoom;
-    ImVec2 input_pos = ImVec2{title_pos.x, g.BodyPosY + g.State.Style.NodeSpacing.y * g.State.Zoom};
+    g.BodyPosY =
+        title_pos.y + title_size.y + g.State.Style.NodeSpacing.y * g.State.Zoom;
+    ImVec2 input_pos = ImVec2{
+        title_pos.x, g.BodyPosY + g.State.Style.NodeSpacing.y * g.State.Zoom};
 
     // Get widths from previous frame rendering.
     float input_width = storage->GetFloat(ImGui::GetID("input-width"));
@@ -148,29 +136,32 @@ bool BeginNode(void* node_id, const char* title, ImVec2* pos, bool* selected)
     float output_width = storage->GetFloat(ImGui::GetID("output-width"));
     float body_width = input_width + content_width + output_width;
 
-    // Ignore this the first time the node is rendered since we don't know any widths yet.
-    if (body_width > 0)
-    {
-        float output_max_title_width_next = storage->GetFloat(ImGui::GetID("output-max-title-width-next"));
-        storage->SetFloat(ImGui::GetID("output-max-title-width"), output_max_title_width_next);
+    // Ignore this the first time the node is rendered since we don't know any
+    // widths yet.
+    if (body_width > 0) {
+        float output_max_title_width_next =
+            storage->GetFloat(ImGui::GetID("output-max-title-width-next"));
+        storage->SetFloat(ImGui::GetID("output-max-title-width"),
+                          output_max_title_width_next);
         storage->SetFloat(ImGui::GetID("output-max-title-width-next"), 0);
 
-        body_width += 2*g.Style.ItemSpacing.x * g.State.Zoom;
+        body_width += 2 * g.Style.ItemSpacing.x * g.State.Zoom;
         float body_spacing = 0;
 
-        if (body_width > title_size.x)
-        {
+        if (body_width > title_size.x) {
             // Center node title
-            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + body_width*0.5f - title_size.x*0.5f);
-        }
-        else
-        {
-            // Calculate extra node body spacing, i.e. around content, needed due to wider title.
-            body_spacing = ((title_size.x - body_width)*0.5f);
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + body_width * 0.5f -
+                                 title_size.x * 0.5f);
+        } else {
+            // Calculate extra node body spacing, i.e. around content, needed
+            // due to wider title.
+            body_spacing = ((title_size.x - body_width) * 0.5f);
         }
 
-        float content_x = input_pos.x + input_width + g.Style.ItemSpacing.x * g.State.Zoom + body_spacing;
-        float output_x = content_x + content_width + g.Style.ItemSpacing.x * g.State.Zoom + body_spacing;
+        float content_x = input_pos.x + input_width +
+                          g.Style.ItemSpacing.x * g.State.Zoom + body_spacing;
+        float output_x = content_x + content_width +
+                         g.Style.ItemSpacing.x * g.State.Zoom + body_spacing;
         storage->SetFloat(ImGui::GetID("content-x"), content_x);
         storage->SetFloat(ImGui::GetID("output-x"), output_x);
         storage->SetFloat(ImGui::GetID("body-y"), input_pos.y);
@@ -184,21 +175,21 @@ bool BeginNode(void* node_id, const char* title, ImVec2* pos, bool* selected)
     return result;
 }
 
-void EndNode()
-{
+void EndNode() {
     IM_ASSERT(GContext != nullptr);
     Context &g = *GContext;
-    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    ImDrawList *draw_list = ImGui::GetWindowDrawList();
 
     bool hovered = IsNodeHovered();
 
-    // Inhibit node rendering in ImNodes::EndNode() by setting colors with alpha as 0.
+    // Inhibit node rendering in ImNodes::EndNode() by setting colors with alpha
+    // as 0.
     ImColor activebg = g.State.Colors[ColNodeActiveBg];
     ImColor inactivebg = g.State.Colors[ColNodeBg];
     ImColor border = g.State.Colors[ColNodeBorder];
-    g.State.Colors[ColNodeActiveBg] = IM_COL32(0,0,0,0);
-    g.State.Colors[ColNodeBg] = IM_COL32(0,0,0,0);
-    g.State.Colors[ColNodeBorder] = IM_COL32(0,0,0,0);
+    g.State.Colors[ColNodeActiveBg] = IM_COL32(0, 0, 0, 0);
+    g.State.Colors[ColNodeBg] = IM_COL32(0, 0, 0, 0);
+    g.State.Colors[ColNodeBorder] = IM_COL32(0, 0, 0, 0);
 
     ImNodes::EndNode();
 
@@ -207,88 +198,100 @@ void EndNode()
     g.State.Colors[ColNodeBg] = inactivebg;
     g.State.Colors[ColNodeBorder] = border;
 
-    ImRect node_rect{
-        ImGui::GetItemRectMin(),
-        ImGui::GetItemRectMax()
-    };
+    ImRect node_rect{ImGui::GetItemRectMin(), ImGui::GetItemRectMax()};
 
     ImVec2 titlebar_end = ImVec2{node_rect.Max.x, g.BodyPosY};
     ImVec2 body_pos = ImVec2{node_rect.Min.x, g.BodyPosY};
 
-    g.NodeSplitter.SetCurrentChannel(draw_list, 0);     // Background layer.
+    g.NodeSplitter.SetCurrentChannel(draw_list, 0);  // Background layer.
 
     // Render title bar background
-    ImU32 node_color = GetStyleColorU32(*g.NodeSelected ? ImNodesStyleCol_NodeTitleBarBgActive : hovered ? ImNodesStyleCol_NodeTitleBarBgHovered : ImNodesStyleCol_NodeTitleBarBg);
-    draw_list->AddRectFilled(node_rect.Min, titlebar_end, node_color, g.State.Style.NodeRounding, ImDrawCornerFlags_Top);
+    ImU32 node_color =
+        GetStyleColorU32(*g.NodeSelected ? ImNodesStyleCol_NodeTitleBarBgActive
+                         : hovered       ? ImNodesStyleCol_NodeTitleBarBgHovered
+                                         : ImNodesStyleCol_NodeTitleBarBg);
+    draw_list->AddRectFilled(node_rect.Min, titlebar_end, node_color,
+                             g.State.Style.NodeRounding, ImDrawCornerFlags_Top);
 
     // Render body background
-    node_color = GetStyleColorU32(*g.NodeSelected ? ImNodesStyleCol_NodeBodyBgActive : hovered ? ImNodesStyleCol_NodeBodyBgHovered : ImNodesStyleCol_NodeBodyBg);
-    draw_list->AddRectFilled(body_pos, node_rect.Max, node_color, g.State.Style.NodeRounding, ImDrawCornerFlags_Bot);
+    node_color =
+        GetStyleColorU32(*g.NodeSelected ? ImNodesStyleCol_NodeBodyBgActive
+                         : hovered       ? ImNodesStyleCol_NodeBodyBgHovered
+                                         : ImNodesStyleCol_NodeBodyBg);
+    draw_list->AddRectFilled(body_pos, node_rect.Max, node_color,
+                             g.State.Style.NodeRounding, ImDrawCornerFlags_Bot);
 
     // Render outlines
-    draw_list->AddRect(node_rect.Min, node_rect.Max, GetStyleColorU32(ImNodesStyleCol_NodeBorder), g.State.Style.NodeRounding);
-    draw_list->AddLine(body_pos, titlebar_end, GetStyleColorU32(ImNodesStyleCol_NodeBorder));
+    draw_list->AddRect(node_rect.Min, node_rect.Max,
+                       GetStyleColorU32(ImNodesStyleCol_NodeBorder),
+                       g.State.Style.NodeRounding);
+    draw_list->AddLine(body_pos, titlebar_end,
+                       GetStyleColorU32(ImNodesStyleCol_NodeBorder));
 
     g.NodeSplitter.Merge(draw_list);
 }
 
-bool Slot(const char* title, int kind, ImVec2 &pos)
-{
+bool Slot(const char *title, int kind, ImVec2 &pos) {
     IM_ASSERT(GContext != nullptr);
     Context &g = *GContext;
-    auto* storage = ImGui::GetStateStorage();
+    auto *storage = ImGui::GetStateStorage();
     const float CIRCLE_RADIUS = g.Style.SlotRadius * g.State.Zoom;
     ImVec2 title_size = ImGui::CalcTextSize(title);
-    // Pull entire slot a little bit out of the edge so that curves connect into it without visible seams
+    // Pull entire slot a little bit out of the edge so that curves connect into
+    // it without visible seams
     float item_offset_x = g.State.Style.NodeSpacing.x + CIRCLE_RADIUS;
-    if (!ImNodes::IsOutputSlotKind(kind))
-        item_offset_x = -item_offset_x;
-    ImGui::SetCursorScreenPos(pos + ImVec2{item_offset_x, 0 });
+    if (!ImNodes::IsOutputSlotKind(kind)) item_offset_x = -item_offset_x;
+    ImGui::SetCursorScreenPos(pos + ImVec2{item_offset_x, 0});
 
-    pos.y += ImMax(title_size.y, 2*CIRCLE_RADIUS) + g.Style.ItemSpacing.y;
+    pos.y += ImMax(title_size.y, 2 * CIRCLE_RADIUS) + g.Style.ItemSpacing.y;
 
-    if (ImNodes::BeginSlot(title, kind))
-    {
-        auto* draw_lists = ImGui::GetWindowDrawList();
+    if (ImNodes::BeginSlot(title, kind)) {
+        auto *draw_lists = ImGui::GetWindowDrawList();
 
         // Slot appearance can be altered depending on curve hovering state.
-        bool is_active = ImNodes::IsSlotCurveHovered() ||
-                         (ImNodes::IsConnectingCompatibleSlot() /*&& !IsAlreadyConnectedWithPendingConnection(title, kind)*/);
+        bool is_active =
+            ImNodes::IsSlotCurveHovered() || (ImNodes::
+                                                  IsConnectingCompatibleSlot() /*&& !IsAlreadyConnectedWithPendingConnection(title, kind)*/);
 
-        ImColor color = GetStyleColorRef(is_active ? ImNodesStyleCol_ConnectionActive : ImNodesStyleCol_Connection);
+        ImColor color =
+            GetStyleColorRef(is_active ? ImNodesStyleCol_ConnectionActive
+                                       : ImNodesStyleCol_Connection);
 
         ImGui::PushStyleColor(ImGuiCol_Text, color.Value);
 
         // Compensate for large slot circles.
-        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + ImMax(CIRCLE_RADIUS - title_size.y*0.5f, 0.0f));
+        ImGui::SetCursorPosY(ImGui::GetCursorPosY() +
+                             ImMax(CIRCLE_RADIUS - title_size.y * 0.5f, 0.0f));
 
-        if (ImNodes::IsOutputSlotKind(kind))
-        {
-            float *max_width_next = storage->GetFloatRef(ImGui::GetID("output-max-title-width-next"));
+        if (ImNodes::IsOutputSlotKind(kind)) {
+            float *max_width_next = storage->GetFloatRef(
+                ImGui::GetID("output-max-title-width-next"));
             *max_width_next = ImMax(*max_width_next, title_size.x);
 
-            float offset = storage->GetFloat(ImGui::GetID("output-max-title-width"), title_size.x) - title_size.x;
+            float offset =
+                storage->GetFloat(ImGui::GetID("output-max-title-width"),
+                                  title_size.x) -
+                title_size.x;
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + offset);
 
             ImGui::TextUnformatted(title);
             ImGui::SameLine(0.0f, g.Style.ItemSpacing.x);
         }
 
-        ImRect circle_rect{
-            ImGui::GetCursorScreenPos(),
-            ImGui::GetCursorScreenPos() + ImVec2{CIRCLE_RADIUS * 2, CIRCLE_RADIUS * 2}
-        };
+        ImRect circle_rect{ImGui::GetCursorScreenPos(),
+                           ImGui::GetCursorScreenPos() +
+                               ImVec2{CIRCLE_RADIUS * 2, CIRCLE_RADIUS * 2}};
         // Vertical-align circle in the middle of the line.
         float circle_offset_y = title_size.y / 2.f - CIRCLE_RADIUS;
         circle_rect.Min.y += circle_offset_y;
         circle_rect.Max.y += circle_offset_y;
-        draw_lists->AddCircleFilled(circle_rect.GetCenter(), CIRCLE_RADIUS, color);
+        draw_lists->AddCircleFilled(circle_rect.GetCenter(), CIRCLE_RADIUS,
+                                    color);
 
         ImGui::ItemSize(circle_rect.GetSize());
         ImGui::ItemAdd(circle_rect, ImGui::GetID(title));
 
-        if (ImNodes::IsInputSlotKind(kind))
-        {
+        if (ImNodes::IsInputSlotKind(kind)) {
             ImGui::SameLine(0.0f, g.Style.ItemSpacing.x);
             ImGui::TextUnformatted(title);
         }
@@ -303,14 +306,15 @@ bool Slot(const char* title, int kind, ImVec2 &pos)
     return false;
 }
 
-void InputSlots(const SlotInfo* slots, int snum)
-{
+void InputSlots(const SlotInfo *slots, int snum) {
     IM_ASSERT(GContext != nullptr);
     Context &g = *GContext;
     ImGuiStorage *storage = ImGui::GetStateStorage();
 
-    PushStyleVar(ImNodesStyleVar_ItemSpacing, g.Style.ItemSpacing * g.State.Zoom);
-    PushStyleVar(ImNodesStyleVar_NodeSpacing, g.State.Style.NodeSpacing * g.State.Zoom);
+    PushStyleVar(ImNodesStyleVar_ItemSpacing,
+                 g.Style.ItemSpacing * g.State.Zoom);
+    PushStyleVar(ImNodesStyleVar_NodeSpacing,
+                 g.State.Style.NodeSpacing * g.State.Zoom);
 
     // Get cursor screen position to be updated by slots as they are rendered.
     ImVec2 pos = ImGui::GetCursorScreenPos();
@@ -319,14 +323,17 @@ void InputSlots(const SlotInfo* slots, int snum)
     ImGui::BeginGroup();
     {
         for (int i = 0; i < snum; i++)
-            ImNodes::Ez::Slot(slots[i].title, ImNodes::InputSlotKind(slots[i].kind), pos);
+            ImNodes::Ez::Slot(slots[i].title,
+                              ImNodes::InputSlotKind(slots[i].kind), pos);
     }
     ImGui::EndGroup();
 
     storage->SetFloat(ImGui::GetID("input-width"), ImGui::GetItemRectSize().x);
 
     // Move cursor to the next column
-    ImGui::SetCursorScreenPos(ImVec2{storage->GetFloat(ImGui::GetID("content-x")), storage->GetFloat(ImGui::GetID("body-y"))});
+    ImGui::SetCursorScreenPos(
+        ImVec2{storage->GetFloat(ImGui::GetID("content-x")),
+               storage->GetFloat(ImGui::GetID("body-y"))});
 
     PopStyleVar(2);
 
@@ -334,8 +341,7 @@ void InputSlots(const SlotInfo* slots, int snum)
     ImGui::BeginGroup();
 }
 
-void OutputSlots(const SlotInfo* slots, int snum)
-{
+void OutputSlots(const SlotInfo *slots, int snum) {
     IM_ASSERT(GContext != nullptr);
     Context &g = *GContext;
     ImGuiStorage *storage = ImGui::GetStateStorage();
@@ -343,22 +349,28 @@ void OutputSlots(const SlotInfo* slots, int snum)
     // End region of node content
     ImGui::EndGroup();
 
-    PushStyleVar(ImNodesStyleVar_ItemSpacing, g.Style.ItemSpacing * g.State.Zoom);
-    PushStyleVar(ImNodesStyleVar_NodeSpacing, g.State.Style.NodeSpacing * g.State.Zoom);
+    PushStyleVar(ImNodesStyleVar_ItemSpacing,
+                 g.Style.ItemSpacing * g.State.Zoom);
+    PushStyleVar(ImNodesStyleVar_NodeSpacing,
+                 g.State.Style.NodeSpacing * g.State.Zoom);
 
-    storage->SetFloat(ImGui::GetID("content-width"), ImGui::GetItemRectSize().x);
+    storage->SetFloat(ImGui::GetID("content-width"),
+                      ImGui::GetItemRectSize().x);
 
     // Get cursor screen position to be updated by slots as they are rendered.
-    ImVec2 pos = ImVec2{storage->GetFloat(ImGui::GetID("output-x")), storage->GetFloat(ImGui::GetID("body-y"))};
+    ImVec2 pos = ImVec2{storage->GetFloat(ImGui::GetID("output-x")),
+                        storage->GetFloat(ImGui::GetID("body-y"))};
 
-    // Set cursor screen position as it is recorded as the starting point in BeginGroup() for the item rect size.
+    // Set cursor screen position as it is recorded as the starting point in
+    // BeginGroup() for the item rect size.
     ImGui::SetCursorScreenPos(pos);
 
     // Render output slots in the next column
     ImGui::BeginGroup();
     {
         for (int i = 0; i < snum; i++)
-            ImNodes::Ez::Slot(slots[i].title, ImNodes::OutputSlotKind(slots[i].kind), pos);
+            ImNodes::Ez::Slot(slots[i].title,
+                              ImNodes::OutputSlotKind(slots[i].kind), pos);
     }
     ImGui::EndGroup();
 
@@ -367,109 +379,149 @@ void OutputSlots(const SlotInfo* slots, int snum)
     PopStyleVar(2);
 }
 
-bool Connection(void* input_node, const char* input_slot, void* output_node, const char* output_slot)
-{
+bool Connection(void *input_node, const char *input_slot, void *output_node,
+                const char *output_slot) {
     IM_ASSERT(GContext != nullptr);
     Context &g = *GContext;
     auto draw_list = ImGui::GetWindowDrawList();
 
-    g.CanvasSplitter.SetCurrentChannel(draw_list, 0);   // Connection layer.
+    g.CanvasSplitter.SetCurrentChannel(draw_list, 0);  // Connection layer.
 
-    return ImNodes::Connection(input_node, input_slot, output_node, output_slot);
+    return ImNodes::Connection(input_node, input_slot, output_node,
+                               output_slot);
 }
 
-void PushStyleVar(ImNodesStyleVar idx, float val)
-{
+void PushStyleVar(ImNodesStyleVar idx, float val) {
     IM_ASSERT(GContext != nullptr);
     Context &g = *GContext;
     float *var;
-    switch (idx)
-    {
-    case ImNodesStyleVar_GridSpacing: var = &g.State.Style.GridSpacing; break;
-    case ImNodesStyleVar_CurveThickness: var = &g.State.Style.CurveThickness; break;
-    case ImNodesStyleVar_CurveStrength: var = &g.State.Style.CurveStrength; break;
-    case ImNodesStyleVar_SlotRadius: var = &g.Style.SlotRadius; break;
-    case ImNodesStyleVar_NodeRounding: var = &g.State.Style.NodeRounding; break;
-    default: IM_ASSERT(0 && "Called PushStyleVar() float variant but variable is not a float!");
+    switch (idx) {
+        case ImNodesStyleVar_GridSpacing:
+            var = &g.State.Style.GridSpacing;
+            break;
+        case ImNodesStyleVar_CurveThickness:
+            var = &g.State.Style.CurveThickness;
+            break;
+        case ImNodesStyleVar_CurveStrength:
+            var = &g.State.Style.CurveStrength;
+            break;
+        case ImNodesStyleVar_SlotRadius:
+            var = &g.Style.SlotRadius;
+            break;
+        case ImNodesStyleVar_NodeRounding:
+            var = &g.State.Style.NodeRounding;
+            break;
+        default:
+            IM_ASSERT(0 &&
+                      "Called PushStyleVar() float variant but variable is not "
+                      "a float!");
     }
     g.StyleVarStack.push_back(StyleVarMod(idx, *var));
     *var = val;
 }
 
-void PushStyleVar(ImNodesStyleVar idx, const ImVec2& val)
-{
+void PushStyleVar(ImNodesStyleVar idx, const ImVec2 &val) {
     IM_ASSERT(GContext != nullptr);
     Context &g = *GContext;
     ImVec2 *var;
-    switch (idx)
-    {
-    case ImNodesStyleVar_NodeSpacing: var = &g.State.Style.NodeSpacing; break;
-    case ImNodesStyleVar_ItemSpacing: var = &g.Style.ItemSpacing; break;
-    default: IM_ASSERT(0 && "Called PushStyleVar() ImVec2 variant but variable is not a ImVec2!");
+    switch (idx) {
+        case ImNodesStyleVar_NodeSpacing:
+            var = &g.State.Style.NodeSpacing;
+            break;
+        case ImNodesStyleVar_ItemSpacing:
+            var = &g.Style.ItemSpacing;
+            break;
+        default:
+            IM_ASSERT(0 &&
+                      "Called PushStyleVar() ImVec2 variant but variable is "
+                      "not a ImVec2!");
     }
     g.StyleVarStack.push_back(StyleVarMod(idx, *var));
     *var = val;
 }
 
-void PopStyleVar(int count)
-{
+void PopStyleVar(int count) {
     IM_ASSERT(GContext != nullptr);
     Context &g = *GContext;
     IM_ASSERT(g.StyleVarStack.size() >= count);
-    while (count > 0)
-    {
-        StyleVarMod& backup = g.StyleVarStack.back();
-        switch (backup.Index)
-        {
-        case ImNodesStyleVar_GridSpacing: g.State.Style.GridSpacing = backup.Value[0]; break;
-        case ImNodesStyleVar_CurveThickness: g.State.Style.CurveThickness = backup.Value[0]; break;
-        case ImNodesStyleVar_CurveStrength: g.State.Style.CurveStrength = backup.Value[0]; break;
-        case ImNodesStyleVar_SlotRadius: g.Style.SlotRadius = backup.Value[0]; break;
-        case ImNodesStyleVar_NodeRounding: g.State.Style.NodeRounding = backup.Value[0]; break;
-        case ImNodesStyleVar_NodeSpacing: g.State.Style.NodeSpacing = ImVec2{backup.Value[0], backup.Value[1]}; break;
-        case ImNodesStyleVar_ItemSpacing: g.Style.ItemSpacing = ImVec2{backup.Value[0], backup.Value[1]}; break;
-        default: IM_ASSERT(0);
+    while (count > 0) {
+        StyleVarMod &backup = g.StyleVarStack.back();
+        switch (backup.Index) {
+            case ImNodesStyleVar_GridSpacing:
+                g.State.Style.GridSpacing = backup.Value[0];
+                break;
+            case ImNodesStyleVar_CurveThickness:
+                g.State.Style.CurveThickness = backup.Value[0];
+                break;
+            case ImNodesStyleVar_CurveStrength:
+                g.State.Style.CurveStrength = backup.Value[0];
+                break;
+            case ImNodesStyleVar_SlotRadius:
+                g.Style.SlotRadius = backup.Value[0];
+                break;
+            case ImNodesStyleVar_NodeRounding:
+                g.State.Style.NodeRounding = backup.Value[0];
+                break;
+            case ImNodesStyleVar_NodeSpacing:
+                g.State.Style.NodeSpacing =
+                    ImVec2{backup.Value[0], backup.Value[1]};
+                break;
+            case ImNodesStyleVar_ItemSpacing:
+                g.Style.ItemSpacing = ImVec2{backup.Value[0], backup.Value[1]};
+                break;
+            default:
+                IM_ASSERT(0);
         }
         g.StyleVarStack.pop_back();
         count--;
     }
 }
 
-static ImVec4& GetStyleColorRef(ImNodesStyleCol idx)
-{
+static ImVec4 &GetStyleColorRef(ImNodesStyleCol idx) {
     IM_ASSERT(GContext != nullptr);
     Context &g = *GContext;
     IM_ASSERT(idx < ImNodesStyleCol_COUNT);
-    switch (idx)
-    {
-    case ImNodesStyleCol_GridLines:             return g.State.Colors[ColCanvasLines].Value;
-    case ImNodesStyleCol_NodeBodyBg:            return g.Style.Colors.NodeBodyBg;
-    case ImNodesStyleCol_NodeBodyBgHovered:     return g.Style.Colors.NodeBodyBgHovered;
-    case ImNodesStyleCol_NodeBodyBgActive:      return g.Style.Colors.NodeBodyBgActive;
-    case ImNodesStyleCol_NodeBorder:            return g.Style.Colors.NodeBorder;
-    case ImNodesStyleCol_Connection:            return g.State.Colors[ColConnection].Value;
-    case ImNodesStyleCol_ConnectionActive:      return g.State.Colors[ColConnectionActive].Value;
-    case ImNodesStyleCol_SelectBg:              return g.State.Colors[ColSelectBg].Value;
-    case ImNodesStyleCol_SelectBorder:          return g.State.Colors[ColSelectBorder].Value;
-    case ImNodesStyleCol_NodeTitleBarBg:        return g.Style.Colors.NodeTitleBarBg;
-    case ImNodesStyleCol_NodeTitleBarBgHovered: return g.Style.Colors.NodeTitleBarBgHovered;
-    case ImNodesStyleCol_NodeTitleBarBgActive:  return g.Style.Colors.NodeTitleBarBgActive;
-    default: IM_ASSERT(0);
+    switch (idx) {
+        case ImNodesStyleCol_GridLines:
+            return g.State.Colors[ColCanvasLines].Value;
+        case ImNodesStyleCol_NodeBodyBg:
+            return g.Style.Colors.NodeBodyBg;
+        case ImNodesStyleCol_NodeBodyBgHovered:
+            return g.Style.Colors.NodeBodyBgHovered;
+        case ImNodesStyleCol_NodeBodyBgActive:
+            return g.Style.Colors.NodeBodyBgActive;
+        case ImNodesStyleCol_NodeBorder:
+            return g.Style.Colors.NodeBorder;
+        case ImNodesStyleCol_Connection:
+            return g.State.Colors[ColConnection].Value;
+        case ImNodesStyleCol_ConnectionActive:
+            return g.State.Colors[ColConnectionActive].Value;
+        case ImNodesStyleCol_SelectBg:
+            return g.State.Colors[ColSelectBg].Value;
+        case ImNodesStyleCol_SelectBorder:
+            return g.State.Colors[ColSelectBorder].Value;
+        case ImNodesStyleCol_NodeTitleBarBg:
+            return g.Style.Colors.NodeTitleBarBg;
+        case ImNodesStyleCol_NodeTitleBarBgHovered:
+            return g.Style.Colors.NodeTitleBarBgHovered;
+        case ImNodesStyleCol_NodeTitleBarBgActive:
+            return g.Style.Colors.NodeTitleBarBgActive;
+        default:
+            IM_ASSERT(0);
     }
+
+    return g.Style.Colors.NodeBorder;
 }
 
-static ImU32 GetStyleColorU32(ImNodesStyleCol idx)
-{
+static ImU32 GetStyleColorU32(ImNodesStyleCol idx) {
     return ImGui::ColorConvertFloat4ToU32(GetStyleColorRef(idx));
 }
 
-void PushStyleColor(ImNodesStyleCol idx, ImU32 col)
-{
+void PushStyleColor(ImNodesStyleCol idx, ImU32 col) {
     PushStyleColor(idx, ImGui::ColorConvertU32ToFloat4(col));
 }
 
-void PushStyleColor(ImNodesStyleCol idx, const ImVec4& col)
-{
+void PushStyleColor(ImNodesStyleCol idx, const ImVec4 &col) {
     IM_ASSERT(GContext != nullptr);
     Context &g = *GContext;
     ImVec4 &val = GetStyleColorRef(idx);
@@ -477,13 +529,11 @@ void PushStyleColor(ImNodesStyleCol idx, const ImVec4& col)
     val = col;
 }
 
-void PopStyleColor(int count)
-{
+void PopStyleColor(int count) {
     IM_ASSERT(GContext != nullptr);
     Context &g = *GContext;
     IM_ASSERT(g.StyleColStack.size() >= count);
-    while (count > 0)
-    {
+    while (count > 0) {
         StyleColMod &backup = g.StyleColStack.back();
         ImVec4 &val = GetStyleColorRef(backup.Index);
         val = backup.Value;
@@ -492,6 +542,6 @@ void PopStyleColor(int count)
     }
 }
 
-}
+}  // namespace Ez
 
-}
+}  // namespace ImNodes
