@@ -1,14 +1,32 @@
 # Engine
 
+A Modern OpenGL Game Engine.
+
+![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/v0.0.2.png)
+
 ## Continuous build status
 
 Build Type | Status
 :-: | :-:
 **Build Windows** | [![Windows](https://github.com/kaiwangm/Engine/actions/workflows/Windows_CI.yml/badge.svg)](https://github.com/kaiwangm/Engine/actions/workflows/Windows_CI.yml)
 
-A Modern OpenGL Game Engine.
+## Getting Started
 
-![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/v0.0.2.png)
+1. Clone the repo.
+
+```
+git clone https://github.com/kaiwangm/Engine.git
+```
+
+2. install dependencies.
+
+3. Build.
+
+```
+mkdir build
+cd build
+cmake ..
+```
 
 ## Features and Plan
 
@@ -28,24 +46,6 @@ A Modern OpenGL Game Engine.
 ## Framework Architecture:
 ![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/engine.png)
 -->
-
-## Getting Started
-
-1. Clone the repo.
-
-```
-git clone https://github.com/kaiwangm/Engine.git
-```
-
-2. install dependencies.
-
-3. Build.
-
-```
-mkdir build
-cd build
-cmake ..
-```
 
 ## Reference
 
