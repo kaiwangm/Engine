@@ -1,6 +1,7 @@
 # Engine
 
 [![Windows](https://github.com/kaiwangm/Engine/actions/workflows/Windows_CI.yml/badge.svg)](https://github.com/kaiwangm/Engine/actions/workflows/Windows_CI.yml)
+![GitHub](https://img.shields.io/github/license/kaiwangm/Engine?style=flat-square)
 
 A Modern OpenGL Game Engine.
 
