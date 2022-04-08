@@ -8,7 +8,7 @@ A Modern OpenGL Game Engine.
 
 Build Type | Status
 :-: | :-:
-**Build Windows** | [![Windows](https://github.com/kaiwangm/Engine/actions/workflows/Windows_CI.yml/badge.svg)](https://github.com/kaiwangm/Engine/actions/workflows/Windows_CI.yml)
+**Windows** | [![Windows](https://github.com/kaiwangm/Engine/actions/workflows/Windows_CI.yml/badge.svg)](https://github.com/kaiwangm/Engine/actions/workflows/Windows_CI.yml)
 
 ## Getting Started
 
