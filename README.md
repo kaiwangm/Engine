@@ -1,8 +1,31 @@
 # Engine
 
+[![GitHub](https://img.shields.io/github/license/kaiwangm/Engine?style=flat-square)](https://github.com/kaiwangm/Engine/blob/main/LICENSE)
+[![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/kaiwangm/Engine/Windows%20CI/main?style=flat-square)](https://github.com/kaiwangm/Engine/actions/workflows/Windows_CI.yml)
+[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/kaiwangm/Engine?style=flat-square)](https://github.com/kaiwangm/Engine/releases)
+
+
 A Modern OpenGL Game Engine.
 
 ![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/v0.0.2.png)
+
+## Getting Started
+
+1. Clone the repo.
+
+```
+git clone https://github.com/kaiwangm/Engine.git
+```
+
+2. install dependencies.
+
+3. Build.
+
+```
+mkdir build
+cd build
+cmake ..
+```
 
 ## Features and Plan
 
@@ -22,24 +45,6 @@ A Modern OpenGL Game Engine.
 ## Framework Architecture:
 ![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/engine.png)
 -->
-
-## Getting Started
-
-1. Clone the repo.
-
-```
-git clone https://github.com/kaiwangm/Engine.git
-```
-
-2. install dependencies.
-
-3. Build.
-
-```
-mkdir build
-cd build
-cmake ..
-```
 
 ## Reference
 
