@@ -1,5 +1,11 @@
 # Engine
 
+## Continuous build status
+
+Build Type | Status
+:-: | :-:
+**Build Windows** | [![Windows](https://github.com/kaiwangm/Engine/actions/workflows/Windows_CI.yml/badge.svg)](https://github.com/kaiwangm/Engine/actions/workflows/Windows_CI.yml)
+
 A Modern OpenGL Game Engine.
 
 ![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/v0.0.2.png)
