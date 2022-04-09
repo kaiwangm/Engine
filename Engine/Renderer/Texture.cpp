@@ -2,7 +2,7 @@
 
 #include "Renderer.h"
 
-#ifdef ENGINE_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_OPENGL
 #include "OpenGL_Renderer/OpenGLTexture.h"
 #endif
 

@@ -1,15 +1,19 @@
 cmake_minimum_required(VERSION 3.22)
 project(EngineProject 
-    VERSION 0.0.1
+    VERSION 0.0.2
     DESCRIPTION "My Toy Modern OpenGL Game Engine."
     LANGUAGES C CXX
 )
 
 set(CMAKE_CXX_STANDARD 17)
+set(ENGINE_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 
 IF (WIN32)
 	MESSAGE(STATUS "Now is windows.")
+    set(ENGINE_PLATFORM "Windows")
+    set(ENGINE_OPENGL_USE True)
     add_definitions(-DENGINE_PLATFORM_WINDOWS)
+    add_definitions(-DENGINE_PLATFORM_OPENGL)
 ENDIF ()
 
 find_path(STB_INCLUDE_DIRS "stb.h")

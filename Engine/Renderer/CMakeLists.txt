@@ -1,5 +1,3 @@
-add_subdirectory(OpenGL_Renderer)
-
 add_library(
     Renderer
     STATIC
@@ -17,14 +15,17 @@ add_library(
 target_link_libraries(
     Renderer 
     PRIVATE 
-    Core 
-    OpenGL_Renderer
-)
-
-target_link_libraries(
-    Renderer 
-    PRIVATE 
     glm::glm
 )
+
+IF (ENGINE_OPENGL_USE)
+    add_subdirectory(OpenGL_Renderer)
+    target_link_libraries(
+    Renderer 
+    PRIVATE 
+    Core 
+    OpenGL_Renderer
+    )
+ENDIF ()
 
 target_include_directories(Renderer INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})

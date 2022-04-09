@@ -1,7 +1,7 @@
 #include "VertexArray.h"
 
 #include "Renderer.h"
-#ifdef ENGINE_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_OPENGL
 #include "OpenGL_Renderer/OpenGLVertexArray.h"
 #endif
 

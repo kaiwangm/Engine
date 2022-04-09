@@ -1,11 +1,11 @@
 #include "RendererAPI.h"
 
-#ifdef ENGINE_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_OPENGL
 #include "OpenGL_Renderer/OpenGLRendererAPI.h"
 #endif
 
 namespace Engine {
-#ifdef ENGINE_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_OPENGL
 RendererAPI::API RendererAPI::s_API = RendererAPI::API::OpenGL;
 #else
 RendererAPI::API RendererAPI::s_API = RendererAPI::API::None;
