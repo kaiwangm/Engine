@@ -1,5 +1,7 @@
 #include "WindowsWindow.h"
 
+#include "stb_image.h"
+
 namespace Engine {
 static bool s_GLFWInitialized = false;
 
@@ -24,9 +26,9 @@ void WindowsWindow::Init(const WindowProps& props) {
     }
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-	//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    //glfwWindowHint(GLFW_DECORATED, GL_FALSE);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    // glfwWindowHint(GLFW_DECORATED, GL_FALSE);
     m_Window = glfwCreateWindow((int)m_Data.Width, (int)m_Data.Height,
                                 m_Data.Title.c_str(), nullptr, nullptr);
 
@@ -35,6 +37,13 @@ void WindowsWindow::Init(const WindowProps& props) {
 
     glfwSetWindowUserPointer(m_Window, &m_Data);
     SetVSync(true);
+
+    GLFWimage images[1];
+    images[0].pixels = stbi_load("Assert/Icon/Editor.png", &images[0].width,
+                                 &images[0].height, 0, 4);  // rgba channels
+
+    glfwSetWindowIcon(m_Window, 1, images);
+    stbi_image_free(images[0].pixels);
 
     glfwSetWindowSizeCallback(
         m_Window, [](GLFWwindow* window, int width, int height) {

@@ -61,7 +61,8 @@ Model::Model() {
                             {2, ShaderDataType::Float2, "a_TexCoord"},
                         }});
 
-    m_Meshes[0].AddTexture(Texture2D::Create("Assert/Checkerboard.png"));
+    m_Meshes[0].AddTexture(
+        Texture2D::Create("Assert/Object/checkerboard/Checkerboard.png"));
 }
 
 Model::Model(const std::string& path)
@@ -81,7 +82,8 @@ Model::Model(const std::string& path)
 
     for (auto& mesh : m_Meshes) {
         if (mesh.m_Textures.size() == 0) {
-            mesh.AddTexture(Texture2D::Create("Assert/Checkerboard.png"));
+            mesh.AddTexture(Texture2D::Create(
+                "Assert/Object/checkerboard/Checkerboard.png"));
         }
     }
 }

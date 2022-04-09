@@ -147,7 +147,7 @@ void OpenGLImGuiLayer::SetDarkThemeColors() {
 
     ImGuiIO& io = ImGui::GetIO();
     io.Fonts->AddFontFromFileTTF(
-        "Assert/pinghei.ttf", 18.0f, NULL,
+        "Assert/Font/pinghei.ttf", 18.0f, NULL,
         io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
 
     ImGui::GetStyle().FrameRounding = 4.0f;

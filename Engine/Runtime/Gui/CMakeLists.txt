@@ -1,11 +1,12 @@
-add_subdirectory(ImNodes)
-
 add_library(
     Gui
     STATIC
     DockSpaceLayer.cpp
     GuiCommand.cpp
     ImGuiLog.cpp
+    ImNodes/ImGuiNodes.cpp
+    ImNodes/ImNodes.cpp
+    ImNodes/ImNodesEz.cpp
 )
 
 target_link_libraries(
@@ -13,12 +14,6 @@ target_link_libraries(
     PRIVATE 
     Core 
     Renderer
-)
-
-target_link_libraries(
-    Gui 
-    PRIVATE 
-    ImNodes
 )
 
 target_link_libraries(

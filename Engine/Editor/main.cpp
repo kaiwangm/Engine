@@ -8,12 +8,13 @@ class ExampleLayer : public Layer {
         m_Scene = std::make_shared<Scene>();
 
         // Set Shader
-        m_Scene->LoadShader("TextureShader", "Assert/vertex.glsl",
-                            "Assert/fragment.glsl", "Path");
-        m_Scene->LoadShader("TextureShader_normal", "Assert/vertex_normal.glsl",
-                            "Assert/fragment_normal.glsl", "Path");
-        m_Scene->LoadShader("Animated", "Assert/vertex_animated.glsl",
-                            "Assert/fragment_animated.glsl", "Path");
+        m_Scene->LoadShader("TextureShader", "Assert/Shader/vertex.glsl",
+                            "Assert/Shader/fragment.glsl", "Path");
+        m_Scene->LoadShader("TextureShader_normal",
+                            "Assert/Shader/vertex_normal.glsl",
+                            "Assert/Shader/fragment_normal.glsl", "Path");
+        m_Scene->LoadShader("Animated", "Assert/Shader/vertex_animated.glsl",
+                            "Assert/Shader/fragment_animated.glsl", "Path");
 
         auto camera = Scene::CreateEntity(m_Scene, "camera");
         m_Camera = std::make_shared<PerspectiveCamera>(45.0f, 1.778f, 0.1f,
@@ -33,13 +34,15 @@ class ExampleLayer : public Layer {
             glm::vec3{-2.350f, 2.165f, 0.000f});
 
         auto gallery = Scene::CreateEntity(m_Scene, "gallery");
-        m_Gallery = std::make_shared<Model>("Assert/gallery/gallery.obj");
+        m_Gallery =
+            std::make_shared<Model>("Assert/Object/gallery/gallery.obj");
 
         gallery.AddComponent<StaticModelComponent>(m_Gallery);
         gallery.AddComponent<TransformComponent>();
 
         auto animan = Scene::CreateEntity(m_Scene, "animan");
-        m_Animan = std::make_shared<AnimatedModel>("Assert/animan/model.dae");
+        m_Animan =
+            std::make_shared<AnimatedModel>("Assert/Object/animan/model.dae");
 
         animan.AddComponent<AnimatedModelComponent>(m_Animan);
         animan.AddComponent<TransformComponent>(
