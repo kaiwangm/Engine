@@ -8,6 +8,7 @@ namespace Engine {
 class Log {
    public:
     static void Init();
+    static void Delete();
 
     inline static Ref<spdlog::logger>& GetCoreLogger() { return s_CoreLogger; }
 

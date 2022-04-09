@@ -25,7 +25,10 @@ Application::Application(std::string appName, uint32_t windowWidth,
     Log::Core_Trace("Engine Initialization Success.");
 }
 
-Application::~Application() { Log::Core_Trace("Engine Shutdown."); }
+Application::~Application() {
+    Log::Delete();
+    Log::Core_Trace("Engine Shutdown.");
+}
 
 void Application::PushLayer(Ref<Layer> layer) {
     m_LayerStack.PushLayer(layer);

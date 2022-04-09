@@ -9,9 +9,9 @@ OpenGLShader::OpenGLShader(const std::string& name,
                            const std::string& fragmentSrc,
                            const std::string& mode)
     : Shader(name) {
-    Log::Core_Trace("Creating Shader:");
-    Log::Core_Trace("    Vertex Shader Path: {0}", vertexSrc);
-    Log::Core_Trace("    Fragment Shader Path: {0}", fragmentSrc);
+    Log::Core_Info("Creating Shader:");
+    Log::Core_Info("    Vertex Shader Path: {0}", vertexSrc);
+    Log::Core_Info("    Fragment Shader Path: {0}", fragmentSrc);
 
     std::string vertexShaderSource;
     std::string fragmentShaderSource;

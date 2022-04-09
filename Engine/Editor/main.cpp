@@ -100,7 +100,7 @@ class ExampleLayer : public Layer {
 class Sandbox : public Application {
    public:
     Sandbox() : Application("Sandbox", 2700, 1500) {
-        Log::Trace("Sandbox Initialization.");
+        Log::Info("Sandbox Initialization.");
         PushLayer(std::make_shared<DockSpaceLayer>(m_Running));
         PushLayer(std::make_shared<ExampleLayer>());
         Log::Trace("Sandbox Initialization Success.");

@@ -17,7 +17,7 @@ void WindowsWindow::Init(const WindowProps& props) {
     m_Data.Width = props.Width;
     m_Data.Height = props.Height;
 
-    Log::Core_Trace("Creating window \"{0}\" ({1}, {2})", props.Title,
+    Log::Core_Info("Creating window \"{0}\" ({1}, {2})", props.Title,
                     props.Width, props.Height);
 
     if (!s_GLFWInitialized) {

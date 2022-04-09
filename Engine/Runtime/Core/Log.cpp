@@ -1,5 +1,6 @@
 #include "Log.h"
 
+#include <spdlog/async.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/ostream_sink.h>
 #include <spdlog/sinks/rotating_file_sink.h>
@@ -18,16 +19,25 @@ void Log::Init() {
     auto sink3 = std::make_shared<spdlog::sinks::ostream_sink_mt>(*s_OString);
     std::vector<spdlog::sink_ptr> sinks = {sink1, sink2, sink3};
 
-    std::string patten = "[%Y-%m-%d %H:%M:%S.%e] [%n :: %l] %v";
+    std::string patten = "[%Y-%m-%d %H:%M:%S.%e] [%n -> %^%l%$] %v";
+    spdlog::init_thread_pool(8192, 3);
 
-    s_CoreLogger =
-        std::make_shared<spdlog::logger>("engine", sinks.begin(), sinks.end());
+    s_CoreLogger = std::make_shared<spdlog::async_logger>(
+        "Engine", sinks.begin(), sinks.end(), spdlog::thread_pool(),
+        spdlog::async_overflow_policy::block);
     s_CoreLogger->set_pattern(patten);
     s_CoreLogger->set_level(spdlog::level::trace);
 
-    s_ClientLogger =
-        std::make_shared<spdlog::logger>("client", sinks.begin(), sinks.end());
+    s_ClientLogger = std::make_shared<spdlog::async_logger>(
+        "Client", sinks.begin(), sinks.end(), spdlog::thread_pool(),
+        spdlog::async_overflow_policy::block);
     s_ClientLogger->set_pattern(patten);
     s_ClientLogger->set_level(spdlog::level::trace);
+}
+
+void Log::Delete() {
+    s_CoreLogger->flush();
+    s_ClientLogger->flush();
+    spdlog::drop_all();
 }
 }  // namespace Engine
