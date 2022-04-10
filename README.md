@@ -1,8 +1,10 @@
 # Engine
 
-[![GitHub](https://img.shields.io/github/license/kaiwangm/Engine?style=flat-square)](https://github.com/kaiwangm/Engine/blob/main/LICENSE)
-[![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/kaiwangm/Engine/Windows%20CI/main?style=flat-square)](https://github.com/kaiwangm/Engine/actions/workflows/Windows_CI.yml)
 [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/kaiwangm/Engine?style=flat-square)](https://github.com/kaiwangm/Engine/releases)
+[![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/kaiwangm/Engine/Windows%20CI/main?style=flat-square)](https://github.com/kaiwangm/Engine/actions/workflows/Windows_CI.yml)
+[![GitHub](https://img.shields.io/github/license/kaiwangm/Engine?style=flat-square)](https://github.com/kaiwangm/Engine/blob/main/LICENSE)
+
+
 
 
 A Modern OpenGL Game Engine.
