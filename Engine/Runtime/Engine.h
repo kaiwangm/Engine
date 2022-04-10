@@ -2,9 +2,8 @@
 
 #include "Application.h"
 #include "Core.h"
-#include "Input.h"
-#include "Layer.h"
-#include "Log.h"
+#include "Input/Input.h"
+#include "Layer/Layer.h"
 #include "Renderer.h"
 
 #include "Gui/GuiCommand.h"

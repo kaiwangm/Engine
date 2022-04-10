@@ -1,6 +1,5 @@
 #include "OpenGLContext.h"
 
-#include "Log.h"
 
 #define GETGLSTRING(info) \
     std::string(reinterpret_cast<const char*>(glGetString(info)))

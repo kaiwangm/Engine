@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Core.h"
-#include "Events/ApplicationEvent.h"
-#include "Log.h"
+#include "../Core.h"
+#include "../Events/ApplicationEvent.h"
+#include "../Log/Log.h"
 
 namespace Engine {
 struct LayerUpdateMeta {

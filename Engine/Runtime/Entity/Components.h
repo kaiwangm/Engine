@@ -12,29 +12,50 @@
 #include "Model.h"
 
 namespace Engine {
-struct TagComponent {
+
+class UObject;
+
+class UComponent {
+   protected:
+    UObject* m_Owner;
+
+   public:
+    UComponent(UObject* owner) : m_Owner(owner) {}
+    UComponent() {}
+    virtual ~UComponent() { m_Owner = nullptr; }
+
+    void SetOwner(UObject* owner) { m_Owner = owner; }
+    UObject* GetOwner() const { return m_Owner; }
+
+    virtual void Tick(float deltaTime){};
+    virtual void Destory(){};
+};
+
+class UTagComponent : public UComponent {
+   public:
     std::string Tag;
 
-    TagComponent() = default;
-    TagComponent(const TagComponent&) = default;
-    TagComponent(const std::string& tag) : Tag(tag) {}
+    UTagComponent() = default;
+    UTagComponent(const UTagComponent&) = default;
+    UTagComponent(const std::string& tag) : Tag(tag) {}
 
     std::string GetString() { return Tag; }
 };
 
-struct TransformComponent {
+class UTransformComponent : public UComponent {
+   public:
     glm::vec3 Translation = {0.0f, 0.0f, 0.0f};
     glm::vec3 Rotation = {0.0f, 0.0f, 0.0f};
     glm::vec3 Scale = {1.0f, 1.0f, 1.0f};
 
-    TransformComponent() = default;
-    TransformComponent(const TransformComponent&) = default;
-    TransformComponent(const glm::vec3& translation)
+    UTransformComponent() = default;
+    UTransformComponent(const UTransformComponent&) = default;
+    UTransformComponent(const glm::vec3& translation)
         : Translation(translation) {}
-    TransformComponent(const glm::vec3& translation, const glm::vec3& rotation)
+    UTransformComponent(const glm::vec3& translation, const glm::vec3& rotation)
         : Translation(translation), Rotation(rotation) {}
-    TransformComponent(const glm::vec3& translation, const glm::vec3& rotation,
-                       const glm::vec3& scale)
+    UTransformComponent(const glm::vec3& translation, const glm::vec3& rotation,
+                        const glm::vec3& scale)
         : Translation(translation), Rotation(rotation), Scale(scale) {}
 
     glm::mat4 GetTransform() const {
@@ -45,26 +66,29 @@ struct TransformComponent {
     }
 };
 
-struct StaticModelComponent {
+class UStaticModelComponent : public UComponent {
+   public:
     WeakRef<Model> m_Model;
 
-    StaticModelComponent(const Ref<Model> model) : m_Model(model) {}
+    UStaticModelComponent(const Ref<Model> model) : m_Model(model) {}
 
     Ref<Model> GetModel() { return m_Model.lock(); }
 };
 
-struct AnimatedModelComponent {
+class UAnimatedModelComponent : public UComponent {
+   public:
     WeakRef<AnimatedModel> m_Model;
 
-    AnimatedModelComponent(const Ref<AnimatedModel> model) : m_Model(model) {}
+    UAnimatedModelComponent(const Ref<AnimatedModel> model) : m_Model(model) {}
 
     Ref<AnimatedModel> GetModel() { return m_Model.lock(); }
 };
 
-struct CameraComponent {
+class UCameraComponent : public UComponent {
+   public:
     WeakRef<Camera> m_Camera;
 
-    CameraComponent(const Ref<Camera> camera) : m_Camera(camera) {}
+    UCameraComponent(const Ref<Camera> camera) : m_Camera(camera) {}
 
     Ref<Camera> GetCamera() { return m_Camera.lock(); }
 };

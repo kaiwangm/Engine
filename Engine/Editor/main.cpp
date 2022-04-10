@@ -20,8 +20,8 @@ class ExampleLayer : public Layer {
         m_Camera = std::make_shared<PerspectiveCamera>(45.0f, 1.778f, 0.1f,
                                                        3000.0f * 8);
 
-        camera.AddComponent<CameraComponent>(m_Camera);
-        camera.AddComponent<TransformComponent>(
+        camera.AddComponent<UCameraComponent>(m_Camera);
+        camera.AddComponent<UTransformComponent>(
             glm::vec3{-1.774f, 4.034f, 9.425f},
             glm::vec3{-0.153f, -6.606f, 0.000f},
             glm::vec3{1.000f, 1.000f, 1.000f});
@@ -29,23 +29,23 @@ class ExampleLayer : public Layer {
         auto board = Scene::CreateEntity(m_Scene, "board");
         m_Board = std::make_shared<Model>();
 
-        board.AddComponent<StaticModelComponent>(m_Board);
-        board.AddComponent<TransformComponent>(
+        board.AddComponent<UStaticModelComponent>(m_Board);
+        board.AddComponent<UTransformComponent>(
             glm::vec3{-2.350f, 2.165f, 0.000f});
 
         auto gallery = Scene::CreateEntity(m_Scene, "gallery");
         m_Gallery =
             std::make_shared<Model>("Assert/Object/gallery/gallery.obj");
 
-        gallery.AddComponent<StaticModelComponent>(m_Gallery);
-        gallery.AddComponent<TransformComponent>();
+        gallery.AddComponent<UStaticModelComponent>(m_Gallery);
+        gallery.AddComponent<UTransformComponent>();
 
         auto animan = Scene::CreateEntity(m_Scene, "animan");
         m_Animan =
             std::make_shared<AnimatedModel>("Assert/Object/animan/model.dae");
 
-        animan.AddComponent<AnimatedModelComponent>(m_Animan);
-        animan.AddComponent<TransformComponent>(
+        animan.AddComponent<UAnimatedModelComponent>(m_Animan);
+        animan.AddComponent<UTransformComponent>(
             glm::vec3{1.655f, 0.685f, 0.120f},
             glm::vec3{-1.330f, 0.000f, 0.000f},
             glm::vec3{0.300f, 0.300f, 0.300f});

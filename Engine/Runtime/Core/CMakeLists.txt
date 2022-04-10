@@ -1,9 +1,8 @@
 add_library(
     Core
     STATIC
-    Layer.cpp
-    LayerStack.cpp
-    Log.cpp
+    Layer/LayerStack.cpp
+    Log/Log.cpp
 )
 
 target_link_libraries(

@@ -1,6 +1,5 @@
 #include "Shader.h"
 
-#include "Log.h"
 #include "Renderer.h"
 
 #ifdef ENGINE_PLATFORM_OPENGL

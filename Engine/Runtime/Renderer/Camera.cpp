@@ -2,7 +2,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "Input.h"
+#include "Input/Input.h"
 
 namespace Engine {
 Camera::Camera() : m_ProjectionMatrix(1.0f), m_ViewMatrix(1.0f) {

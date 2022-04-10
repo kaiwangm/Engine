@@ -4,7 +4,7 @@
 #include "Events/ApplicationEvent.h"
 #include "Events/KeyEvent.h"
 #include "Events/MouseEvent.h"
-#include "Log.h"
+#include "Log/Log.h"
 
 namespace Engine {
 struct WindowProps {

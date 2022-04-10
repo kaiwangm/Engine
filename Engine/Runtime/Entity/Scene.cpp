@@ -2,7 +2,7 @@
 
 #include "Entity.h"
 #include "GuiCommand.h"
-#include "Input.h"
+#include "Input/Input.h"
 
 namespace Engine {
 Scene::Scene() {  // Set FrameRenderBuffer
@@ -14,8 +14,8 @@ Scene::~Scene() {}
 
 Entity Scene::CreateEntity(const Ref<Scene> scene, const std::string& name) {
     Entity entity(scene->m_Registry.create(), scene);
-    // entity.AddComponent<TransformComponent>();
-    auto& tag = entity.AddComponent<TagComponent>();
+    // entity.AddComponent<UTransformComponent>();
+    auto& tag = entity.AddComponent<UTagComponent>();
     tag.Tag = name.empty() ? "Entity" : name;
     return entity;
 }
@@ -26,7 +26,7 @@ void Scene::DestroyEntity(const Ref<Scene> scene, Entity entity) {
 
 void Scene::OnUpdateRuntime(float timeStep) {
     auto camrea_view =
-        m_Registry.view<TagComponent, TransformComponent, CameraComponent>();
+        m_Registry.view<UTagComponent, UTransformComponent, UCameraComponent>();
     glm::mat4 vp_Mat;
 
     // use a range-for
@@ -50,7 +50,7 @@ void Scene::OnUpdateRuntime(float timeStep) {
 
     auto model_view =
         m_Registry
-            .view<TagComponent, TransformComponent, StaticModelComponent>();
+            .view<UTagComponent, UTransformComponent, UStaticModelComponent>();
 
     // use a range-for
     for (auto [entity, name, trans, model] : model_view.each()) {
@@ -70,7 +70,7 @@ void Scene::OnUpdateRuntime(float timeStep) {
 
     auto animated_view =
         m_Registry
-            .view<TagComponent, TransformComponent, AnimatedModelComponent>();
+            .view<UTagComponent, UTransformComponent, UAnimatedModelComponent>();
 
     // use a range-for
     for (auto [entity, name, trans, model] : animated_view.each()) {
@@ -134,7 +134,7 @@ void Scene::OnUpdateRuntimeGui(float timeStep, float nowTime) {
     arr.erase(arr.begin());
     ImGui::PlotLines("Frame Times", &arr[0], 600);
 
-    auto model_view = m_Registry.view<TagComponent, TransformComponent>();
+    auto model_view = m_Registry.view<UTagComponent, UTransformComponent>();
 
     // use a range-for
     for (auto [entity, name, trans] : model_view.each()) {
@@ -159,7 +159,7 @@ void Scene::TickLogic(float timeStep, float nowTime, bool handleInput) {
     float m_CameraRotationSpeed = 0.15;
 
     auto camrea_view =
-        m_Registry.view<TagComponent, TransformComponent, CameraComponent>();
+        m_Registry.view<UTagComponent, UTransformComponent, UCameraComponent>();
 
     auto [currentX, currentY] = Input::GetMousePostion();
 

@@ -48,6 +48,7 @@ template <typename T>
 using WeakRef = std::weak_ptr<T>;
 }  // namespace Engine
 
-#include "Log.h"
-#include "Timer.h"
 #include "Events/Event.h"
+#include "Log/Log.h"
+#include "Timer/Timer.h"
+

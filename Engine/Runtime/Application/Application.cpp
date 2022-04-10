@@ -1,6 +1,6 @@
 #include "Application.h"
 
-#include "Input.h"
+#include "Input/Input.h"
 #include "Renderer.h"
 
 namespace Engine {
