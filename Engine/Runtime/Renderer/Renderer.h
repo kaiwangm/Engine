@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Camera.h"
 #include "Core.h"
 #include "RenderCommand.h"
 #include "RendererAPI.h"
@@ -9,6 +8,7 @@
 #include "VertexArray.h"
 
 namespace Engine {
+class Camera;
 class Renderer {
    public:
     static void Init();

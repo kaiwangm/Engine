@@ -8,7 +8,6 @@ add_library(
     VertexArray.cpp
     RenderCommand.cpp
     RendererAPI.cpp
-    Camera.cpp
     Texture.cpp
 )
 
@@ -25,6 +24,7 @@ IF (ENGINE_OPENGL_USE)
     PRIVATE 
     Core 
     OpenGL_Renderer
+    GameFramework
     )
 ENDIF ()
 

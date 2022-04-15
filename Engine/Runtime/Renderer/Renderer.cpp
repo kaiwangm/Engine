@@ -1,4 +1,5 @@
 #include "Renderer.h"
+#include "Camera/Camera.h"
 
 namespace Engine {
 Scope<Renderer::SceneData> Renderer::s_SceneData =

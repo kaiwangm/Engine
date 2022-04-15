@@ -1,10 +1,11 @@
 add_library(
     GameFramework
-    OBJECT
-    Animation.cpp
-    Entity.cpp
-    Model.cpp
-    Scene.cpp
+    STATIC
+    Camera/Camera.cpp
+    DataUtil/Mesh.cpp
+    Animation/Animation.cpp
+    StaticMesh/StaticMesh.cpp
+    Common/UWorld.cpp
 )
 
 target_link_libraries(

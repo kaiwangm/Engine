@@ -82,5 +82,4 @@ class PerspectiveCamera : public Camera {
     float m_NearClip;
     float m_FarClip;
 };
-
 }  // namespace Engine

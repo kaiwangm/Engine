@@ -11,8 +11,9 @@
 #include <glm/gtx/string_cast.hpp>
 
 #include "Core.h"
-#include "Model.h"
 #include "Renderer.h"
+
+#include "../DataUtil/Mesh.h"
 
 namespace Engine {
 struct JointTransform {
@@ -185,10 +186,10 @@ struct Joint {
     }
 };
 
-class AnimatedModel {
+class AnimatedMesh {
    public:
-    AnimatedModel() {}
-    AnimatedModel(const std::string& path)
+    AnimatedMesh() {}
+    AnimatedMesh(const std::string& path)
         : m_Directory(path.substr(0, path.find_last_of('/'))), m_JointCount(0) {
         // skin
 

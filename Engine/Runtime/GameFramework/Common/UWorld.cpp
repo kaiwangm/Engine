@@ -1,30 +1,22 @@
-#include "Scene.h"
+#include "UWorld.h"
 
-#include "Entity.h"
+#include "Shader.h"
+#include "Buffer.h"
 #include "GuiCommand.h"
 #include "Input/Input.h"
 
+#include "UComponent.h"
+#include "../Camera/UCameraComponent.h"
+#include "../StaticMesh/AStaticMesh.h"
+#include "../Animation/UAnimatedMeshComponent.h"
+
 namespace Engine {
-Scene::Scene() {  // Set FrameRenderBuffer
+UWorld::UWorld() {
     m_FrameRenderBuffer = FrameRenderBuffer::Create();
     m_FrameRenderBuffer_normal = FrameRenderBuffer::Create();
 }
 
-Scene::~Scene() {}
-
-Entity Scene::CreateEntity(const Ref<Scene> scene, const std::string& name) {
-    Entity entity(scene->m_Registry.create(), scene);
-    // entity.AddComponent<UTransformComponent>();
-    auto& tag = entity.AddComponent<UTagComponent>();
-    tag.Tag = name.empty() ? "Entity" : name;
-    return entity;
-}
-
-void Scene::DestroyEntity(const Ref<Scene> scene, Entity entity) {
-    scene->m_Registry.destroy(entity);
-}
-
-void Scene::OnUpdateRuntime(float timeStep) {
+void UWorld::OnUpdateRuntime(float timeStep) {
     auto camrea_view =
         m_Registry.view<UTagComponent, UTransformComponent, UCameraComponent>();
     glm::mat4 vp_Mat;
@@ -50,14 +42,14 @@ void Scene::OnUpdateRuntime(float timeStep) {
 
     auto model_view =
         m_Registry
-            .view<UTagComponent, UTransformComponent, UStaticModelComponent>();
+            .view<UTagComponent, UTransformComponent, UStaticMeshComponent>();
 
     // use a range-for
     for (auto [entity, name, trans, model] : model_view.each()) {
         auto shader = m_ShaderLibrary.Get("TextureShader");
         Renderer::SetShaderUniform(shader, "u_Texture", 0);
 
-        const auto& meshes = model.GetModel()->m_Meshes;
+        const auto meshes = model.GetStaticMesh().m_Meshes;
 
         for (const auto& mesh : meshes) {
             auto texture = mesh.m_Textures[0];
@@ -70,15 +62,15 @@ void Scene::OnUpdateRuntime(float timeStep) {
 
     auto animated_view =
         m_Registry
-            .view<UTagComponent, UTransformComponent, UAnimatedModelComponent>();
+            .view<UTagComponent, UTransformComponent, UAnimatedMeshComponent>();
 
     // use a range-for
     for (auto [entity, name, trans, model] : animated_view.each()) {
         auto shader = m_ShaderLibrary.Get("Animated");
         // Renderer::SetShaderUniform(shader, "u_Texture", 0);
 
-        model.GetModel()->Update(timeStep);
-        model.GetModel()->Draw(shader, vp_Mat, trans.GetTransform());
+        model.GetModel().Update(timeStep);
+        model.GetModel().Draw(shader, vp_Mat, trans.GetTransform());
     }
 
     Renderer::EndScene(m_FrameRenderBuffer);
@@ -109,7 +101,7 @@ void Scene::OnUpdateRuntime(float timeStep) {
         auto shader = m_ShaderLibrary.Get("TextureShader_normal");
         Renderer::SetShaderUniform(shader, "u_Texture", 0);
 
-        const auto& meshes = model.GetModel()->m_Meshes;
+        const auto meshes = model.GetStaticMesh().m_Meshes;
 
         for (const auto& mesh : meshes) {
             auto texture = mesh.m_Textures[0];
@@ -123,7 +115,7 @@ void Scene::OnUpdateRuntime(float timeStep) {
     Renderer::EndScene(m_FrameRenderBuffer_normal);
 }
 
-void Scene::OnUpdateRuntimeGui(float timeStep, float nowTime) {
+void UWorld::OnUpdateRuntimeGui(float timeStep, float nowTime) {
     Gui::Begin("Scence Collection");
 
     Gui::Text("Time Step: {0}", timeStep);
@@ -139,11 +131,12 @@ void Scene::OnUpdateRuntimeGui(float timeStep, float nowTime) {
     // use a range-for
     for (auto [entity, name, trans] : model_view.each()) {
         if (ImGui::TreeNode(name.GetString().c_str())) {
-            Gui::DragFloat3("Position", trans.Translation, 0.005f, -100.0f,
+            Gui::DragFloat3("Position", trans.GetPositionRef(), 0.005f, -100.0f,
                             100.0f);
-            Gui::DragFloat3("Rotation", trans.Rotation, 0.005f, -100.0f,
+            Gui::DragFloat3("Rotation", trans.GetRotationRef(), 0.005f, -100.0f,
                             100.0f);
-            Gui::DragFloat3("Scale", trans.Scale, 0.005f, -100.0f, 100.0f);
+            Gui::DragFloat3("Scale", trans.GetScaleRef(), 0.005f, -100.0f,
+                            100.0f);
 
             ImGui::TreePop();
         }
@@ -152,7 +145,7 @@ void Scene::OnUpdateRuntimeGui(float timeStep, float nowTime) {
     Gui::End();
 }
 
-void Scene::TickLogic(float timeStep, float nowTime, bool handleInput) {
+void UWorld::TickLogic(float timeStep, float nowTime, bool handleInput) {
     // Render
     float m_CameraTranslationSpeed = 7.0;
     float m_CameraTranslationSpeedMouse = 0.5;
@@ -173,10 +166,12 @@ void Scene::TickLogic(float timeStep, float nowTime, bool handleInput) {
     for (auto [entity, name, trans, camera] : camrea_view.each()) {
         if (camera.GetCamera()->m_IsWindowFocused) {
             if (handleInput) {
-                const glm::vec3 front = -glm::normalize(glm::rotate(
-                    glm::quat(trans.Rotation), glm::vec3(0.0f, 0.0f, 1.0f)));
-                const glm::vec3 right = glm::normalize(glm::rotate(
-                    glm::quat(trans.Rotation), glm::vec3(1.0f, 0.0f, 0.0f)));
+                const glm::vec3 front =
+                    -glm::normalize(glm::rotate(glm::quat(trans.GetRotation()),
+                                                glm::vec3(0.0f, 0.0f, 1.0f)));
+                const glm::vec3 right =
+                    glm::normalize(glm::rotate(glm::quat(trans.GetRotation()),
+                                               glm::vec3(1.0f, 0.0f, 0.0f)));
                 const glm::vec3 up(0.0f, 1.0f, 0.0f);
 
                 if (Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_2)) {
@@ -184,46 +179,62 @@ void Scene::TickLogic(float timeStep, float nowTime, bool handleInput) {
                     ImGui::SetMouseCursor(ImGuiMouseCursor_None);
 
                     if (Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_1)) {
-                        trans.Translation -=
+                        auto newPosition = trans.GetPosition();
+                        newPosition -=
                             deltaY *
                             glm::normalize(glm::vec3(0.0f, 1.0f, 0.0f)) *
                             m_CameraTranslationSpeedMouse * timeStep;
-                        trans.Translation += deltaX *
-                                             glm::normalize(glm::vec3(
-                                                 right[0], 0.0f, right[2])) *
-                                             m_CameraTranslationSpeedMouse *
-                                             timeStep;
+                        newPosition += deltaX *
+                                       glm::normalize(glm::vec3(right[0], 0.0f,
+                                                                right[2])) *
+                                       m_CameraTranslationSpeedMouse * timeStep;
+
+                        trans.SetPosition(newPosition);
                     } else {
-                        trans.Rotation.y -=
+                        auto newRotation = trans.GetRotation();
+
+                        newRotation.y -=
                             deltaX * m_CameraRotationSpeed * timeStep;
-                        trans.Rotation.x -=
+                        newRotation.x -=
                             deltaY * m_CameraRotationSpeed * timeStep;
+
+                        trans.SetRotation(newRotation);
                     }
                 }
 
                 if (Input::IsKeyPressed(GLFW_KEY_A)) {
-                    trans.Translation -=
+                    auto newPosition =
+                        trans.GetPosition() -
                         right * m_CameraTranslationSpeed * timeStep;
+                    trans.SetPosition(newPosition);
                 }
                 if (Input::IsKeyPressed(GLFW_KEY_D)) {
-                    trans.Translation +=
+                    auto newPosition =
+                        trans.GetPosition() +
                         right * m_CameraTranslationSpeed * timeStep;
+                    trans.SetPosition(newPosition);
                 }
                 if (Input::IsKeyPressed(GLFW_KEY_LEFT_CONTROL)) {
-                    trans.Translation -=
-                        up * m_CameraTranslationSpeed * timeStep;
+                    auto newPosition = trans.GetPosition() -
+                                       up * m_CameraTranslationSpeed * timeStep;
+                    trans.SetPosition(newPosition);
                 }
                 if (Input::IsKeyPressed(GLFW_KEY_SPACE)) {
-                    trans.Translation +=
-                        up * m_CameraTranslationSpeed * timeStep;
+                    auto newPosition = trans.GetPosition() +
+                                       up * m_CameraTranslationSpeed * timeStep;
+                    trans.SetPosition(newPosition);
                 }
                 if (Input::IsKeyPressed(GLFW_KEY_W)) {
-                    trans.Translation +=
+                    auto newPosition =
+                        trans.GetPosition() +
                         front * m_CameraTranslationSpeed * timeStep;
+                    trans.SetPosition(newPosition);
                 }
                 if (Input::IsKeyPressed(GLFW_KEY_S)) {
-                    trans.Translation -=
+                    auto newPosition =
+                        trans.GetPosition() -
                         front * m_CameraTranslationSpeed * timeStep;
+                    trans.SetPosition(newPosition);
                 }
             }
         }
@@ -233,14 +244,8 @@ void Scene::TickLogic(float timeStep, float nowTime, bool handleInput) {
     lastY = currentY;
 }
 
-void Scene::TickRender(float timeStep, float nowTime) {
+void UWorld::TickRender(float timeStep, float nowTime) {
     OnUpdateRuntime(timeStep);
     OnUpdateRuntimeGui(timeStep, nowTime);
 }
-
-void Scene::LoadShader(const std::string& name, const std::string& vertexSrc,
-                       const std::string& fragmentSrc,
-                       const std::string& mode) {
-    m_ShaderLibrary.Load(name, vertexSrc, fragmentSrc, mode);
-}
-}  // namespace Engine
+};  // namespace Engine

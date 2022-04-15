@@ -2,52 +2,45 @@
 #include <Engine.h>
 
 namespace Engine {
-class ExampleLayer : public Layer {
+class EditorLayer : public Layer {
    public:
-    ExampleLayer() : Layer("Example"), m_IsWindowFocused(false) {
-        m_Scene = std::make_shared<Scene>();
+    EditorLayer() : Layer("EditorLayer"), m_IsWindowFocused(false) {
+        m_World = std::make_shared<UWorld>();
+        m_World->AddActor<AActor>("Actor");
 
-        // Set Shader
-        m_Scene->LoadShader("TextureShader", "Assert/Shader/vertex.glsl",
+        m_World->LoadShader("TextureShader", "Assert/Shader/vertex.glsl",
                             "Assert/Shader/fragment.glsl", "Path");
-        m_Scene->LoadShader("TextureShader_normal",
+        m_World->LoadShader("TextureShader_normal",
                             "Assert/Shader/vertex_normal.glsl",
                             "Assert/Shader/fragment_normal.glsl", "Path");
-        m_Scene->LoadShader("Animated", "Assert/Shader/vertex_animated.glsl",
+        m_World->LoadShader("Animated", "Assert/Shader/vertex_animated.glsl",
                             "Assert/Shader/fragment_animated.glsl", "Path");
 
-        auto camera = Scene::CreateEntity(m_Scene, "camera");
         m_Camera = std::make_shared<PerspectiveCamera>(45.0f, 1.778f, 0.1f,
                                                        3000.0f * 8);
-
-        camera.AddComponent<UCameraComponent>(m_Camera);
-        camera.AddComponent<UTransformComponent>(
-            glm::vec3{-1.774f, 4.034f, 9.425f},
-            glm::vec3{-0.153f, -6.606f, 0.000f},
+        auto camera0 = m_World->AddActor<ACamera>("Camera", m_Camera);
+        camera0.GetTransformComponent().SetPosition(
+            glm::vec3{-1.774f, 4.034f, 9.425f});
+        camera0.GetTransformComponent().SetRotation(
+            glm::vec3{-0.153f, -6.606f, 0.000f});
+        camera0.GetTransformComponent().SetScale(
             glm::vec3{1.000f, 1.000f, 1.000f});
 
-        auto board = Scene::CreateEntity(m_Scene, "board");
-        m_Board = std::make_shared<Model>();
-
-        board.AddComponent<UStaticModelComponent>(m_Board);
-        board.AddComponent<UTransformComponent>(
+        auto board0 = m_World->AddActor<AStaticMesh>("board");
+        board0.GetTransformComponent().SetPosition(
             glm::vec3{-2.350f, 2.165f, 0.000f});
 
-        auto gallery = Scene::CreateEntity(m_Scene, "gallery");
-        m_Gallery =
-            std::make_shared<Model>("Assert/Object/gallery/gallery.obj");
+        auto gallery0 = m_World->AddActor<AStaticMesh>(
+            "gallery", "Assert/Object/gallery/gallery.obj");
 
-        gallery.AddComponent<UStaticModelComponent>(m_Gallery);
-        gallery.AddComponent<UTransformComponent>();
+        auto animan0 = m_World->AddActor<AAnimatedMesh>(
+            "animan", "Assert/Object/animan/model.dae");
 
-        auto animan = Scene::CreateEntity(m_Scene, "animan");
-        m_Animan =
-            std::make_shared<AnimatedModel>("Assert/Object/animan/model.dae");
-
-        animan.AddComponent<UAnimatedModelComponent>(m_Animan);
-        animan.AddComponent<UTransformComponent>(
-            glm::vec3{1.655f, 0.685f, 0.120f},
-            glm::vec3{-1.330f, 0.000f, 0.000f},
+        animan0.GetTransformComponent().SetPosition(
+            glm::vec3{1.655f, 0.685f, 0.120f});
+        animan0.GetTransformComponent().SetRotation(
+            glm::vec3{-1.330f, 0.000f, 0.000f});
+        animan0.GetTransformComponent().SetScale(
             glm::vec3{0.300f, 0.300f, 0.300f});
     }
 
@@ -58,12 +51,12 @@ class ExampleLayer : public Layer {
     void OnEvent(Event& event) override { m_Camera->OnEvent(event); }
 
     void TickLogic() override {
-        m_Scene->TickLogic(m_LayerUpdateMeta.m_timeStep,
+        m_World->TickLogic(m_LayerUpdateMeta.m_timeStep,
                            m_LayerUpdateMeta.m_nowTime, m_IsWindowFocused);
     }
 
     void TickRender() override {
-        m_Scene->TickRender(m_LayerUpdateMeta.m_timeStep,
+        m_World->TickRender(m_LayerUpdateMeta.m_timeStep,
                             m_LayerUpdateMeta.m_nowTime);
 
         float timeStep = m_LayerUpdateMeta.m_timeStep;
@@ -73,12 +66,12 @@ class ExampleLayer : public Layer {
         ImGui::ShowDemoWindow();
 
         bool is_color_focused = false;
-        Gui::ShowViewport("ViewPort :: Color", m_Scene->m_FrameRenderBuffer,
+        Gui::ShowViewport("ViewPort :: Color", m_World->m_FrameRenderBuffer,
                           true, is_color_focused);
 
         bool is_normal_focused = false;
         Gui::ShowViewport("ViewPort :: Normal",
-                          m_Scene->m_FrameRenderBuffer_normal, false,
+                          m_World->m_FrameRenderBuffer_normal, false,
                           is_normal_focused);
 
         m_IsWindowFocused = is_color_focused | is_normal_focused;
@@ -87,27 +80,25 @@ class ExampleLayer : public Layer {
     }
 
    private:
-    Ref<Scene> m_Scene;
     Ref<Camera> m_Camera;
-
-    Ref<Model> m_Board;
-    Ref<Model> m_Gallery;
-    Ref<AnimatedModel> m_Animan;
+    Ref<UWorld> m_World;
 
     bool m_IsWindowFocused;
 };
 
-class Sandbox : public Application {
+class EngineEditor : public Application {
    public:
-    Sandbox() : Application("Sandbox", 2700, 1500) {
-        Log::Info("Sandbox Initialization.");
+    EngineEditor() : Application("EngineEditor", 2700, 1500) {
+        Log::Info("EngineEditor Initialization.");
         PushLayer(std::make_shared<DockSpaceLayer>(m_Running));
-        PushLayer(std::make_shared<ExampleLayer>());
-        Log::Trace("Sandbox Initialization Success.");
+        PushLayer(std::make_shared<EditorLayer>());
+        Log::Trace("EngineEditor Initialization Success.");
     }
 
-    ~Sandbox() { Log::Trace("Sandbox Shutdown."); }
+    ~EngineEditor() { Log::Trace("EngineEditor Shutdown."); }
 };
 
-Scope<Application> CreateApplication() { return std::make_unique<Sandbox>(); }
+Scope<Application> CreateApplication() {
+    return std::make_unique<EngineEditor>();
+}
 }  // namespace Engine

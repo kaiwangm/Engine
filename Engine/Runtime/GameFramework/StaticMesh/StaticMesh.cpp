@@ -1,47 +1,7 @@
-#include "Model.h"
+#include "StaticMesh.h"
 
 namespace Engine {
-Mesh::Mesh() { m_VertexArray = VertexArray::Create(); }
-
-Mesh::Mesh(const void* vertices, uint32_t* indices,
-           const uint32_t vertice_count, const uint32_t attribute_count,
-           const uint32_t indice_count, const BufferLayout layout) {
-    Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(
-        vertices, vertice_count * attribute_count * sizeof(float),
-        vertice_count);
-    vertexBuffer->SetLayout(layout);
-
-    Ref<IndexBuffer> indexBuffer = IndexBuffer::Create(indices, indice_count);
-
-    m_VertexArray = VertexArray::Create();
-    m_VertexArray->AddVertexBuffer(vertexBuffer, false);
-    m_VertexArray->AddIndexBuffer(indexBuffer);
-}
-
-void Mesh::AddTexture(const Ref<Texture2D>& texture) {
-    m_Textures.push_back(texture);
-}
-
-void Mesh::AddVertexBuffer(const void* vertices_array,
-                           const uint32_t vertice_count,
-                           const uint32_t attribute_count,
-                           const uint32_t attribute_size,
-                           const BufferLayout layout) {
-    Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(
-        vertices_array, vertice_count * attribute_count * attribute_size,
-        vertice_count);
-    vertexBuffer->SetLayout(layout);
-
-    m_VertexArray->AddVertexBuffer(vertexBuffer, false);
-}
-
-void Mesh::AddIndexBuffer(const uint32_t* indices,
-                          const uint32_t indice_count) {
-    Ref<IndexBuffer> indexBuffer = IndexBuffer::Create(indices, indice_count);
-    m_VertexArray->AddIndexBuffer(indexBuffer);
-}
-
-Model::Model() {
+StaticMesh::StaticMesh() {
     float vertices[4 * 9] = {
         -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,  //
         0.5f,  -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,  //
@@ -65,7 +25,7 @@ Model::Model() {
         Texture2D::Create("Assert/Object/checkerboard/Checkerboard.png"));
 }
 
-Model::Model(const std::string& path)
+StaticMesh::StaticMesh(const std::string& path)
     : m_Directory(path.substr(0, path.find_last_of('/'))) {
     Assimp::Importer import;
     const aiScene* scene =
@@ -88,7 +48,7 @@ Model::Model(const std::string& path)
     }
 }
 
-void Model::processNode(aiNode* node, const aiScene* scene) {
+void StaticMesh::processNode(aiNode* node, const aiScene* scene) {
     // process all the node's meshes (if any)
     for (unsigned int i = 0; i < node->mNumMeshes; i++) {
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
@@ -100,7 +60,7 @@ void Model::processNode(aiNode* node, const aiScene* scene) {
     }
 }
 
-Mesh Model::processMesh(aiMesh* amesh, const aiScene* scene) {
+Mesh StaticMesh::processMesh(aiMesh* amesh, const aiScene* scene) {
     std::vector<float> vertices;
     std::vector<uint32_t> indices;
     // std::vector<Texture> textures;
@@ -159,7 +119,7 @@ Mesh Model::processMesh(aiMesh* amesh, const aiScene* scene) {
     return mesh;
 }
 
-std::vector<Ref<Texture2D>> Model::loadMaterialTextures(aiMaterial* mat,
+std::vector<Ref<Texture2D>> StaticMesh::loadMaterialTextures(aiMaterial* mat,
                                                         aiTextureType type,
                                                         std::string typeName) {
     std::vector<Ref<Texture2D>> textures;

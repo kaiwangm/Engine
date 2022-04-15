@@ -13,8 +13,9 @@
 #include "Utils/Spare.h"
 #include "Utils/Octree.h"
 
-#include "GameFramework/Entity.h"
-//#include "Entity/Scene.h"
+#include "GameFramework/Animation/AAnimatedMesh.h"
+#include "GameFramework/StaticMesh/AStaticMesh.h"
+#include "GameFramework/Camera/ACamera.h"
 
 #ifdef ENGINE_PLATFORM_WINDOWS
 

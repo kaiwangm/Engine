@@ -26,19 +26,4 @@ struct Mesh {
                          const BufferLayout layout);
     void AddIndexBuffer(const uint32_t* indices, const uint32_t indice_count);
 };
-
-struct Model {
-    Model();
-    Model(const std::string& path);
-    std::string m_Directory;
-
-    std::vector<Mesh> m_Meshes;
-    void processNode(aiNode* node, const aiScene* scene);
-    Mesh processMesh(aiMesh* mesh, const aiScene* scene);
-
-    std::vector<Ref<Texture2D>> loadMaterialTextures(aiMaterial* mat,
-                                                     aiTextureType type,
-                                                     std::string typeName);
-    std::vector<Ref<Texture2D>> m_Textures;
-};
-}  // namespace Engine
+};  // namespace Engine
