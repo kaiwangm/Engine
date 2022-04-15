@@ -18,29 +18,29 @@ class EditorLayer : public Layer {
 
         m_Camera = std::make_shared<PerspectiveCamera>(45.0f, 1.778f, 0.1f,
                                                        3000.0f * 8);
-        auto camera0 = m_World->AddActor<ACamera>("Camera", m_Camera);
-        camera0.GetTransformComponent().SetPosition(
+        auto camera = m_World->AddActor<ACamera>("Camera", m_Camera);
+        camera.GetTransformComponent().SetPosition(
             glm::vec3{-1.774f, 4.034f, 9.425f});
-        camera0.GetTransformComponent().SetRotation(
+        camera.GetTransformComponent().SetRotation(
             glm::vec3{-0.153f, -6.606f, 0.000f});
-        camera0.GetTransformComponent().SetScale(
+        camera.GetTransformComponent().SetScale(
             glm::vec3{1.000f, 1.000f, 1.000f});
 
-        auto board0 = m_World->AddActor<AStaticMesh>("board");
-        board0.GetTransformComponent().SetPosition(
+        auto board = m_World->AddActor<AStaticMesh>("board");
+        board.GetTransformComponent().SetPosition(
             glm::vec3{-2.350f, 2.165f, 0.000f});
 
-        auto gallery0 = m_World->AddActor<AStaticMesh>(
+        auto gallery = m_World->AddActor<AStaticMesh>(
             "gallery", "Assert/Object/gallery/gallery.obj");
 
-        auto animan0 = m_World->AddActor<AAnimatedMesh>(
+        auto animan = m_World->AddActor<AAnimatedMesh>(
             "animan", "Assert/Object/animan/model.dae");
 
-        animan0.GetTransformComponent().SetPosition(
+        animan.GetTransformComponent().SetPosition(
             glm::vec3{1.655f, 0.685f, 0.120f});
-        animan0.GetTransformComponent().SetRotation(
+        animan.GetTransformComponent().SetRotation(
             glm::vec3{-1.330f, 0.000f, 0.000f});
-        animan0.GetTransformComponent().SetScale(
+        animan.GetTransformComponent().SetScale(
             glm::vec3{0.300f, 0.300f, 0.300f});
     }
 
