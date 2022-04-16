@@ -12,6 +12,9 @@ class ACamera final : public AActor {
         : AActor(world, handle, name) {
         m_Camera = m_World->RegisterComponents<UCameraComponent>(m_EntityHandle,
                                                                  camera);
+        m_Camera->SetOwner(this);
     }
+
+    UCameraComponent& GetCameraComponent() { return *m_Camera; }
 };
 };  // namespace Engine

@@ -14,7 +14,8 @@ class DockSpaceLayer : public Layer {
     virtual void OnEvent(Event& event) override {}
 
     virtual void TickLogic() override {}
-    virtual void TickRender() override;
+    virtual void TickRender() override {}
+    virtual void TickGui() override;
 
    private:
     bool& m_app_open;

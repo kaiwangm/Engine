@@ -13,6 +13,7 @@ class AAnimatedMesh final : public AActor {
         : AActor(world, handle, name) {
         m_Mesh = m_World->RegisterComponents<UAnimatedMeshComponent>(
             m_EntityHandle, path);
+        m_Mesh->SetOwner(this);
     }
 };
 }  // namespace Engine

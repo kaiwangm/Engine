@@ -20,8 +20,11 @@ class AActor : public UObject {
         : m_World(world), m_EntityHandle(handle) {
         m_ActorName =
             m_World->RegisterComponents<UTagComponent>(m_EntityHandle, name);
+        m_ActorName->SetOwner(this);
+
         m_Transform = m_World->RegisterComponents<UTransformComponent>(
             m_EntityHandle, glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(1.0f));
+        m_Transform->SetOwner(this);
     }
 
     std::string GetName() const { return m_ActorName->GetString(); }

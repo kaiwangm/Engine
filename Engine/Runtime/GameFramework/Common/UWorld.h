@@ -10,6 +10,7 @@
 
 namespace Engine {
 class AActor;
+class ACamera;
 
 class UWorld : public UObject {
    private:
@@ -20,7 +21,10 @@ class UWorld : public UObject {
    public:
     Ref<FrameRenderBuffer> m_FrameRenderBuffer;
     Ref<FrameRenderBuffer> m_FrameRenderBuffer_normal;
-    glm::vec4 backGroundColor{0.7f, 0.7f, 0.7f, 1.0f};
+    glm::vec4 m_BackGroundColor{0.7f, 0.7f, 0.7f, 1.0f};
+
+    ACamera* m_MainCamera;
+    glm::mat4 m_VPMatrix;
 
    public:
     UWorld();
@@ -46,9 +50,8 @@ class UWorld : public UObject {
         m_ShaderLibrary.Load(name, vertexSrc, fragmentSrc, mode);
     }
 
-    void OnUpdateRuntime(float timeStep);
-    void OnUpdateRuntimeGui(float timeStep, float nowTime);
     void TickLogic(float timeStep, float nowTime, bool handleInput);
-    void TickRender(float timeStep, float nowTime);
+    void TickRender(float timeStep);
+    void TickGui(float timeStep);
 };
 };  // namespace Engine

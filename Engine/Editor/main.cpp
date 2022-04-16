@@ -56,11 +56,21 @@ class EditorLayer : public Layer {
     }
 
     void TickRender() override {
-        m_World->TickRender(m_LayerUpdateMeta.m_timeStep,
-                            m_LayerUpdateMeta.m_nowTime);
+        m_World->TickRender(m_LayerUpdateMeta.m_timeStep);
+    }
 
-        float timeStep = m_LayerUpdateMeta.m_timeStep;
-        float nowTime = m_LayerUpdateMeta.m_nowTime;
+    void TickGui() override {
+        m_World->TickGui(m_LayerUpdateMeta.m_timeStep);
+
+        Gui::Begin("Application");
+        Gui::Text("Time Step: {0}", m_LayerUpdateMeta.m_timeStep);
+        Gui::Text("Now Time: {0}", m_LayerUpdateMeta.m_nowTime);
+
+        static std::vector<float> arr(600, 0.0);
+        arr.push_back(m_LayerUpdateMeta.m_timeStep);
+        arr.erase(arr.begin());
+        ImGui::PlotLines("Frame Times", &arr[0], 600);
+        Gui::End();
 
         Gui::ShowImNodesDemoWindow();
         ImGui::ShowDemoWindow();

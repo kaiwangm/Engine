@@ -25,8 +25,8 @@ class Application {
     static Application& Get() { return *s_Instance; }
 
     void TickLogic();
-
     void TickRender();
+    void TickGui();
 
     // Event Callbacks
    private:

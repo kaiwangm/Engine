@@ -24,6 +24,7 @@ class Layer {
 
     virtual void TickLogic(){};
     virtual void TickRender(){};
+    virtual void TickGui(){};
 
     inline const std::string& GetName() const { return m_LayerName; }
 

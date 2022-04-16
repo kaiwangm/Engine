@@ -54,6 +54,7 @@ void Application::Run() {
 
         TickLogic();
         TickRender();
+        TickGui();
     }
 }
 
@@ -64,12 +65,17 @@ void Application::TickLogic() {
 }
 
 void Application::TickRender() {
-    m_ImGuiLayer->Begin();
     for (const auto& layer : m_LayerStack) {
         layer->TickRender();
     }
-    m_ImGuiLayer->End();
+}
 
+void Application::TickGui() {
+    m_ImGuiLayer->Begin();
+    for (const auto& layer : m_LayerStack) {
+        layer->TickGui();
+    }
+    m_ImGuiLayer->End();
     m_Window->OnUpdate();
 }
 

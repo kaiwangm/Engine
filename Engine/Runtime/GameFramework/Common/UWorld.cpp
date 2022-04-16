@@ -1,5 +1,7 @@
 #include "UWorld.h"
 
+#include <memory>
+
 #include "Shader.h"
 #include "Buffer.h"
 #include "GuiCommand.h"
@@ -9,140 +11,13 @@
 #include "../Camera/UCameraComponent.h"
 #include "../StaticMesh/AStaticMesh.h"
 #include "../Animation/UAnimatedMeshComponent.h"
+#include "../Camera/ACamera.h"
 
 namespace Engine {
 UWorld::UWorld() {
+    // Create Buffer
     m_FrameRenderBuffer = FrameRenderBuffer::Create();
     m_FrameRenderBuffer_normal = FrameRenderBuffer::Create();
-}
-
-void UWorld::OnUpdateRuntime(float timeStep) {
-    auto camrea_view =
-        m_Registry.view<UTagComponent, UTransformComponent, UCameraComponent>();
-    glm::mat4 vp_Mat;
-
-    // use a range-for
-    for (auto [entity, name, trans, camera] : camrea_view.each()) {
-        auto camera_ref = camera.GetCamera();
-
-        camera_ref->SetViewPort(m_FrameRenderBuffer->GetWidth(),
-                                m_FrameRenderBuffer->GetHeight());
-        camera_ref->RecalculateViewProjectMatrix();
-
-        vp_Mat = camera_ref->GetProjectionMatrix() *
-                 glm::inverse(trans.GetTransform());
-    }
-
-    m_FrameRenderBuffer->Bind();
-    RenderCommand::SetViewPort(0, 0, m_FrameRenderBuffer->GetWidth(),
-                               m_FrameRenderBuffer->GetHeight());
-
-    RenderCommand::SetClearColor(backGroundColor);
-    RenderCommand::Clear();
-
-    auto model_view =
-        m_Registry
-            .view<UTagComponent, UTransformComponent, UStaticMeshComponent>();
-
-    // use a range-for
-    for (auto [entity, name, trans, model] : model_view.each()) {
-        auto shader = m_ShaderLibrary.Get("TextureShader");
-        Renderer::SetShaderUniform(shader, "u_Texture", 0);
-
-        const auto meshes = model.GetStaticMesh().m_Meshes;
-
-        for (const auto& mesh : meshes) {
-            auto texture = mesh.m_Textures[0];
-            texture->Bind(0);
-            Renderer::Submit(mesh.m_VertexArray, shader, vp_Mat,
-                             trans.GetTransform());
-            texture->UnBind(0);
-        }
-    }
-
-    auto animated_view =
-        m_Registry
-            .view<UTagComponent, UTransformComponent, UAnimatedMeshComponent>();
-
-    // use a range-for
-    for (auto [entity, name, trans, model] : animated_view.each()) {
-        auto shader = m_ShaderLibrary.Get("Animated");
-        // Renderer::SetShaderUniform(shader, "u_Texture", 0);
-
-        model.GetModel().Update(timeStep);
-        model.GetModel().Draw(shader, vp_Mat, trans.GetTransform());
-    }
-
-    Renderer::EndScene(m_FrameRenderBuffer);
-
-    // Render
-
-    // use a range-for
-    for (auto [entity, name, trans, camera] : camrea_view.each()) {
-        auto camera_ref = camera.GetCamera();
-
-        camera_ref->SetViewPort(m_FrameRenderBuffer_normal->GetWidth(),
-                                m_FrameRenderBuffer_normal->GetHeight());
-        camera_ref->RecalculateViewProjectMatrix();
-
-        vp_Mat = camera_ref->GetProjectionMatrix() *
-                 glm::inverse(trans.GetTransform());
-    }
-
-    m_FrameRenderBuffer_normal->Bind();
-    RenderCommand::SetViewPort(0, 0, m_FrameRenderBuffer_normal->GetWidth(),
-                               m_FrameRenderBuffer_normal->GetHeight());
-
-    RenderCommand::SetClearColor(backGroundColor);
-    RenderCommand::Clear();
-
-    // use a range-for
-    for (auto [entity, name, trans, model] : model_view.each()) {
-        auto shader = m_ShaderLibrary.Get("TextureShader_normal");
-        Renderer::SetShaderUniform(shader, "u_Texture", 0);
-
-        const auto meshes = model.GetStaticMesh().m_Meshes;
-
-        for (const auto& mesh : meshes) {
-            auto texture = mesh.m_Textures[0];
-            texture->Bind(0);
-            Renderer::Submit(mesh.m_VertexArray, shader, vp_Mat,
-                             trans.GetTransform());
-            texture->UnBind(0);
-        }
-    }
-
-    Renderer::EndScene(m_FrameRenderBuffer_normal);
-}
-
-void UWorld::OnUpdateRuntimeGui(float timeStep, float nowTime) {
-    Gui::Begin("Scence Collection");
-
-    Gui::Text("Time Step: {0}", timeStep);
-    Gui::Text("Now Time: {0}", nowTime);
-
-    static std::vector<float> arr(600, 0.0);
-    arr.push_back(timeStep);
-    arr.erase(arr.begin());
-    ImGui::PlotLines("Frame Times", &arr[0], 600);
-
-    auto model_view = m_Registry.view<UTagComponent, UTransformComponent>();
-
-    // use a range-for
-    for (auto [entity, name, trans] : model_view.each()) {
-        if (ImGui::TreeNode(name.GetString().c_str())) {
-            Gui::DragFloat3("Position", trans.GetPositionRef(), 0.005f, -100.0f,
-                            100.0f);
-            Gui::DragFloat3("Rotation", trans.GetRotationRef(), 0.005f, -100.0f,
-                            100.0f);
-            Gui::DragFloat3("Scale", trans.GetScaleRef(), 0.005f, -100.0f,
-                            100.0f);
-
-            ImGui::TreePop();
-        }
-    }
-
-    Gui::End();
 }
 
 void UWorld::TickLogic(float timeStep, float nowTime, bool handleInput) {
@@ -164,7 +39,7 @@ void UWorld::TickLogic(float timeStep, float nowTime, bool handleInput) {
 
     // use a range-for
     for (auto [entity, name, trans, camera] : camrea_view.each()) {
-        if (camera.GetCamera()->m_IsWindowFocused) {
+        if (camera.GetCamera().m_IsWindowFocused) {
             if (handleInput) {
                 const glm::vec3 front =
                     -glm::normalize(glm::rotate(glm::quat(trans.GetRotation()),
@@ -244,8 +119,123 @@ void UWorld::TickLogic(float timeStep, float nowTime, bool handleInput) {
     lastY = currentY;
 }
 
-void UWorld::TickRender(float timeStep, float nowTime) {
-    OnUpdateRuntime(timeStep);
-    OnUpdateRuntimeGui(timeStep, nowTime);
+void UWorld::TickRender(float timeStep) {
+    // GetMain Camera
+    auto camrea_view =
+        m_Registry.view<UTagComponent, UTransformComponent, UCameraComponent>();
+
+    for (auto [entity, name, trans, camera] : camrea_view.each()) {
+        m_MainCamera = static_cast<ACamera*>(camera.GetOwner());
+    }
+    
+    // Render to FrameRenderBuffer
+    m_MainCamera->GetCameraComponent().GetCamera().SetViewPort(
+        m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
+    m_MainCamera->GetCameraComponent()
+        .GetCamera()
+        .RecalculateViewProjectMatrix();
+    m_VPMatrix =
+        m_MainCamera->GetCameraComponent().GetCamera().GetViewProjectMatrix() *
+        glm::inverse(m_MainCamera->GetTransformComponent().GetTransform());
+
+    m_FrameRenderBuffer->Bind();
+    RenderCommand::SetViewPort(0, 0, m_FrameRenderBuffer->GetWidth(),
+                               m_FrameRenderBuffer->GetHeight());
+
+    RenderCommand::SetClearColor(m_BackGroundColor);
+    RenderCommand::Clear();
+
+    auto model_view =
+        m_Registry
+            .view<UTagComponent, UTransformComponent, UStaticMeshComponent>();
+
+    // use a range-for
+    for (auto [entity, name, trans, model] : model_view.each()) {
+        auto shader = m_ShaderLibrary.Get("TextureShader");
+        Renderer::SetShaderUniform(shader, "u_Texture", 0);
+
+        const auto meshes = model.GetStaticMesh().m_Meshes;
+
+        for (const auto& mesh : meshes) {
+            auto texture = mesh.m_Textures[0];
+            texture->Bind(0);
+            Renderer::Submit(mesh.m_VertexArray, shader, m_VPMatrix,
+                             trans.GetTransform());
+            texture->UnBind(0);
+        }
+    }
+
+    auto animated_view =
+        m_Registry
+            .view<UTagComponent, UTransformComponent, UAnimatedMeshComponent>();
+
+    // use a range-for
+    for (auto [entity, name, trans, model] : animated_view.each()) {
+        auto shader = m_ShaderLibrary.Get("Animated");
+        // Renderer::SetShaderUniform(shader, "u_Texture", 0);
+
+        model.GetModel().Update(timeStep);
+        model.GetModel().Draw(shader, m_VPMatrix, trans.GetTransform());
+    }
+
+    Renderer::EndScene(m_FrameRenderBuffer);
+
+    // Render
+    m_MainCamera->GetCameraComponent().GetCamera().SetViewPort(
+        m_FrameRenderBuffer_normal->GetWidth(),
+        m_FrameRenderBuffer_normal->GetHeight());
+    m_MainCamera->GetCameraComponent()
+        .GetCamera()
+        .RecalculateViewProjectMatrix();
+    m_VPMatrix =
+        m_MainCamera->GetCameraComponent().GetCamera().GetViewProjectMatrix() *
+        glm::inverse(m_MainCamera->GetTransformComponent().GetTransform());
+
+    m_FrameRenderBuffer_normal->Bind();
+    RenderCommand::SetViewPort(0, 0, m_FrameRenderBuffer_normal->GetWidth(),
+                               m_FrameRenderBuffer_normal->GetHeight());
+
+    RenderCommand::SetClearColor(m_BackGroundColor);
+    RenderCommand::Clear();
+
+    // use a range-for
+    for (auto [entity, name, trans, model] : model_view.each()) {
+        auto shader = m_ShaderLibrary.Get("TextureShader_normal");
+        Renderer::SetShaderUniform(shader, "u_Texture", 0);
+
+        const auto meshes = model.GetStaticMesh().m_Meshes;
+
+        for (const auto& mesh : meshes) {
+            auto texture = mesh.m_Textures[0];
+            texture->Bind(0);
+            Renderer::Submit(mesh.m_VertexArray, shader, m_VPMatrix,
+                             trans.GetTransform());
+            texture->UnBind(0);
+        }
+    }
+
+    Renderer::EndScene(m_FrameRenderBuffer_normal);
+}
+
+void UWorld::TickGui(float timeStep) {
+    Gui::Begin("Scence Collection");
+
+    auto model_view = m_Registry.view<UTagComponent, UTransformComponent>();
+
+    // use a range-for
+    for (auto [entity, name, trans] : model_view.each()) {
+        if (ImGui::TreeNode(name.GetString().c_str())) {
+            Gui::DragFloat3("Position", trans.GetPositionRef(), 0.005f, -100.0f,
+                            100.0f);
+            Gui::DragFloat3("Rotation", trans.GetRotationRef(), 0.005f, -100.0f,
+                            100.0f);
+            Gui::DragFloat3("Scale", trans.GetScaleRef(), 0.005f, -100.0f,
+                            100.0f);
+
+            ImGui::TreePop();
+        }
+    }
+
+    Gui::End();
 }
 };  // namespace Engine

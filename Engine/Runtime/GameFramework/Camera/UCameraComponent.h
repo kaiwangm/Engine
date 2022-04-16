@@ -8,6 +8,6 @@ class UCameraComponent : public UComponent {
 
     UCameraComponent(const Ref<Camera> camera) : m_Camera(camera) {}
 
-    Ref<Camera> GetCamera() { return m_Camera; }
+    Camera& GetCamera() { return *m_Camera; }
 };
 };  // namespace Engine
