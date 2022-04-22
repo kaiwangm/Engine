@@ -3,108 +3,124 @@
 #include "Input/Input.h"
 #include "Renderer.h"
 
-namespace Engine {
-Application* Application::s_Instance = nullptr;
+namespace Engine
+{
+    Application* Application::s_Instance = nullptr;
 
-Application::Application(std::string appName, uint32_t windowWidth,
-                         uint32_t windowHeight)
-    : m_Minimized(false), m_Running(true) {
-    Log::Init();
-    Log::Core_Trace("Engine Initialization.");
+    Application::Application(std::string appName, uint32_t windowWidth, uint32_t windowHeight) :
+        m_Minimized(false), m_Running(true)
+    {
+        Log::Init();
+        Log::Core_Trace("Engine Initialization.");
 
-    s_Instance = this;
-    m_Window = Window::Create({appName, windowWidth, windowHeight});
-    m_Window->SetEventCallback(BIND_EVENT(Application::OnEvent));
-    m_Window->SetVSync(true);
+        s_Instance = this;
+        m_Window   = Window::Create({appName, windowWidth, windowHeight});
+        m_Window->SetEventCallback(BIND_EVENT(Application::OnEvent));
+        m_Window->SetVSync(true);
 
-    Renderer::Init();
+        Renderer::Init();
 
-    m_ImGuiLayer = ImGuiLayer::Create("ImGuiLayer");
-    PushOverlay(m_ImGuiLayer);
+        m_ImGuiLayer = ImGuiLayer::Create("ImGuiLayer");
+        PushOverlay(m_ImGuiLayer);
 
-    Log::Core_Trace("Engine Initialization Success.");
-}
+        Log::Core_Trace("Engine Initialization Success.");
+    }
 
-Application::~Application() {
-    Log::Delete();
-    Log::Core_Trace("Engine Shutdown.");
-}
+    Application::~Application()
+    {
+        Log::Delete();
+        Log::Core_Trace("Engine Shutdown.");
+    }
 
-void Application::PushLayer(Ref<Layer> layer) {
-    m_LayerStack.PushLayer(layer);
-    layer->OnAttach();
-}
+    void Application::PushLayer(Ref<Layer> layer)
+    {
+        m_LayerStack.PushLayer(layer);
+        layer->OnAttach();
+    }
 
-void Application::PushOverlay(Ref<Layer> layer) {
-    m_LayerStack.PushOverlay(layer);
-    layer->OnAttach();
-}
+    void Application::PushOverlay(Ref<Layer> layer)
+    {
+        m_LayerStack.PushOverlay(layer);
+        layer->OnAttach();
+    }
 
-void Application::Run() {
-    while (m_Running) {
-        // auto[x, y] = Input::GetMousePostion();
-        // ENGINE_CORE_INFO("{0}, {1}", x, y);
+    void Application::Run()
+    {
+        while (m_Running)
+        {
+            // auto[x, y] = Input::GetMousePostion();
+            // ENGINE_CORE_INFO("{0}, {1}", x, y);
 
-        const LayerUpdateMeta updateMeta(m_Timer.GetTimeStep(),
-                                         m_Timer.GetSeconds());
+            const LayerUpdateMeta updateMeta(m_Timer.GetTimeStep(), m_Timer.GetSeconds());
 
-        for (const auto& layer : m_LayerStack) {
-            layer->SetLayerUpdateMeta(updateMeta);
+            for (const auto& layer : m_LayerStack)
+            {
+                layer->SetLayerUpdateMeta(updateMeta);
+            }
+
+            TickLogic();
+            TickRender();
+            TickGui();
         }
-
-        TickLogic();
-        TickRender();
-        TickGui();
     }
-}
 
-void Application::TickLogic() {
-    for (const auto& layer : m_LayerStack) {
-        layer->TickLogic();
+    void Application::TickLogic()
+    {
+        for (const auto& layer : m_LayerStack)
+        {
+            layer->TickLogic();
+        }
     }
-}
 
-void Application::TickRender() {
-    for (const auto& layer : m_LayerStack) {
-        layer->TickRender();
+    void Application::TickRender()
+    {
+        for (const auto& layer : m_LayerStack)
+        {
+            layer->TickRender();
+        }
     }
-}
 
-void Application::TickGui() {
-    m_ImGuiLayer->Begin();
-    for (const auto& layer : m_LayerStack) {
-        layer->TickGui();
+    void Application::TickGui()
+    {
+        m_ImGuiLayer->Begin();
+        for (const auto& layer : m_LayerStack)
+        {
+            layer->TickGui();
+        }
+        m_ImGuiLayer->End();
+        m_Window->OnUpdate();
     }
-    m_ImGuiLayer->End();
-    m_Window->OnUpdate();
-}
 
-void Application::OnEvent(Event& event) {
-    EventDispatcher dispatcher(event);
-    dispatcher.Dispatch<WindowCloseEvent>(
-        BIND_EVENT(Application::OnWindowClose));
-    dispatcher.Dispatch<WindowResizeEvent>(
-        BIND_EVENT(Application::OnWindowResizeEvent));
+    void Application::OnEvent(Event& event)
+    {
+        EventDispatcher dispatcher(event);
+        dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT(Application::OnWindowClose));
+        dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT(Application::OnWindowResizeEvent));
 
-    for (auto it = m_LayerStack.rbegin(); it != m_LayerStack.rend(); ++it) {
-        if (event.m_Handled) break;
-        (*it)->OnEvent(event);
+        for (auto it = m_LayerStack.rbegin(); it != m_LayerStack.rend(); ++it)
+        {
+            if (event.m_Handled)
+                break;
+            (*it)->OnEvent(event);
+        }
     }
-}
 
-bool Application::OnWindowClose(WindowCloseEvent& event) {
-    m_Running = false;
-    return true;
-}
+    bool Application::OnWindowClose(WindowCloseEvent& event)
+    {
+        m_Running = false;
+        return true;
+    }
 
-bool Application::OnWindowResizeEvent(WindowResizeEvent& event) {
-    if (event.GetWidth() == 0 || event.GetHeight() == 0) {
-        m_Minimized = true;
+    bool Application::OnWindowResizeEvent(WindowResizeEvent& event)
+    {
+        if (event.GetWidth() == 0 || event.GetHeight() == 0)
+        {
+            m_Minimized = true;
+            return false;
+        }
+        m_Minimized = false;
+        Renderer::OnWindowResize(event.GetWidth(), event.GetHeight());
+
         return false;
     }
-    m_Minimized = false;
-    Renderer::OnWindowResize(event.GetWidth(), event.GetHeight());
-
-    return false;
-}
-}  // namespace Engine
+} // namespace Engine

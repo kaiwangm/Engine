@@ -1,5 +1,4 @@
 #include "Spare.h"
 
-namespace Engine {
-    
-}
+namespace Engine
+{}

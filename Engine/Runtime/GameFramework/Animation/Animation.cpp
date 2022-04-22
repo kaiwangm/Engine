@@ -1,5 +1,4 @@
 #include "Animation.h"
 
-namespace Engine {
-    
-}
+namespace Engine
+{}

@@ -31,13 +31,13 @@
 //
 enum ImNodesStyleVar
 {
-    ImNodesStyleVar_GridSpacing,        // float
-    ImNodesStyleVar_CurveThickness,     // float
-    ImNodesStyleVar_CurveStrength,      // float
-    ImNodesStyleVar_SlotRadius,         // float
-    ImNodesStyleVar_NodeRounding,       // float
-    ImNodesStyleVar_NodeSpacing,        // ImVec2
-    ImNodesStyleVar_ItemSpacing,        // ImVec2
+    ImNodesStyleVar_GridSpacing,    // float
+    ImNodesStyleVar_CurveThickness, // float
+    ImNodesStyleVar_CurveStrength,  // float
+    ImNodesStyleVar_SlotRadius,     // float
+    ImNodesStyleVar_NodeRounding,   // float
+    ImNodesStyleVar_NodeSpacing,    // ImVec2
+    ImNodesStyleVar_ItemSpacing,    // ImVec2
     ImNodesStyleVar_COUNT,
 };
 
@@ -61,70 +61,71 @@ enum ImNodesStyleCol
 namespace ImNodes
 {
 
-/// This namespace includes functions for easily creating nodes. They implement a somewhat nice node layout. If you need
-/// a quick solution - use easy nodes. If you want to customize node look - use lower level node functions from ImNodes.h
-namespace Ez
-{
-
-struct SlotInfo
-{
-    /// Slot title, will be displayed on the node.
-    const char* title;
-    /// Slot kind, will be used for matching connections to slots of same kind.
-    int kind;
-};
-
-// Style which holds the extended variables and colors not already stored in ImNodes::CanvasState.
-struct StyleVars
-{
-    float SlotRadius = 5.0f;
-    ImVec2 ItemSpacing{8.0f, 4.0f};
-    struct
+    /// This namespace includes functions for easily creating nodes. They implement a somewhat nice node layout. If you
+    /// need a quick solution - use easy nodes. If you want to customize node look - use lower level node functions from
+    /// ImNodes.h
+    namespace Ez
     {
-        ImVec4 NodeBodyBg{0.12f, 0.12f, 0.12f, 1.0f};
-        ImVec4 NodeBodyBgHovered{0.16f, 0.16f, 0.16f, 1.0f};
-        ImVec4 NodeBodyBgActive{0.25f, 0.25f, 0.25f, 1.0f};
-        ImVec4 NodeBorder{0.4f, 0.4f, 0.4f, 1.0f};
-        ImVec4 NodeTitleBarBg{0.22f, 0.22f, 0.22f, 1.0f};
-        ImVec4 NodeTitleBarBgHovered{0.32f, 0.32f, 0.32f, 1.0f};
-        ImVec4 NodeTitleBarBgActive{0.5f, 0.5f, 0.5f, 1.0f};
-    } Colors;
-};
 
-struct Context;
+        struct SlotInfo
+        {
+            /// Slot title, will be displayed on the node.
+            const char* title;
+            /// Slot kind, will be used for matching connections to slots of same kind.
+            int kind;
+        };
 
-IMGUI_API Context* CreateContext();
-IMGUI_API void FreeContext(Context *ctx);
-IMGUI_API void SetContext(Context *ctx);
+        // Style which holds the extended variables and colors not already stored in ImNodes::CanvasState.
+        struct StyleVars
+        {
+            float  SlotRadius = 5.0f;
+            ImVec2 ItemSpacing {8.0f, 4.0f};
+            struct
+            {
+                ImVec4 NodeBodyBg {0.12f, 0.12f, 0.12f, 1.0f};
+                ImVec4 NodeBodyBgHovered {0.16f, 0.16f, 0.16f, 1.0f};
+                ImVec4 NodeBodyBgActive {0.25f, 0.25f, 0.25f, 1.0f};
+                ImVec4 NodeBorder {0.4f, 0.4f, 0.4f, 1.0f};
+                ImVec4 NodeTitleBarBg {0.22f, 0.22f, 0.22f, 1.0f};
+                ImVec4 NodeTitleBarBgHovered {0.32f, 0.32f, 0.32f, 1.0f};
+                ImVec4 NodeTitleBarBgActive {0.5f, 0.5f, 0.5f, 1.0f};
+            } Colors;
+        };
 
-IMGUI_API ImNodes::CanvasState& GetState();
+        struct Context;
 
-IMGUI_API void BeginCanvas();
-IMGUI_API void EndCanvas();
+        IMGUI_API Context* CreateContext();
+        IMGUI_API void     FreeContext(Context* ctx);
+        IMGUI_API void     SetContext(Context* ctx);
 
-/// Begin rendering of node in a graph. Render node content when returns `true`.
-IMGUI_API bool BeginNode(void* node_id, const char* title, ImVec2* pos, bool* selected);
-/// Terminates current node. Should be called regardless of BeginNode() returns value.
-IMGUI_API void EndNode();
-/// Renders input slot region. Kind is unique value whose sign is ignored.
-/// This function must always be called after BeginNode() and before OutputSlots().
-/// When no input slots are rendered call InputSlots(nullptr, 0);
-IMGUI_API void InputSlots(const SlotInfo* slots, int snum);
-/// Renders output slot region. Kind is unique value whose sign is ignored. This function must always be called after InputSlots() and function call is required (not optional).
-/// This function must always be called after InputSlots() and before EndNode().
-/// When no input slots are rendered call OutputSlots(nullptr, 0);
-IMGUI_API void OutputSlots(const SlotInfo* slots, int snum);
+        IMGUI_API ImNodes::CanvasState& GetState();
 
-bool Connection(void* input_node, const char* input_slot, void* output_node, const char* output_slot);
+        IMGUI_API void BeginCanvas();
+        IMGUI_API void EndCanvas();
 
-IMGUI_API void PushStyleVar(ImNodesStyleVar idx, float val);
-IMGUI_API void PushStyleVar(ImNodesStyleVar idx, const ImVec2 &val);
-IMGUI_API void PopStyleVar(int count = 1);
+        /// Begin rendering of node in a graph. Render node content when returns `true`.
+        IMGUI_API bool BeginNode(void* node_id, const char* title, ImVec2* pos, bool* selected);
+        /// Terminates current node. Should be called regardless of BeginNode() returns value.
+        IMGUI_API void EndNode();
+        /// Renders input slot region. Kind is unique value whose sign is ignored.
+        /// This function must always be called after BeginNode() and before OutputSlots().
+        /// When no input slots are rendered call InputSlots(nullptr, 0);
+        IMGUI_API void InputSlots(const SlotInfo* slots, int snum);
+        /// Renders output slot region. Kind is unique value whose sign is ignored. This function must always be called
+        /// after InputSlots() and function call is required (not optional). This function must always be called after
+        /// InputSlots() and before EndNode(). When no input slots are rendered call OutputSlots(nullptr, 0);
+        IMGUI_API void OutputSlots(const SlotInfo* slots, int snum);
 
-IMGUI_API void PushStyleColor(ImNodesStyleCol idx, ImU32 col);
-IMGUI_API void PushStyleColor(ImNodesStyleCol idx, const ImVec4& col);
-IMGUI_API void PopStyleColor(int count);
+        bool Connection(void* input_node, const char* input_slot, void* output_node, const char* output_slot);
 
-}
+        IMGUI_API void PushStyleVar(ImNodesStyleVar idx, float val);
+        IMGUI_API void PushStyleVar(ImNodesStyleVar idx, const ImVec2& val);
+        IMGUI_API void PopStyleVar(int count = 1);
 
-}
+        IMGUI_API void PushStyleColor(ImNodesStyleCol idx, ImU32 col);
+        IMGUI_API void PushStyleColor(ImNodesStyleCol idx, const ImVec4& col);
+        IMGUI_API void PopStyleColor(int count);
+
+    } // namespace Ez
+
+} // namespace ImNodes

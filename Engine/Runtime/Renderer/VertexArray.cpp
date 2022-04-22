@@ -5,22 +5,25 @@
 #include "OpenGL_Renderer/OpenGLVertexArray.h"
 #endif
 
-namespace Engine {
-Ref<VertexArray> VertexArray::Create() {
-    switch (Renderer::GetAPI()) {
-        case RendererAPI::API::None:
-            Log::Core_Error("RendererAPI::None is currently not supported.");
-            break;
+namespace Engine
+{
+    Ref<VertexArray> VertexArray::Create()
+    {
+        switch (Renderer::GetAPI())
+        {
+            case RendererAPI::API::None:
+                Log::Core_Error("RendererAPI::None is currently not supported.");
+                break;
 
-        case RendererAPI::API::OpenGL:
-            return std::make_shared<OpenGLVertexArray>();
-            break;
+            case RendererAPI::API::OpenGL:
+                return std::make_shared<OpenGLVertexArray>();
+                break;
 
-        default:
-            Log::Core_Error("RendererAPI::Unknow API.");
-            break;
+            default:
+                Log::Core_Error("RendererAPI::Unknow API.");
+                break;
+        }
+
+        return nullptr;
     }
-
-    return nullptr;
-}
-}  // namespace Engine
+} // namespace Engine

@@ -22,7 +22,7 @@
 #pragma once
 
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
-#   define IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 #include <vector>
 #include <map>
@@ -45,21 +45,16 @@ struct Connection
 
     bool operator==(const Connection& other) const
     {
-        return InputNode == other.InputNode &&
-               InputSlot == other.InputSlot &&
-               OutputNode == other.OutputNode &&
+        return InputNode == other.InputNode && InputSlot == other.InputSlot && OutputNode == other.OutputNode &&
                OutputSlot == other.OutputSlot;
     }
 
-    bool operator!=(const Connection& other) const
-    {
-        return !operator ==(other);
-    }
+    bool operator!=(const Connection& other) const { return !operator==(other); }
 };
 
 enum NodeSlotTypes
 {
-    NodeSlotPosition = 1,   // ID can not be 0
+    NodeSlotPosition = 1, // ID can not be 0
     NodeSlotRotation,
     NodeSlotMatrix,
 };
@@ -72,20 +67,20 @@ struct MyNode
     /// Flag indicating that node is selected by the user.
     bool Selected = false;
     /// Node position on the canvas.
-    ImVec2 Pos{};
+    ImVec2 Pos {};
     /// List of node connections.
-    std::vector<Connection> Connections{};
+    std::vector<Connection> Connections {};
     /// A list of input slots current node has.
-    std::vector<ImNodes::Ez::SlotInfo> InputSlots{};
+    std::vector<ImNodes::Ez::SlotInfo> InputSlots {};
     /// A list of output slots current node has.
-    std::vector<ImNodes::Ez::SlotInfo> OutputSlots{};
+    std::vector<ImNodes::Ez::SlotInfo> OutputSlots {};
 
-    explicit MyNode(const char* title,
-        const std::vector<ImNodes::Ez::SlotInfo>&& input_slots,
-        const std::vector<ImNodes::Ez::SlotInfo>&& output_slots)
+    explicit MyNode(const char*                                title,
+                    const std::vector<ImNodes::Ez::SlotInfo>&& input_slots,
+                    const std::vector<ImNodes::Ez::SlotInfo>&& output_slots)
     {
-        Title = title;
-        InputSlots = input_slots;
+        Title       = title;
+        InputSlots  = input_slots;
         OutputSlots = output_slots;
     }
 
@@ -105,5 +100,5 @@ struct MyNode
 
 namespace ImGui
 {
-void ShowImNodesDemoWindow();
-}   // namespace ImGui
+    void ShowImNodesDemoWindow();
+} // namespace ImGui

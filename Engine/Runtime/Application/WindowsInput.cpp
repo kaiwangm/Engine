@@ -2,41 +2,44 @@
 
 #include "Application.h"
 
-namespace Engine {
-Input* Input::s_Instance = new WindowsInput();
+namespace Engine
+{
+    Input* Input::s_Instance = new WindowsInput();
 
-bool WindowsInput::IsKeyPressedImpl(int keycode) {
-    auto glfw_window = static_cast<GLFWwindow*>(
-        Application::Get().GetWindow().GetNativeWindow());
-    auto state = glfwGetKey(glfw_window, keycode);
-    return state == GLFW_PRESS || state == GLFW_REPEAT;
-}
+    bool WindowsInput::IsKeyPressedImpl(int keycode)
+    {
+        auto glfw_window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
+        auto state       = glfwGetKey(glfw_window, keycode);
+        return state == GLFW_PRESS || state == GLFW_REPEAT;
+    }
 
-bool WindowsInput::IsMouseButtonPressedImpl(int keycode) {
-    auto glfw_window = static_cast<GLFWwindow*>(
-        Application::Get().GetWindow().GetNativeWindow());
-    auto state = glfwGetMouseButton(glfw_window, keycode);
-    return state == GLFW_PRESS;
-}
+    bool WindowsInput::IsMouseButtonPressedImpl(int keycode)
+    {
+        auto glfw_window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
+        auto state       = glfwGetMouseButton(glfw_window, keycode);
+        return state == GLFW_PRESS;
+    }
 
-std::pair<float, float> WindowsInput::GetMousePostionImpl() {
-    auto glfw_window = static_cast<GLFWwindow*>(
-        Application::Get().GetWindow().GetNativeWindow());
-    double x, y;
-    glfwGetCursorPos(glfw_window, &x, &y);
+    std::pair<float, float> WindowsInput::GetMousePostionImpl()
+    {
+        auto   glfw_window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
+        double x, y;
+        glfwGetCursorPos(glfw_window, &x, &y);
 
-    return {(float)x, (float)y};
-}
+        return {(float)x, (float)y};
+    }
 
-float WindowsInput::GetMouseXImpl() {
-    auto [x, y] = GetMousePostionImpl();
+    float WindowsInput::GetMouseXImpl()
+    {
+        auto [x, y] = GetMousePostionImpl();
 
-    return x;
-}
+        return x;
+    }
 
-float WindowsInput::GetMouseYImpl() {
-    auto [x, y] = GetMousePostionImpl();
+    float WindowsInput::GetMouseYImpl()
+    {
+        auto [x, y] = GetMousePostionImpl();
 
-    return y;
-}
-}  // namespace Engine
+        return y;
+    }
+} // namespace Engine

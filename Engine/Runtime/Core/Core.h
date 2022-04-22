@@ -12,9 +12,10 @@
 #endif
 */
 
-namespace Engines {
+namespace Engines
+{
 #define BIND_EVENT(x) std::bind(&x, this, std::placeholders::_1)
-}  // namespace Engines
+} // namespace Engines
 
 #include <functional>
 #include <cstdint>
@@ -37,18 +38,18 @@ namespace Engines {
 #include <GLFW/glfw3.h>
 #endif
 
-namespace Engine {
-template <typename T>
-using Scope = std::unique_ptr<T>;
+namespace Engine
+{
+    template<typename T>
+    using Scope = std::unique_ptr<T>;
 
-template <typename T>
-using Ref = std::shared_ptr<T>;
+    template<typename T>
+    using Ref = std::shared_ptr<T>;
 
-template <typename T>
-using WeakRef = std::weak_ptr<T>;
-}  // namespace Engine
+    template<typename T>
+    using WeakRef = std::weak_ptr<T>;
+} // namespace Engine
 
 #include "Events/Event.h"
 #include "Log/Log.h"
 #include "Timer/Timer.h"
-
