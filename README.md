@@ -8,7 +8,7 @@
 
 My toy modern OpenGL game engine.
 
-![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/v0.0.2.png)
+![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/Skybox.png)
 
 ## Getting Started
 
