@@ -1,5 +1,5 @@
 #pragma once
-#include "StaticMesh.h"
+#include "../DataUtil/StaticMesh.h"
 #include "../Common/UComponent.h"
 
 namespace Engine

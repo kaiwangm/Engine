@@ -3,8 +3,8 @@ add_library(
     STATIC
     Camera/Camera.cpp
     DataUtil/Mesh.cpp
-    Animation/Animation.cpp
-    StaticMesh/StaticMesh.cpp
+    DataUtil/StaticMesh.cpp
+    DataUtil/Animation.cpp
     Common/UWorld.cpp
 )
 

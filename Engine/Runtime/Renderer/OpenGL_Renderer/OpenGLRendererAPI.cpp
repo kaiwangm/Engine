@@ -32,4 +32,13 @@ namespace Engine
                               vertexArray->GetVertexBuffers()[1]->GetCount());
     }
 
+    void OpenGLRendererAPI::DrawSkybox(const Ref<VertexArray>& vertexArray)
+    {
+        //glDisable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LEQUAL);
+        glDrawElements(GL_TRIANGLES, vertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
+        glDepthFunc(GL_LESS);
+        //glEnable(GL_DEPTH_TEST);
+    }
+
 } // namespace Engine

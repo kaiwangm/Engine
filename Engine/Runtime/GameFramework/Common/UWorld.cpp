@@ -11,6 +11,7 @@
 #include "../Camera/UCameraComponent.h"
 #include "../StaticMesh/AStaticMesh.h"
 #include "../Animation/UAnimatedMeshComponent.h"
+#include "../Skybox/USkyboxComponent.h"
 #include "../Camera/ACamera.h"
 
 namespace Engine
@@ -130,8 +131,10 @@ namespace Engine
         m_MainCamera->GetCameraComponent().GetCamera().SetViewPort(m_FrameRenderBuffer->GetWidth(),
                                                                    m_FrameRenderBuffer->GetHeight());
         m_MainCamera->GetCameraComponent().GetCamera().RecalculateViewProjectMatrix();
-        m_VPMatrix = m_MainCamera->GetCameraComponent().GetCamera().GetViewProjectMatrix() *
-                     glm::inverse(m_MainCamera->GetTransformComponent().GetTransform());
+
+        m_VMatrix  = glm::inverse(m_MainCamera->GetTransformComponent().GetTransform());
+        m_PMatrix  = m_MainCamera->GetCameraComponent().GetCamera().GetViewProjectMatrix();
+        m_VPMatrix = m_PMatrix * m_VMatrix;
 
         m_FrameRenderBuffer->Bind();
         RenderCommand::SetViewPort(0, 0, m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
@@ -168,6 +171,18 @@ namespace Engine
 
             model.GetModel().Update(timeStep);
             model.GetModel().Draw(shader, m_VPMatrix, trans.GetTransform());
+        }
+
+        // draw skybox
+        auto skybox_view = m_Registry.view<UTagComponent, UTransformComponent, USkyboxComponent>();
+
+        // use a range-for
+        for (auto [entity, name, trans, skybox] : skybox_view.each())
+        {
+            auto shader = m_ShaderLibrary.Get("Skybox");
+            auto vpmat  = m_PMatrix * glm::mat4(glm::mat3(m_VMatrix));
+            skybox.Tick(timeStep);
+            skybox.Draw(shader, vpmat);
         }
 
         Renderer::EndScene(m_FrameRenderBuffer);

@@ -72,4 +72,16 @@ namespace Engine
         shader->UnBind();
     }
 
+    void Renderer::DrawSkybox(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader, const glm::mat4& pvMatrix)
+    {
+        shader->Bind();
+        shader->SetMat4("u_ViewProjection", pvMatrix);
+
+        vertexArray->Bind();
+        RenderCommand::DrawSkybox(vertexArray);
+
+        vertexArray->UnBind();
+        shader->UnBind();
+    }
+
 } // namespace Engine

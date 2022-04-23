@@ -88,6 +88,9 @@ namespace Engine
         static void
         DrawArray(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader, const glm::mat4& transform);
 
+        static void
+        DrawSkybox(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader, const glm::mat4& pvMatrix);
+
         inline static RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); }
 
     private:

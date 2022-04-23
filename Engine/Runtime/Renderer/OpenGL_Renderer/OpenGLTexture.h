@@ -9,7 +9,7 @@ namespace Engine
     public:
         OpenGLTexture2D();
         OpenGLTexture2D(const std::string& path);
-        virtual ~OpenGLTexture2D() { glDeleteTextures(1, &m_RendererID); }
+        virtual ~OpenGLTexture2D() { glDeleteTextures(1, &m_TextureID); }
 
         virtual uint32_t GetWidth() const override { return m_Width; }
         virtual uint32_t GetHeight() const override { return m_Height; }
@@ -25,6 +25,21 @@ namespace Engine
     private:
         std::string m_Path;
         uint32_t    m_Width, m_Height, m_Channels;
-        GLuint      m_RendererID;
+        GLuint      m_TextureID;
+    };
+
+    class OpenGLCubeMap : public CubeMap
+    {
+    public:
+        OpenGLCubeMap(const std::string& path);
+        virtual ~OpenGLCubeMap() { glDeleteTextures(1, &m_TextureID); }
+
+        virtual void Bind(const uint32_t& slot) const override;
+        virtual void UnBind(const uint32_t& slot) const override;
+        virtual void* GetTextureID() const override;
+    
+    private:
+        std::string m_Path;
+        GLuint      m_TextureID;
     };
 } // namespace Engine

@@ -18,17 +18,21 @@ namespace Engine
                                 "Path");
             m_World->LoadShader(
                 "Animated", "Assert/Shader/vertex_animated.glsl", "Assert/Shader/fragment_animated.glsl", "Path");
+            m_World->LoadShader(
+                "Skybox", "Assert/Shader/vertex_skybox.glsl", "Assert/Shader/fragment_skybox.glsl", "Path");
 
             m_Camera    = std::make_shared<PerspectiveCamera>(45.0f, 1.778f, 0.1f, 3000.0f * 8);
-            auto camera = m_World->AddActor<ACamera>("Camera", m_Camera);
+            auto camera = m_World->AddActor<ACamera>("main camera", m_Camera);
             camera.GetTransformComponent().SetPosition(glm::vec3 {-1.774f, 4.034f, 9.425f});
             camera.GetTransformComponent().SetRotation(glm::vec3 {-0.153f, -6.606f, 0.000f});
             camera.GetTransformComponent().SetScale(glm::vec3 {1.000f, 1.000f, 1.000f});
 
+            auto skybox = m_World->AddActor<ASkybox>("skybox", "Assert/Skybox/Standard");
+
             auto board = m_World->AddActor<AStaticMesh>("board");
             board.GetTransformComponent().SetPosition(glm::vec3 {-2.350f, 2.165f, 0.000f});
 
-            auto gallery = m_World->AddActor<AStaticMesh>("gallery", "Assert/Object/gallery/gallery.obj");
+            // auto gallery = m_World->AddActor<AStaticMesh>("gallery", "Assert/Object/gallery/gallery.obj");
 
             auto animan = m_World->AddActor<AAnimatedMesh>("animan", "Assert/Object/animan/model.dae");
 

@@ -25,6 +25,9 @@ namespace Engine
         glm::vec4              m_BackGroundColor {0.7f, 0.7f, 0.7f, 1.0f};
 
         ACamera*  m_MainCamera;
+
+        glm::mat4 m_VMatrix;
+        glm::mat4 m_PMatrix;
         glm::mat4 m_VPMatrix;
 
     public:

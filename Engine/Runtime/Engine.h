@@ -17,6 +17,8 @@
 #include "GameFramework/StaticMesh/AStaticMesh.h"
 #include "GameFramework/Camera/ACamera.h"
 
+#include "GameFramework/Skybox/ASkybox.h"
+
 #ifdef ENGINE_PLATFORM_WINDOWS
 
 #ifdef ENGINE_USE_ENTRYPOINT

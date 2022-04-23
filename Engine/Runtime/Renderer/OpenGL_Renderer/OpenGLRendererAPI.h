@@ -16,5 +16,6 @@ namespace Engine
 
         virtual void DrawIndexed(const Ref<VertexArray>& vertexArray) override;
         virtual void DrawArray(const Ref<VertexArray>& vertexArray) override;
+        virtual void DrawSkybox(const Ref<VertexArray>& vertexArray) override;
     };
 } // namespace Engine
