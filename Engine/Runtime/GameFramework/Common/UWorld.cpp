@@ -181,8 +181,8 @@ namespace Engine
         {
             auto shader = m_ShaderLibrary.Get("Skybox");
             Renderer::SetShaderUniform(shader, "exposure", m_Exposure);
-            
-            auto vpmat  = m_PMatrix * glm::mat4(glm::mat3(m_VMatrix));
+
+            auto vpmat = m_PMatrix * glm::mat4(glm::mat3(m_VMatrix));
             skybox.Tick(timeStep);
             skybox.Draw(shader, vpmat);
         }
@@ -227,7 +227,7 @@ namespace Engine
     {
         Gui::Begin("Scence Collection");
 
-        Gui::DragFloat("Exposure", &m_Exposure, 0.01f, 0.0f, 3.0f);
+        Gui::DragFloat("Exposure", m_Exposure, 0.01f, 0.0f, 1.0f);
 
         auto model_view = m_Registry.view<UTagComponent, UTransformComponent>();
 
