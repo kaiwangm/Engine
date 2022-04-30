@@ -45,7 +45,7 @@ namespace Engine
         void Tick(float deltaTime) override {}
         void Draw(const Ref<Shader>& shader, const glm::mat4 vpmat)
         {
-            Renderer::SetShaderUniform(shader, "skybox", 0);
+            Renderer::SetShaderUniform(shader, "environmentMap", 0);
 
             m_CubeMap->Bind(0);
             Renderer::DrawSkybox(m_Skybox->m_VertexArray, shader, vpmat);

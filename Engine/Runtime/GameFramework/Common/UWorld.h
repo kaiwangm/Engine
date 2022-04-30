@@ -30,6 +30,8 @@ namespace Engine
         glm::mat4 m_PMatrix;
         glm::mat4 m_VPMatrix;
 
+        float m_Exposure = 1.0f;
+
     public:
         UWorld();
 

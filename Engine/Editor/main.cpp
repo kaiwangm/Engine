@@ -27,7 +27,7 @@ namespace Engine
             camera.GetTransformComponent().SetRotation(glm::vec3 {-0.153f, -6.606f, 0.000f});
             camera.GetTransformComponent().SetScale(glm::vec3 {1.000f, 1.000f, 1.000f});
 
-            auto skybox = m_World->AddActor<ASkybox>("skybox", "Assert/Skybox/Standard");
+            auto skybox = m_World->AddActor<ASkybox>("skybox", "Assert/Skybox/Subway_Lights/20_Subway_Lights_3k.hdr");
 
             auto board = m_World->AddActor<AStaticMesh>("board");
             board.GetTransformComponent().SetPosition(glm::vec3 {-2.350f, 2.165f, 0.000f});

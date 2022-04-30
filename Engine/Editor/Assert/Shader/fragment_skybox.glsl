@@ -1,10 +1,18 @@
 #version 330 core
-in vec3 TexCoords;
 out vec4 color;
 
-uniform samplerCube skybox;
+in vec3 TexCoords;
+
+uniform samplerCube environmentMap;
+uniform float exposure;
 
 void main()
 {
-    color = texture(skybox, TexCoords);
+    const float gamma = 2.2;
+
+    vec3 envColor = texture(environmentMap, TexCoords).rgb;
+    vec3 mapped = vec3(1.0) - exp(-envColor * exposure);
+    mapped = pow(mapped, vec3(1.0 / gamma));
+
+    color = vec4(mapped, 1.0);
 }
