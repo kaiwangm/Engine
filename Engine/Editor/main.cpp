@@ -20,17 +20,20 @@ namespace Engine
                 "Animated", "Assert/Shader/vertex_animated.glsl", "Assert/Shader/fragment_animated.glsl", "Path");
             m_World->LoadShader(
                 "Skybox", "Assert/Shader/vertex_skybox.glsl", "Assert/Shader/fragment_skybox.glsl", "Path");
+            m_World->LoadShader(
+                "BasicPbr", "Assert/Shader/vertex_basicpbr.glsl", "Assert/Shader/fragment_basicpbr.glsl", "Path");
 
-            m_Camera    = std::make_shared<PerspectiveCamera>(45.0f, 1.778f, 0.1f, 3000.0f * 8);
+            m_Camera    = std::make_shared<PerspectiveCamera>(60.0f, 1.778f, 0.1f, 3000.0f * 8);
             auto camera = m_World->AddActor<ACamera>("main camera", m_Camera);
             camera.GetTransformComponent().SetPosition(glm::vec3 {-1.774f, 4.034f, 9.425f});
             camera.GetTransformComponent().SetRotation(glm::vec3 {-0.153f, -6.606f, 0.000f});
             camera.GetTransformComponent().SetScale(glm::vec3 {1.000f, 1.000f, 1.000f});
 
-            auto skybox = m_World->AddActor<ASkybox>("skybox", "Assert/Skybox/Subway_Lights/20_Subway_Lights_3k.hdr");
+            auto skybox =
+                m_World->AddActor<ASkybox>("skybox", "Assert/Skybox/TheSkyIsOnFire/the_sky_is_on_fire_8k.hdr");
 
-            auto board = m_World->AddActor<AStaticMesh>("board");
-            board.GetTransformComponent().SetPosition(glm::vec3 {-2.350f, 2.165f, 0.000f});
+            // auto board = m_World->AddActor<AStaticMesh>("board");
+            // board.GetTransformComponent().SetPosition(glm::vec3 {-2.350f, 2.165f, 0.000f});
 
             // auto gallery = m_World->AddActor<AStaticMesh>("gallery", "Assert/Object/gallery/gallery.obj");
 
@@ -39,6 +42,32 @@ namespace Engine
             animan.GetTransformComponent().SetPosition(glm::vec3 {1.655f, 0.685f, 0.120f});
             animan.GetTransformComponent().SetRotation(glm::vec3 {-1.330f, 0.000f, 0.000f});
             animan.GetTransformComponent().SetScale(glm::vec3 {0.300f, 0.300f, 0.300f});
+
+            auto       sphere          = m_World->AddActor<AStaticMesh>("sphere", "Assert/Object/sphere/sphere.obj");
+            MBasicPbr* sphere_material = static_cast<MBasicPbr*>(sphere.GetMaterial());
+            sphere_material->SetAlbedo(glm::vec3 {1.0f, 0.0f, 0.0f});
+            sphere_material->SetMetallic(0.0f);
+            sphere_material->SetRoughness(0.5f);
+
+            auto       monkey          = m_World->AddActor<AStaticMesh>("monkey", "Assert/Object/monkey/monkey.obj");
+            MBasicPbr* monkey_material = static_cast<MBasicPbr*>(monkey.GetMaterial());
+            monkey_material->SetAlbedo(glm::vec3 {0.7f, 0.7f, 0.7f});
+            monkey_material->SetMetallic(0.0f);
+            monkey_material->SetRoughness(0.5f);
+
+            monkey.GetTransformComponent().SetPosition(glm::vec3 {-3.165f, -0.110f, -0.100f});
+
+            auto light0 = m_World->AddActor<APointLight>("point light_0");
+            light0.GetTransformComponent().SetPosition(glm::vec3 {0.0f, 0.0f, 1.5f});
+
+            auto light1 = m_World->AddActor<APointLight>("point light_1");
+            light1.GetTransformComponent().SetPosition(glm::vec3 {1.0f, 0.0f, 1.5f});
+
+            auto light2 = m_World->AddActor<APointLight>("point light_2");
+            light2.GetTransformComponent().SetPosition(glm::vec3 {0.0f, 1.0f, 1.5f});
+
+            auto light3 = m_World->AddActor<APointLight>("point light_3");
+            light3.GetTransformComponent().SetPosition(glm::vec3 {1.0f, 1.0f, 1.5f});
         }
 
         void OnAttach() override {}

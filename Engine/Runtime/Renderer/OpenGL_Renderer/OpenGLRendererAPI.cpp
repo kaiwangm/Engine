@@ -9,6 +9,8 @@ namespace Engine
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
     }
     void OpenGLRendererAPI::SetViewPort(uint32_t x, uint32_t y, uint32_t width, uint32_t height)
     {
@@ -34,11 +36,11 @@ namespace Engine
 
     void OpenGLRendererAPI::DrawSkybox(const Ref<VertexArray>& vertexArray)
     {
-        //glDisable(GL_DEPTH_TEST);
+        // glDisable(GL_DEPTH_TEST);
         glDepthFunc(GL_LEQUAL);
         glDrawElements(GL_TRIANGLES, vertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
         glDepthFunc(GL_LESS);
-        //glEnable(GL_DEPTH_TEST);
+        // glEnable(GL_DEPTH_TEST);
     }
 
 } // namespace Engine

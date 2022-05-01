@@ -32,14 +32,23 @@ namespace Engine
     {
     public:
         OpenGLCubeMap(const std::string& path);
-        virtual ~OpenGLCubeMap() { glDeleteTextures(1, &m_TextureID); }
+        virtual ~OpenGLCubeMap()
+        {
+            glDeleteTextures(1, &m_CubeMap);
+            glDeleteTextures(1, &m_Irradiance);
+        }
 
         virtual void Bind(const uint32_t& slot) const override;
         virtual void UnBind(const uint32_t& slot) const override;
+
+        virtual void BindIrradianceTexture(const uint32_t& slot) const override;
+
         virtual void* GetTextureID() const override;
-    
+        virtual void* GetIrradianceTextureID() const override;
+
     private:
         std::string m_Path;
-        GLuint      m_TextureID;
+        GLuint      m_CubeMap;
+        GLuint      m_Irradiance;
     };
 } // namespace Engine

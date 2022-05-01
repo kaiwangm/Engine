@@ -11,6 +11,7 @@ namespace Engine
 {
     class AActor;
     class ACamera;
+    class ASkybox;
 
     class UWorld : public UObject
     {
@@ -24,7 +25,8 @@ namespace Engine
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_normal;
         glm::vec4              m_BackGroundColor {0.7f, 0.7f, 0.7f, 1.0f};
 
-        ACamera*  m_MainCamera;
+        ACamera* m_MainCamera;
+        ASkybox* m_MainSkybox;
 
         glm::mat4 m_VMatrix;
         glm::mat4 m_PMatrix;

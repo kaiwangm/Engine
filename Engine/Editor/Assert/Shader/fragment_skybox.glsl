@@ -6,13 +6,24 @@ in vec3 TexCoords;
 uniform samplerCube environmentMap;
 uniform float exposure;
 
+vec3 acesFilm(const vec3 hdr_color, const float exposure) {
+    const float A = 2.51f;
+    const float B = 0.03f;
+    const float C = 2.43f;
+    const float D = 0.59f;
+    const float E = 0.14f;
+
+    vec3 ldr_color = exposure * hdr_color;
+    ldr_color = (ldr_color * (A* ldr_color + B)) / (ldr_color * (C* ldr_color + D) + E);
+
+    return ldr_color;
+}
+
 void main()
 {
-    const float gamma = 2.2;
-
     vec3 envColor = texture(environmentMap, TexCoords).rgb;
-    vec3 mapped = vec3(1.0) - exp(-envColor * exposure);
-    mapped = pow(mapped, vec3(1.0 / gamma));
+
+    vec3 mapped = acesFilm(envColor, exposure);
 
     color = vec4(mapped, 1.0);
 }

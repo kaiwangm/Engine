@@ -16,5 +16,7 @@ namespace Engine
             m_Skybox = m_World->RegisterComponents<USkyboxComponent>(m_EntityHandle, path);
             m_Skybox->SetOwner(this);
         }
+
+        USkyboxComponent& GetSkyboxComponent() { return *m_Skybox; }
     };
 }; // namespace Engine
