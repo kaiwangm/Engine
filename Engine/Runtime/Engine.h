@@ -18,6 +18,8 @@
 #include "GameFramework/Camera/ACamera.h"
 
 #include "GameFramework/Skybox/ASkybox.h"
+#include "GameFramework/Light/APointLight.h"
+#include "GameFramework/Material/MBasicPbr.h"
 
 #ifdef ENGINE_PLATFORM_WINDOWS
 

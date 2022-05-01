@@ -10,9 +10,10 @@ namespace Engine
     private:
         Ref<CubeMap> m_CubeMap;
         Ref<Mesh>    m_Skybox;
+        bool         m_ShowIrradiance;
 
     public:
-        USkyboxComponent(const std::string path)
+        USkyboxComponent(const std::string path) : m_ShowIrradiance(false)
         {
             m_CubeMap             = CubeMap::Create(path);
             float skyVertices[24] = {
@@ -47,12 +48,22 @@ namespace Engine
         {
             Renderer::SetShaderUniform(shader, "environmentMap", 0);
 
-            m_CubeMap->Bind(0);
-            Renderer::DrawSkybox(m_Skybox->m_VertexArray, shader, vpmat);
-            m_CubeMap->UnBind(0);
+            if (m_ShowIrradiance == false)
+            {
+                m_CubeMap->Bind(0);
+                Renderer::DrawSkybox(m_Skybox->m_VertexArray, shader, vpmat);
+                m_CubeMap->UnBind(0);
+            }
+            else
+            {
+                m_CubeMap->BindIrradianceTexture(0);
+                Renderer::DrawSkybox(m_Skybox->m_VertexArray, shader, vpmat);
+                m_CubeMap->UnBind(0);
+            }
         }
 
-        CubeMap& GetCubeMap() { return *m_CubeMap; }
-        Mesh&    GetSkybox() { return *m_Skybox; }
+        CubeMap* GetCubeMap() { return m_CubeMap.get(); }
+        Mesh&    GetSkyboxRef() { return *m_Skybox; }
+        bool&    GetShowIrradianceRef() { return m_ShowIrradiance; }
     };
 }; // namespace Engine

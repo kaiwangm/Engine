@@ -11,8 +11,9 @@
 #include "../Camera/UCameraComponent.h"
 #include "../StaticMesh/AStaticMesh.h"
 #include "../Animation/UAnimatedMeshComponent.h"
-#include "../Skybox/USkyboxComponent.h"
+#include "../Skybox/ASkybox.h"
 #include "../Camera/ACamera.h"
+#include "../Light/UPointLightComponent.h"
 
 namespace Engine
 {
@@ -119,12 +120,23 @@ namespace Engine
 
     void UWorld::TickRender(float timeStep)
     {
-        // GetMain Camera
-        auto camrea_view = m_Registry.view<UTagComponent, UTransformComponent, UCameraComponent>();
 
+        auto camrea_view   = m_Registry.view<UTagComponent, UTransformComponent, UCameraComponent>();
+        auto model_view    = m_Registry.view<UTagComponent, UTransformComponent, UStaticMeshComponent>();
+        auto animated_view = m_Registry.view<UTagComponent, UTransformComponent, UAnimatedMeshComponent>();
+        auto light_view    = m_Registry.view<UTagComponent, UTransformComponent, UPointLightComponent>();
+        auto skybox_view   = m_Registry.view<UTagComponent, UTransformComponent, USkyboxComponent>();
+
+        // Get Main Camera
         for (auto [entity, name, trans, camera] : camrea_view.each())
         {
             m_MainCamera = static_cast<ACamera*>(camera.GetOwner());
+        }
+
+        // Get Main SkyBox
+        for (auto [entity, name, trans, skybox] : skybox_view.each())
+        {
+            m_MainSkybox = static_cast<ASkybox*>(skybox.GetOwner());
         }
 
         // Render to FrameRenderBuffer
@@ -142,26 +154,54 @@ namespace Engine
         RenderCommand::SetClearColor(m_BackGroundColor);
         RenderCommand::Clear();
 
-        auto model_view = m_Registry.view<UTagComponent, UTransformComponent, UStaticMeshComponent>();
-
         // use a range-for
         for (auto [entity, name, trans, model] : model_view.each())
         {
-            auto shader = m_ShaderLibrary.Get("TextureShader");
-            Renderer::SetShaderUniform(shader, "u_Texture", 0);
+            AStaticMesh* staticMesh_actor = static_cast<AStaticMesh*>(model.GetOwner());
+            MBasicPbr*   material         = static_cast<MBasicPbr*>(staticMesh_actor->GetMaterial());
+
+            auto shader = m_ShaderLibrary.Get("BasicPbr");
+            Renderer::SetShaderUniform(shader, "albedo", material->GetAlbedoRef());
+            Renderer::SetShaderUniform(shader, "roughness", material->GetRoughnessRef());
+            Renderer::SetShaderUniform(shader, "metallic", material->GetMetallicRef());
+            Renderer::SetShaderUniform(shader, "ao", material->GetAORef());
+
+            Renderer::SetShaderUniform(shader, "irradianceMap", 5);
+
+            int ligth_num = 0;
+
+            // use a range-for
+            for (auto [entity, name, trans, light] : light_view.each())
+            {
+                if (ligth_num >= 4)
+                {
+                    break;
+                }
+
+                Renderer::SetShaderUniform(
+                    shader, "lightPositions[" + std::to_string(ligth_num) + "]", trans.GetPosition());
+                Renderer::SetShaderUniform(
+                    shader, "lightColors[" + std::to_string(ligth_num) + "]", light.GetColorRef());
+
+                ligth_num++;
+            }
+
+            Renderer::SetShaderUniform(shader, "camPos", m_MainCamera->GetTransformComponent().GetPosition());
 
             const auto meshes = model.GetStaticMesh().m_Meshes;
 
             for (const auto& mesh : meshes)
             {
-                auto texture = mesh.m_Textures[0];
+                auto texture        = mesh.m_Textures[0];
+                auto sky_irradiance = m_MainSkybox->GetSkyboxComponent().GetCubeMap();
+
                 texture->Bind(0);
+                sky_irradiance->BindIrradianceTexture(5);
                 Renderer::Submit(mesh.m_VertexArray, shader, m_VPMatrix, trans.GetTransform());
+                sky_irradiance->UnBind(5);
                 texture->UnBind(0);
             }
         }
-
-        auto animated_view = m_Registry.view<UTagComponent, UTransformComponent, UAnimatedMeshComponent>();
 
         // use a range-for
         for (auto [entity, name, trans, model] : animated_view.each())
@@ -174,8 +214,6 @@ namespace Engine
         }
 
         // draw skybox
-        auto skybox_view = m_Registry.view<UTagComponent, UTransformComponent, USkyboxComponent>();
-
         // use a range-for
         for (auto [entity, name, trans, skybox] : skybox_view.each())
         {
@@ -225,17 +263,92 @@ namespace Engine
 
     void UWorld::TickGui(float timeStep)
     {
+        // Render Setting
+        Gui::Begin("Render Setting");
+
+        Gui::SliderFloat("Exposure", m_Exposure, 0.0f, 3.0f);
+
+        Gui::End();
+
+        // Scence Collection
         Gui::Begin("Scence Collection");
 
-        Gui::DragFloat("Exposure", m_Exposure, 0.01f, 0.0f, 1.0f);
-
-        auto model_view = m_Registry.view<UTagComponent, UTransformComponent>();
+        auto camrea_view      = m_Registry.view<UTagComponent, UTransformComponent, UCameraComponent>();
+        auto staticmodel_view = m_Registry.view<UTagComponent, UTransformComponent, UStaticMeshComponent>();
+        auto animated_view    = m_Registry.view<UTagComponent, UTransformComponent, UAnimatedMeshComponent>();
+        auto light_view       = m_Registry.view<UTagComponent, UTransformComponent, UPointLightComponent>();
+        auto skybox_view      = m_Registry.view<UTagComponent, UTransformComponent, USkyboxComponent>();
 
         // use a range-for
-        for (auto [entity, name, trans] : model_view.each())
+        for (auto [entity, name, trans, model] : staticmodel_view.each())
         {
             if (ImGui::TreeNode(name.GetString().c_str()))
             {
+                AStaticMesh* staticMesh_actor = static_cast<AStaticMesh*>(model.GetOwner());
+                MBasicPbr*   material         = static_cast<MBasicPbr*>(staticMesh_actor->GetMaterial());
+
+                // Actor
+                Gui::DragFloat3("Position", trans.GetPositionRef(), 0.005f, -100.0f, 100.0f);
+                Gui::DragFloat3("Rotation", trans.GetRotationRef(), 0.005f, -100.0f, 100.0f);
+                Gui::DragFloat3("Scale", trans.GetScaleRef(), 0.005f, -100.0f, 100.0f);
+
+                // Line
+                ImGui::Separator();
+
+                // Material
+                ImGui::ColorEdit3("Albedo", glm::value_ptr(material->GetAlbedoRef()));
+                Gui::SliderFloat("Metallic", material->GetMetallicRef(), 0.0f, 1.0f);
+                Gui::SliderFloat("Roughness", material->GetRoughnessRef(), 0.0f, 1.0f);
+                Gui::SliderFloat("AO", material->GetAORef(), 0.0f, 1.0f);
+
+                ImGui::TreePop();
+            }
+        }
+
+        // use a range-for
+        for (auto [entity, name, trans, light] : light_view.each())
+        {
+            if (ImGui::TreeNode(name.GetString().c_str()))
+            {
+                // Actor
+                Gui::DragFloat3("Position", trans.GetPositionRef(), 0.005f, -100.0f, 100.0f);
+
+                // Line
+                ImGui::Separator();
+
+                // Light
+                ImGui::ColorEdit3("Color", glm::value_ptr(light.GetColorRef()));
+                Gui::SliderFloat("Intensity", light.GetIntensityRef(), 0.0f, 1.0f);
+
+                ImGui::TreePop();
+            }
+        }
+
+        // use a range-for
+        for (auto [entity, name, trans, sky] : skybox_view.each())
+        {
+            if (ImGui::TreeNode(name.GetString().c_str()))
+            {
+                // Actor
+                Gui::DragFloat3("Rotation", trans.GetRotationRef(), 0.005f, -100.0f, 100.0f);
+
+                // Line
+                ImGui::Separator();
+
+                // Skybox
+                // use imgui add a bool selector
+
+                ImGui::Checkbox("Show Irradiance", &sky.GetShowIrradianceRef());
+
+                ImGui::TreePop();
+            }
+        }
+
+        for (auto [entity, name, trans, camera] : camrea_view.each())
+        {
+            if (ImGui::TreeNode(name.GetString().c_str()))
+            {
+                // Actor
                 Gui::DragFloat3("Position", trans.GetPositionRef(), 0.005f, -100.0f, 100.0f);
                 Gui::DragFloat3("Rotation", trans.GetRotationRef(), 0.005f, -100.0f, 100.0f);
                 Gui::DragFloat3("Scale", trans.GetScaleRef(), 0.005f, -100.0f, 100.0f);

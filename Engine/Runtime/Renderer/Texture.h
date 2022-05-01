@@ -31,5 +31,8 @@ namespace Engine
     {
     public:
         static Ref<CubeMap> Create(const std::string& path);
+        virtual void*       GetIrradianceTextureID() const = 0;
+
+        virtual void BindIrradianceTexture(const uint32_t& slot) const = 0;
     };
 } // namespace Engine
