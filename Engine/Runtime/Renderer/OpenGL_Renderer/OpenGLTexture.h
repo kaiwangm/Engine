@@ -36,19 +36,24 @@ namespace Engine
         {
             glDeleteTextures(1, &m_CubeMap);
             glDeleteTextures(1, &m_Irradiance);
+            glDeleteTextures(1, &m_Prefilter);
         }
 
-        virtual void Bind(const uint32_t& slot) const override;
-        virtual void UnBind(const uint32_t& slot) const override;
+        virtual void  Bind(const uint32_t& slot) const override;
+        virtual void  UnBind(const uint32_t& slot) const override;
+        virtual void* GetTextureID() const override;
 
         virtual void BindIrradianceTexture(const uint32_t& slot) const override;
+        virtual void BindPrefilterTexture(const uint32_t& slot) const override;
+        virtual void BindBrdfLutTexture(const uint32_t& slot) const override;
 
-        virtual void* GetTextureID() const override;
         virtual void* GetIrradianceTextureID() const override;
+        virtual void* GetPrefilterTextureID() const override;
+        virtual void* GetBrdfLutTextureID() const override;
 
     private:
         std::string m_Path;
-        GLuint      m_CubeMap;
-        GLuint      m_Irradiance;
+        GLuint      m_CubeMap, m_Irradiance, m_Prefilter;
+        GLuint      m_BrdfLut;
     };
 } // namespace Engine

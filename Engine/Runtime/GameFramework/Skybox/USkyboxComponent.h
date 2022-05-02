@@ -10,10 +10,10 @@ namespace Engine
     private:
         Ref<CubeMap> m_CubeMap;
         Ref<Mesh>    m_Skybox;
-        bool         m_ShowIrradiance;
+        int          m_CruuentTextureIndex;
 
     public:
-        USkyboxComponent(const std::string path) : m_ShowIrradiance(false)
+        USkyboxComponent(const std::string path) : m_CruuentTextureIndex(0)
         {
             m_CubeMap             = CubeMap::Create(path);
             float skyVertices[24] = {
@@ -48,15 +48,21 @@ namespace Engine
         {
             Renderer::SetShaderUniform(shader, "environmentMap", 0);
 
-            if (m_ShowIrradiance == false)
+            if (m_CruuentTextureIndex == 0)
             {
                 m_CubeMap->Bind(0);
                 Renderer::DrawSkybox(m_Skybox->m_VertexArray, shader, vpmat);
                 m_CubeMap->UnBind(0);
             }
-            else
+            else if (m_CruuentTextureIndex == 1)
             {
                 m_CubeMap->BindIrradianceTexture(0);
+                Renderer::DrawSkybox(m_Skybox->m_VertexArray, shader, vpmat);
+                m_CubeMap->UnBind(0);
+            }
+            else if (m_CruuentTextureIndex == 2)
+            {
+                m_CubeMap->BindPrefilterTexture(0);
                 Renderer::DrawSkybox(m_Skybox->m_VertexArray, shader, vpmat);
                 m_CubeMap->UnBind(0);
             }
@@ -64,6 +70,6 @@ namespace Engine
 
         CubeMap* GetCubeMap() { return m_CubeMap.get(); }
         Mesh&    GetSkyboxRef() { return *m_Skybox; }
-        bool&    GetShowIrradianceRef() { return m_ShowIrradiance; }
+        int&     GetCruuentTextureIndexRef() { return m_CruuentTextureIndex; }
     };
 }; // namespace Engine

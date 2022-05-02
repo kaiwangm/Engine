@@ -161,15 +161,9 @@ namespace Engine
             MBasicPbr*   material         = static_cast<MBasicPbr*>(staticMesh_actor->GetMaterial());
 
             auto shader = m_ShaderLibrary.Get("BasicPbr");
-            Renderer::SetShaderUniform(shader, "albedo", material->GetAlbedoRef());
-            Renderer::SetShaderUniform(shader, "roughness", material->GetRoughnessRef());
-            Renderer::SetShaderUniform(shader, "metallic", material->GetMetallicRef());
-            Renderer::SetShaderUniform(shader, "ao", material->GetAORef());
-
-            Renderer::SetShaderUniform(shader, "irradianceMap", 5);
+            shader->Bind();
 
             int ligth_num = 0;
-
             // use a range-for
             for (auto [entity, name, trans, light] : light_view.each())
             {
@@ -192,15 +186,24 @@ namespace Engine
 
             for (const auto& mesh : meshes)
             {
-                auto texture        = mesh.m_Textures[0];
-                auto sky_irradiance = m_MainSkybox->GetSkyboxComponent().GetCubeMap();
+                material->Bind(shader);
 
-                texture->Bind(0);
-                sky_irradiance->BindIrradianceTexture(5);
+                auto sky_cubeMap = m_MainSkybox->GetSkyboxComponent().GetCubeMap();
+
+                sky_cubeMap->BindIrradianceTexture(5);
+                sky_cubeMap->BindPrefilterTexture(6);
+                sky_cubeMap->BindBrdfLutTexture(7);
+
                 Renderer::Submit(mesh.m_VertexArray, shader, m_VPMatrix, trans.GetTransform());
-                sky_irradiance->UnBind(5);
-                texture->UnBind(0);
+
+                sky_cubeMap->UnBind(7);
+                sky_cubeMap->UnBind(6);
+                sky_cubeMap->UnBind(5);
+
+                material->UnBind(shader);
             }
+
+            shader->UnBind();
         }
 
         // use a range-for
@@ -219,6 +222,7 @@ namespace Engine
         {
             auto shader = m_ShaderLibrary.Get("Skybox");
             Renderer::SetShaderUniform(shader, "exposure", m_Exposure);
+            Renderer::SetShaderUniform(shader, "mipLevel", m_VisPrePrefilterMipLevel);
 
             auto vpmat = m_PMatrix * glm::mat4(glm::mat3(m_VMatrix));
             skybox.Tick(timeStep);
@@ -279,7 +283,7 @@ namespace Engine
         auto light_view       = m_Registry.view<UTagComponent, UTransformComponent, UPointLightComponent>();
         auto skybox_view      = m_Registry.view<UTagComponent, UTransformComponent, USkyboxComponent>();
 
-        // use a range-for
+        // Static Model
         for (auto [entity, name, trans, model] : staticmodel_view.each())
         {
             if (ImGui::TreeNode(name.GetString().c_str()))
@@ -305,7 +309,7 @@ namespace Engine
             }
         }
 
-        // use a range-for
+        // Light
         for (auto [entity, name, trans, light] : light_view.each())
         {
             if (ImGui::TreeNode(name.GetString().c_str()))
@@ -324,7 +328,7 @@ namespace Engine
             }
         }
 
-        // use a range-for
+        // SkyBox
         for (auto [entity, name, trans, sky] : skybox_view.each())
         {
             if (ImGui::TreeNode(name.GetString().c_str()))
@@ -338,12 +342,16 @@ namespace Engine
                 // Skybox
                 // use imgui add a bool selector
 
-                ImGui::Checkbox("Show Irradiance", &sky.GetShowIrradianceRef());
+                const char* items[] = {"CubeMap", "Irradiance", "Prefilter"};
+                ImGui::Combo("Show Map", &sky.GetCruuentTextureIndexRef(), items, IM_ARRAYSIZE(items));
+
+                Gui::SliderFloat("Mipmap Level", m_VisPrePrefilterMipLevel, 0.0f, 32.0f);
 
                 ImGui::TreePop();
             }
         }
 
+        // Camera
         for (auto [entity, name, trans, camera] : camrea_view.each())
         {
             if (ImGui::TreeNode(name.GetString().c_str()))

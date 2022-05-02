@@ -8,7 +8,7 @@
 
 My toy modern OpenGL game engine.
 
-![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/BasicPbr_0.png)
+![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/BasicPbr_Ac.png)
 
 ## Getting Started
 

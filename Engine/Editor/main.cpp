@@ -37,25 +37,74 @@ namespace Engine
 
             // auto gallery = m_World->AddActor<AStaticMesh>("gallery", "Assert/Object/gallery/gallery.obj");
 
-            auto animan = m_World->AddActor<AAnimatedMesh>("animan", "Assert/Object/animan/model.dae");
+            // auto animan = m_World->AddActor<AAnimatedMesh>("animan", "Assert/Object/animan/model.dae");
 
-            animan.GetTransformComponent().SetPosition(glm::vec3 {1.655f, 0.685f, 0.120f});
-            animan.GetTransformComponent().SetRotation(glm::vec3 {-1.330f, 0.000f, 0.000f});
-            animan.GetTransformComponent().SetScale(glm::vec3 {0.300f, 0.300f, 0.300f});
+            // animan.GetTransformComponent().SetPosition(glm::vec3 {1.655f, 0.685f, 0.120f});
+            // animan.GetTransformComponent().SetRotation(glm::vec3 {-1.330f, 0.000f, 0.000f});
+            // animan.GetTransformComponent().SetScale(glm::vec3 {0.300f, 0.300f, 0.300f});
 
-            auto       sphere          = m_World->AddActor<AStaticMesh>("sphere", "Assert/Object/sphere/sphere.obj");
-            MBasicPbr* sphere_material = static_cast<MBasicPbr*>(sphere.GetMaterial());
-            sphere_material->SetAlbedo(glm::vec3 {1.0f, 0.0f, 0.0f});
-            sphere_material->SetMetallic(0.0f);
-            sphere_material->SetRoughness(0.5f);
+            auto red_sphere = m_World->AddActor<AStaticMesh>("red_sphere", //
+                                                             "Assert/Object/sphere/sphere.obj",
+                                                             "BasicPbr",
+                                                             "basic_red_sphere",
+                                                             "basic_red_sphere");
+            red_sphere.GetTransformComponent().SetPosition(glm::vec3 {0.0f, 0.0f, 0.0f});
 
-            auto       monkey          = m_World->AddActor<AStaticMesh>("monkey", "Assert/Object/monkey/monkey.obj");
-            MBasicPbr* monkey_material = static_cast<MBasicPbr*>(monkey.GetMaterial());
-            monkey_material->SetAlbedo(glm::vec3 {0.7f, 0.7f, 0.7f});
-            monkey_material->SetMetallic(0.0f);
-            monkey_material->SetRoughness(0.5f);
+            MBasicPbr* red_sphere_material = static_cast<MBasicPbr*>(red_sphere.GetMaterial());
+            red_sphere_material->SetAlbedo(glm::vec3 {1.0f, 0.0f, 0.0f});
+            red_sphere_material->SetMetallic(0.3f);
+            red_sphere_material->SetRoughness(0.5f);
 
-            monkey.GetTransformComponent().SetPosition(glm::vec3 {-3.165f, -0.110f, -0.100f});
+            auto brown_sphere = m_World->AddActor<AStaticMesh>("brown_sphere", //
+                                                               "Assert/Object/sphere/sphere.obj",
+                                                               "BasicPbr",
+                                                               "basic_brown_sphere",
+                                                               "basic_brown_sphere");
+            brown_sphere.GetTransformComponent().SetPosition(glm::vec3 {3.0f, 0.0f, 0.0f});
+            MBasicPbr* brown_sphere_material = static_cast<MBasicPbr*>(brown_sphere.GetMaterial());
+            brown_sphere_material->SetAlbedo(glm::vec3 {0.77f, 0.37f, 0.12f});
+            brown_sphere_material->SetMetallic(0.2f);
+            brown_sphere_material->SetRoughness(0.8f);
+
+            auto aqua_shpere = m_World->AddActor<AStaticMesh>("aqua_sphere", //
+                                                              "Assert/Object/sphere/sphere.obj",
+                                                              "BasicPbr",
+                                                              "basic_aqua_sphere",
+                                                              "basic_aqua_sphere");
+            aqua_shpere.GetTransformComponent().SetPosition(glm::vec3 {6.0f, 0.0f, 0.0f});
+            MBasicPbr* aqua_shpere_material = static_cast<MBasicPbr*>(aqua_shpere.GetMaterial());
+            aqua_shpere_material->SetAlbedo(glm::vec3 {0.0f, 1.0f, 1.0f});
+            aqua_shpere_material->SetMetallic(0.9f);
+            aqua_shpere_material->SetRoughness(0.3f);
+
+            auto wood_sphere = m_World->AddActor<AStaticMesh>("wood_sphere", //
+                                                              "Assert/Object/sphere/sphere.obj",
+                                                              "Texture",
+                                                              "bamboo-wood-semigloss_sphere",
+                                                              "bamboo-wood-semigloss");
+            wood_sphere.GetTransformComponent().SetPosition(glm::vec3 {0.0f, 3.0f, 0.0f});
+
+            auto metal_sphere = m_World->AddActor<AStaticMesh>("metal_sphere", //
+                                                               "Assert/Object/sphere/sphere.obj",
+                                                               "Texture",
+                                                               "streaky-metal1_sphere",
+                                                               "streaky-metal1");
+            metal_sphere.GetTransformComponent().SetPosition(glm::vec3 {3.0f, 3.0f, 0.0f});
+
+            auto plastic_sphere = m_World->AddActor<AStaticMesh>("plastic_sphere", //
+                                                                 "Assert/Object/sphere/sphere.obj",
+                                                                 "Texture",
+                                                                 "scuffed-plastic_sphere",
+                                                                 "scuffed-plastic");
+            plastic_sphere.GetTransformComponent().SetPosition(glm::vec3 {6.0f, 3.0f, 0.0f});
+
+            auto wood_monkey = m_World->AddActor<AStaticMesh>(
+                "wood_mmonkey", "Assert/Object/monkey/monkey.obj", "Texture", "monkey_wood", "bamboo-wood-semigloss");
+            wood_monkey.GetTransformComponent().SetPosition(glm::vec3 {3.0f, 0.0f, 3.0f});
+            MBasicPbr* wood_monkey_material = static_cast<MBasicPbr*>(wood_monkey.GetMaterial());
+            wood_monkey_material->SetAlbedo(glm::vec3 {0.7f, 0.7f, 0.7f});
+            wood_monkey_material->SetMetallic(0.0f);
+            wood_monkey_material->SetRoughness(0.5f);
 
             auto light0 = m_World->AddActor<APointLight>("point light_0");
             light0.GetTransformComponent().SetPosition(glm::vec3 {0.0f, 0.0f, 1.5f});

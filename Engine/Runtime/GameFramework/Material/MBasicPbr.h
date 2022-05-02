@@ -1,6 +1,8 @@
 #pragma once
 #include "MMaterial.h"
 
+#include "Texture.h"
+
 namespace Engine
 {
     class MBasicPbr final : public MMaterial
@@ -11,11 +13,115 @@ namespace Engine
         float     m_Roughness;
         float     m_AO;
 
+        Ref<Texture2D> m_AlbedoMap;
+        Ref<Texture2D> m_NormalMap;
+        Ref<Texture2D> m_MetallicMap;
+        Ref<Texture2D> m_RoughnessMap;
+        Ref<Texture2D> m_AOMap;
+
+        bool m_UseAlbedoMap;
+        bool m_UseNormalMap;
+        bool m_UseMetallicMap;
+        bool m_UseRoughnessMap;
+        bool m_UseAOMap;
+
     public:
         MBasicPbr(const std::string& name) :
             MMaterial(name), m_Albedo(1.0f), m_Metallic(0.0f), m_Roughness(0.0f), m_AO(1.0f)
-        {}
+        {
+            m_UseAlbedoMap    = false;
+            m_UseNormalMap    = false;
+            m_UseMetallicMap  = false;
+            m_UseRoughnessMap = false;
+            m_UseAOMap        = false;
+        }
+
+        MBasicPbr(const std::string& name, const std::string& folderName) :
+            MMaterial(name), m_Albedo(1.0f), m_Metallic(0.0f), m_Roughness(0.0f), m_AO(1.0f)
+        {
+            m_AlbedoMap    = Texture2D::Create("Assert/Material/" + folderName + "/" + folderName + "_albedo.png");
+            m_NormalMap    = Texture2D::Create("Assert/Material/" + folderName + "/" + folderName + "_normal.png");
+            m_MetallicMap  = Texture2D::Create("Assert/Material/" + folderName + "/" + folderName + "_metallic.png");
+            m_RoughnessMap = Texture2D::Create("Assert/Material/" + folderName + "/" + folderName + "_roughness.png");
+            m_AOMap        = Texture2D::Create("Assert/Material/" + folderName + "/" + folderName + "_ao.png");
+
+            m_UseAlbedoMap    = true;
+            m_UseNormalMap    = true;
+            m_UseMetallicMap  = true;
+            m_UseRoughnessMap = true;
+            m_UseAOMap        = true;
+        }
+
         ~MBasicPbr() = default;
+
+        void Bind(const Ref<Shader> shader)
+        {
+            Renderer::SetShaderUniform(shader, "in_albedo", m_Albedo);
+            Renderer::SetShaderUniform(shader, "in_roughness", m_Roughness);
+            Renderer::SetShaderUniform(shader, "in_metallic", m_Metallic);
+            Renderer::SetShaderUniform(shader, "in_ao", m_AO);
+
+            Renderer::SetShaderUniform(shader, "albedoMap", 0);
+            Renderer::SetShaderUniform(shader, "normalMap", 1);
+            Renderer::SetShaderUniform(shader, "metallicMap", 2);
+            Renderer::SetShaderUniform(shader, "roughnessMap", 3);
+            Renderer::SetShaderUniform(shader, "aoMap", 4);
+
+            Renderer::SetShaderUniform(shader, "irradianceMap", 5);
+            Renderer::SetShaderUniform(shader, "prefilterMap", 6);
+            Renderer::SetShaderUniform(shader, "brdfLUT", 7);
+
+            Renderer::SetShaderUniform(shader, "useAlbedoMap", m_UseAlbedoMap);
+            Renderer::SetShaderUniform(shader, "useNormalMap", m_UseNormalMap);
+            Renderer::SetShaderUniform(shader, "useMetallicMap", m_UseMetallicMap);
+            Renderer::SetShaderUniform(shader, "useRoughnessMap", m_UseRoughnessMap);
+            Renderer::SetShaderUniform(shader, "useAOMap", m_UseAOMap);
+
+            if (m_UseAlbedoMap == true)
+            {
+                m_AlbedoMap->Bind(0);
+            }
+            if (m_UseNormalMap == true)
+            {
+                m_NormalMap->Bind(1);
+            }
+            if (m_UseMetallicMap == true)
+            {
+                m_MetallicMap->Bind(2);
+            }
+            if (m_UseRoughnessMap == true)
+            {
+                m_RoughnessMap->Bind(3);
+            }
+            if (m_UseAOMap == true)
+            {
+                m_AOMap->Bind(4);
+            }
+        }
+
+        void UnBind(const Ref<Shader> shader)
+        {
+            if (m_UseAOMap == true)
+            {
+                m_AOMap->UnBind(4);
+            }
+            if (m_UseRoughnessMap == true)
+            {
+                m_RoughnessMap->UnBind(3);
+            }
+            if (m_UseMetallicMap == true)
+            {
+                m_MetallicMap->UnBind(2);
+            }
+            if (m_UseNormalMap == true)
+            {
+                m_NormalMap->UnBind(1);
+            }
+            if (m_UseAlbedoMap == true)
+            {
+                m_AlbedoMap->UnBind(0);
+            }
+        }
 
         void SetAlbedo(const glm::vec3& albedo) { m_Albedo = albedo; }
         void SetMetallic(const float metallic) { m_Metallic = metallic; }

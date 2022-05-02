@@ -6,6 +6,8 @@ in vec3 TexCoords;
 uniform samplerCube environmentMap;
 uniform float exposure;
 
+uniform float mipLevel = 0.0f;
+
 vec3 acesFilm(const vec3 hdr_color, const float exposure) {
     const float A = 2.51f;
     const float B = 0.03f;
@@ -21,7 +23,7 @@ vec3 acesFilm(const vec3 hdr_color, const float exposure) {
 
 void main()
 {
-    vec3 envColor = texture(environmentMap, TexCoords).rgb;
+    vec3 envColor = texture(environmentMap, TexCoords, mipLevel).rgb;
 
     vec3 mapped = acesFilm(envColor, exposure);
 

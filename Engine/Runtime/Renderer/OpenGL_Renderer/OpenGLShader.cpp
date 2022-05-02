@@ -128,7 +128,7 @@ namespace Engine
             glDeleteShader(vertexShader);
 
             // Use the infoLog as you see fit.
-            Log::Core_Error("{0}", infoLog.data());
+            Log::Core_Error("\n{0}", infoLog.data());
             Log::Core_Error("Vertex shader compilation failed.");
 
             // In this simple program, we'll just leave
@@ -162,7 +162,7 @@ namespace Engine
             glDeleteShader(vertexShader);
 
             // Use the infoLog as you see fit.
-            Log::Core_Error("{0}", infoLog.data());
+            Log::Core_Error("\n{0}", infoLog.data());
             Log::Core_Error("Fragment shader compilation failed.");
 
             // In this simple program, we'll just leave
@@ -201,7 +201,7 @@ namespace Engine
             glDeleteShader(fragmentShader);
 
             // Use the infoLog as you see fit.
-            Log::Core_Error("{0}", infoLog.data());
+            Log::Core_Error("\n{0}", infoLog.data());
             Log::Core_Error("Shader Link failed.");
 
             // In this simple program, we'll just leave

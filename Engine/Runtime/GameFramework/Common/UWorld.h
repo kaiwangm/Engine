@@ -33,6 +33,7 @@ namespace Engine
         glm::mat4 m_VPMatrix;
 
         float m_Exposure = 1.0f;
+        float m_VisPrePrefilterMipLevel = 0.0f;
 
     public:
         UWorld();

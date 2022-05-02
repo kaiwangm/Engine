@@ -6,10 +6,10 @@
 
 // renderCube() renders a 1x1 3D cube in NDC.
 // -------------------------------------------------
-void renderCube()
+unsigned int cubeVAO = 0;
+unsigned int cubeVBO = 0;
+void         renderCube()
 {
-    unsigned int cubeVAO = 0;
-    unsigned int cubeVBO = 0;
     // initialize (if necessary)
     if (cubeVAO == 0)
     {
@@ -82,6 +82,37 @@ void renderCube()
     glBindVertexArray(0);
 }
 
+// renderQuad() renders a 1x1 XY quad in NDC
+// -----------------------------------------
+unsigned int quadVAO = 0;
+unsigned int quadVBO;
+void         renderQuad()
+{
+    if (quadVAO == 0)
+    {
+        float quadVertices[] = {
+            // positions        // texture Coords
+            -1.0f, 1.0f,  0.0f, 0.0f, 1.0f, //
+            -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, //
+            1.0f,  1.0f,  0.0f, 1.0f, 1.0f, //
+            1.0f,  -1.0f, 0.0f, 1.0f, 0.0f, //
+        };
+        // setup plane VAO
+        glGenVertexArrays(1, &quadVAO);
+        glGenBuffers(1, &quadVBO);
+        glBindVertexArray(quadVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    }
+    glBindVertexArray(quadVAO);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
+}
+
 namespace Engine
 {
     OpenGLTexture2D::OpenGLTexture2D() { glCreateTextures(GL_TEXTURE_2D, 1, &m_TextureID); }
@@ -109,6 +140,16 @@ namespace Engine
         {
             internalFormate = GL_RGB8;
             dataFormate     = GL_RGB;
+        }
+        else if (m_Channels == 2)
+        {
+            internalFormate = GL_RG8;
+            dataFormate     = GL_RG;
+        }
+        else if (m_Channels == 1)
+        {
+            internalFormate = GL_R8;
+            dataFormate     = GL_RED;
         }
 
         glCreateTextures(GL_TEXTURE_2D, 1, &m_TextureID);
@@ -145,7 +186,6 @@ namespace Engine
     OpenGLCubeMap::OpenGLCubeMap(const std::string& path) : m_Path(path)
     {
 
-        //截取 path 最后 4 个字符
         std::string suffix;
         if (path.size() >= 4)
         {
@@ -156,7 +196,7 @@ namespace Engine
             // Load img
             stbi_set_flip_vertically_on_load(true);
             int    width, height, channels;
-            float* data = stbi_loadf(path.c_str(), &width, &height, &channels, 0);
+            float* data = stbi_loadf(path.c_str(), &width, &height, &channels, STBI_default);
             GLuint hdrTexture;
             if (data)
             {
@@ -173,6 +213,8 @@ namespace Engine
                 glBindTexture(GL_TEXTURE_2D, 0);
             }
             stbi_set_flip_vertically_on_load(false);
+
+            // glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
             GLuint captureFBO, captureRBO;
             glGenFramebuffers(1, &captureFBO);
@@ -204,7 +246,7 @@ namespace Engine
             glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
             glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
             Ref<Shader> hdrtocubemap = Shader::Create("hdrtocubemap",
@@ -230,6 +272,9 @@ namespace Engine
 
                 renderCube();
             }
+
+            glBindTexture(GL_TEXTURE_CUBE_MAP, m_CubeMap);
+            glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 
             glBindRenderbuffer(GL_RENDERBUFFER, 0);
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -288,7 +333,84 @@ namespace Engine
             glBindTexture(GL_TEXTURE_2D, 0);
             glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
-            // m_CubeMap = m_Irradiance;
+            // Prefilter Map
+
+            glGenTextures(1, &m_Prefilter);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, m_Prefilter);
+            for (unsigned int i = 0; i < 6; ++i)
+            {
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, 128, 128, 0, GL_RGB, GL_FLOAT, nullptr);
+            }
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+            glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+
+            Ref<Shader> prefilter = Shader::Create(
+                "prefilter", "Assert/Shader/vertex_hdrtocubemap.glsl", "Assert/Shader/fragment_prefilter.glsl", "Path");
+            // convert HDR equirectangular environment map to cubemap equivalent
+            prefilter->Bind();
+            prefilter->SetInt("environmentMap", 0);
+            prefilter->SetMat4("projection", captureProjection);
+
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, m_CubeMap);
+
+            glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+            unsigned int maxMipLevels = 8;
+            for (unsigned int mip = 0; mip < maxMipLevels; ++mip)
+            {
+                // reisze framebuffer according to mip-level size.
+                unsigned int mipWidth  = static_cast<unsigned int>(128 * std::pow(0.5, mip));
+                unsigned int mipHeight = static_cast<unsigned int>(128 * std::pow(0.5, mip));
+                glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
+                glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight);
+                glViewport(0, 0, mipWidth, mipHeight);
+
+                float roughness = (float)mip / (float)(maxMipLevels - 1);
+                prefilter->SetFloat("roughness", roughness);
+                for (unsigned int i = 0; i < 6; ++i)
+                {
+                    prefilter->SetMat4("view", captureViews[i]);
+                    glFramebufferTexture2D(
+                        GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_Prefilter, mip);
+
+                    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                    renderCube();
+                }
+            }
+
+            glBindRenderbuffer(GL_RENDERBUFFER, 0);
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+            prefilter->UnBind();
+
+            glBindTexture(GL_TEXTURE_2D, 0);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
+            // pbr: generate a 2D LUT from the BRDF equations used.
+            // ----------------------------------------------------
+
+            // load texture data from file
+            int      lut_width, lut_height, lut_nrComponents;
+            stbi_uc* lut_data =
+                stbi_load("Assert/Texture/ibl_brdf_lut.png", &lut_width, &lut_height, &lut_nrComponents, STBI_default);
+
+            glGenTextures(1, &m_BrdfLut);
+            glBindTexture(GL_TEXTURE_2D, m_BrdfLut);
+            glTextureStorage2D(m_BrdfLut, 1, GL_RGB8, lut_width, lut_height);
+
+            glTextureParameteri(m_BrdfLut, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTextureParameteri(m_BrdfLut, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+            glTextureSubImage2D(m_BrdfLut, 0, 0, 0, lut_width, lut_height, GL_RGB, GL_UNSIGNED_BYTE, lut_data);
+
+            stbi_image_free(lut_data);
+
+            glBindTexture(GL_TEXTURE_2D, 0);
         }
         else
         {
@@ -331,10 +453,18 @@ namespace Engine
 
     void OpenGLCubeMap::UnBind(const uint32_t& slot) const { glBindTextureUnit(slot, 0); }
 
-    void OpenGLCubeMap::BindIrradianceTexture(const uint32_t& slot) const { glBindTextureUnit(slot, m_Irradiance); }
-
     void* OpenGLCubeMap::GetTextureID() const { return (void*)(uint64_t)m_CubeMap; }
 
+    void OpenGLCubeMap::BindIrradianceTexture(const uint32_t& slot) const { glBindTextureUnit(slot, m_Irradiance); }
+
+    void OpenGLCubeMap::BindPrefilterTexture(const uint32_t& slot) const { glBindTextureUnit(slot, m_Prefilter); }
+
+    void OpenGLCubeMap::BindBrdfLutTexture(const uint32_t& slot) const { glBindTextureUnit(slot, m_BrdfLut); }
+
     void* OpenGLCubeMap::GetIrradianceTextureID() const { return (void*)(uint64_t)m_Irradiance; }
+
+    void* OpenGLCubeMap::GetPrefilterTextureID() const { return (void*)(uint64_t)m_Prefilter; }
+
+    void* OpenGLCubeMap::GetBrdfLutTextureID() const { return (void*)(uint64_t)m_BrdfLut; }
 
 } // namespace Engine
