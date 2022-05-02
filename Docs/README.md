@@ -13,7 +13,8 @@
 - 2022-03-15 ✨ Entt.
 - 2022-03-20 ✨ Animation System.
 - 2022-04-23 ✨ Skybox.
-- 2022-05-01 ✨ Basic PBR : Basic Light, Diffuse irradiance
+- 2022-05-01 ✨ Basic PBR : Basic Light, Diffuse IBL
+- 2022-05-01 ✨ Basic PBR : Specular IBL
 - ......
 
 <!--
