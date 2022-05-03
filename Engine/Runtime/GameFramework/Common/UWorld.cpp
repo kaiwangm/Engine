@@ -24,7 +24,7 @@ namespace Engine
         m_FrameRenderBuffer_normal = FrameRenderBuffer::Create();
     }
 
-    void UWorld::TickLogic(float timeStep, float nowTime, bool handleInput)
+    void UWorld::TickLogic(float timeStep, float nowTime)
     {
         // Render
         float m_CameraTranslationSpeed      = 7.0;
@@ -44,72 +44,73 @@ namespace Engine
         // use a range-for
         for (auto [entity, name, trans, camera] : camrea_view.each())
         {
+            // Log::Info("{0}", camera.GetCamera().m_IsWindowFocused);
             if (camera.GetCamera().m_IsWindowFocused)
             {
-                if (handleInput)
+                const glm::vec3 front =
+                    -glm::normalize(glm::rotate(glm::quat(trans.GetRotation()), glm::vec3(0.0f, 0.0f, 1.0f)));
+                const glm::vec3 right =
+                    glm::normalize(glm::rotate(glm::quat(trans.GetRotation()), glm::vec3(1.0f, 0.0f, 0.0f)));
+                const glm::vec3 up(0.0f, 1.0f, 0.0f);
+
+                if (Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_2))
                 {
-                    const glm::vec3 front =
-                        -glm::normalize(glm::rotate(glm::quat(trans.GetRotation()), glm::vec3(0.0f, 0.0f, 1.0f)));
-                    const glm::vec3 right =
-                        glm::normalize(glm::rotate(glm::quat(trans.GetRotation()), glm::vec3(1.0f, 0.0f, 0.0f)));
-                    const glm::vec3 up(0.0f, 1.0f, 0.0f);
+                    // imgui lock mouse
+                    // ImGui::GetIO().WantCaptureMouse = true;
+                    // ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NoMouse;
 
-                    if (Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_2))
+                    ImGui::SetMouseCursor(ImGuiMouseCursor_None);
+
+                    if (Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_1))
                     {
-                        // io.ConfigFlags |= ImGuiConfigFlags_NoMouse;
-                        ImGui::SetMouseCursor(ImGuiMouseCursor_None);
+                        auto newPosition = trans.GetPosition();
+                        newPosition -= deltaY * glm::normalize(glm::vec3(0.0f, 1.0f, 0.0f)) *
+                                       m_CameraTranslationSpeedMouse * timeStep;
+                        newPosition += deltaX * glm::normalize(glm::vec3(right[0], 0.0f, right[2])) *
+                                       m_CameraTranslationSpeedMouse * timeStep;
 
-                        if (Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_1))
-                        {
-                            auto newPosition = trans.GetPosition();
-                            newPosition -= deltaY * glm::normalize(glm::vec3(0.0f, 1.0f, 0.0f)) *
-                                           m_CameraTranslationSpeedMouse * timeStep;
-                            newPosition += deltaX * glm::normalize(glm::vec3(right[0], 0.0f, right[2])) *
-                                           m_CameraTranslationSpeedMouse * timeStep;
-
-                            trans.SetPosition(newPosition);
-                        }
-                        else
-                        {
-                            auto newRotation = trans.GetRotation();
-
-                            newRotation.y -= deltaX * m_CameraRotationSpeed * timeStep;
-                            newRotation.x -= deltaY * m_CameraRotationSpeed * timeStep;
-
-                            trans.SetRotation(newRotation);
-                        }
-                    }
-
-                    if (Input::IsKeyPressed(GLFW_KEY_A))
-                    {
-                        auto newPosition = trans.GetPosition() - right * m_CameraTranslationSpeed * timeStep;
                         trans.SetPosition(newPosition);
                     }
-                    if (Input::IsKeyPressed(GLFW_KEY_D))
+                    else
                     {
-                        auto newPosition = trans.GetPosition() + right * m_CameraTranslationSpeed * timeStep;
-                        trans.SetPosition(newPosition);
+                        auto newRotation = trans.GetRotation();
+
+                        newRotation.y -= deltaX * m_CameraRotationSpeed * timeStep;
+                        newRotation.x -= deltaY * m_CameraRotationSpeed * timeStep;
+
+                        trans.SetRotation(newRotation);
                     }
-                    if (Input::IsKeyPressed(GLFW_KEY_LEFT_CONTROL))
-                    {
-                        auto newPosition = trans.GetPosition() - up * m_CameraTranslationSpeed * timeStep;
-                        trans.SetPosition(newPosition);
-                    }
-                    if (Input::IsKeyPressed(GLFW_KEY_SPACE))
-                    {
-                        auto newPosition = trans.GetPosition() + up * m_CameraTranslationSpeed * timeStep;
-                        trans.SetPosition(newPosition);
-                    }
-                    if (Input::IsKeyPressed(GLFW_KEY_W))
-                    {
-                        auto newPosition = trans.GetPosition() + front * m_CameraTranslationSpeed * timeStep;
-                        trans.SetPosition(newPosition);
-                    }
-                    if (Input::IsKeyPressed(GLFW_KEY_S))
-                    {
-                        auto newPosition = trans.GetPosition() - front * m_CameraTranslationSpeed * timeStep;
-                        trans.SetPosition(newPosition);
-                    }
+                }
+
+                if (Input::IsKeyPressed(GLFW_KEY_A))
+                {
+                    auto newPosition = trans.GetPosition() - right * m_CameraTranslationSpeed * timeStep;
+                    trans.SetPosition(newPosition);
+                }
+                if (Input::IsKeyPressed(GLFW_KEY_D))
+                {
+                    auto newPosition = trans.GetPosition() + right * m_CameraTranslationSpeed * timeStep;
+                    trans.SetPosition(newPosition);
+                }
+                if (Input::IsKeyPressed(GLFW_KEY_LEFT_CONTROL))
+                {
+                    auto newPosition = trans.GetPosition() - up * m_CameraTranslationSpeed * timeStep;
+                    trans.SetPosition(newPosition);
+                }
+                if (Input::IsKeyPressed(GLFW_KEY_SPACE))
+                {
+                    auto newPosition = trans.GetPosition() + up * m_CameraTranslationSpeed * timeStep;
+                    trans.SetPosition(newPosition);
+                }
+                if (Input::IsKeyPressed(GLFW_KEY_W))
+                {
+                    auto newPosition = trans.GetPosition() + front * m_CameraTranslationSpeed * timeStep;
+                    trans.SetPosition(newPosition);
+                }
+                if (Input::IsKeyPressed(GLFW_KEY_S))
+                {
+                    auto newPosition = trans.GetPosition() - front * m_CameraTranslationSpeed * timeStep;
+                    trans.SetPosition(newPosition);
                 }
             }
         }

@@ -32,7 +32,7 @@ namespace Engine
         glm::mat4 m_PMatrix;
         glm::mat4 m_VPMatrix;
 
-        float m_Exposure = 1.0f;
+        float m_Exposure                = 1.0f;
         float m_VisPrePrefilterMipLevel = 0.0f;
 
     public:
@@ -63,7 +63,7 @@ namespace Engine
             m_ShaderLibrary.Load(name, vertexSrc, fragmentSrc, mode);
         }
 
-        void TickLogic(float timeStep, float nowTime, bool handleInput);
+        void TickLogic(float timeStep, float nowTime);
         void TickRender(float timeStep);
         void TickGui(float timeStep);
     };

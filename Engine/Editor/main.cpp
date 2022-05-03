@@ -6,7 +6,7 @@ namespace Engine
     class EditorLayer : public Layer
     {
     public:
-        EditorLayer() : Layer("EditorLayer"), m_IsWindowFocused(false)
+        EditorLayer() : Layer("EditorLayer")
         {
             m_World = std::make_shared<UWorld>();
             m_World->AddActor<AActor>("Actor");
@@ -125,10 +125,7 @@ namespace Engine
 
         void OnEvent(Event& event) override { m_Camera->OnEvent(event); }
 
-        void TickLogic() override
-        {
-            m_World->TickLogic(m_LayerUpdateMeta.m_timeStep, m_LayerUpdateMeta.m_nowTime, m_IsWindowFocused);
-        }
+        void TickLogic() override { m_World->TickLogic(m_LayerUpdateMeta.m_timeStep, m_LayerUpdateMeta.m_nowTime); }
 
         void TickRender() override { m_World->TickRender(m_LayerUpdateMeta.m_timeStep); }
 
@@ -155,7 +152,7 @@ namespace Engine
             bool is_normal_focused = false;
             Gui::ShowViewport("ViewPort :: Normal", m_World->m_FrameRenderBuffer_normal, false, is_normal_focused);
 
-            m_IsWindowFocused = is_color_focused | is_normal_focused;
+            m_Camera->m_IsWindowFocused = is_color_focused | is_normal_focused;
 
             ImGui::ShowExampleAppLog(NULL);
         }
@@ -163,8 +160,6 @@ namespace Engine
     private:
         Ref<Camera> m_Camera;
         Ref<UWorld> m_World;
-
-        bool m_IsWindowFocused;
     };
 
     class EngineEditor : public Application
