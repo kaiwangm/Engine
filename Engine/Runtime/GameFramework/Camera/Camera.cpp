@@ -6,7 +6,7 @@
 
 namespace Engine
 {
-    Camera::Camera() : m_ProjectionMatrix(1.0f), m_ViewMatrix(1.0f)
+    Camera::Camera() : m_ProjectionMatrix(1.0f), m_ViewMatrix(1.0f), m_IsWindowFocused(false)
     {
         m_ViewProjectMatrix = m_ProjectionMatrix * m_ViewMatrix;
     }
