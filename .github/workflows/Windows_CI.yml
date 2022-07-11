@@ -30,7 +30,7 @@ jobs:
             cuda_arch: 86
           - os: windows-latest
             visual_studio: "Visual Studio 17 2022"
-            toolset: "14.31"
+            toolset: "14.32"
             arch: x64
             cuda: "11.3.0"
             cuda_arch: 86
