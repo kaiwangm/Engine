@@ -15,6 +15,8 @@
 
 #include "GameFramework/Animation/AAnimatedMesh.h"
 #include "GameFramework/StaticMesh/AStaticMesh.h"
+#include "GameFramework/StaticMesh/APointCloud.h"
+
 #include "GameFramework/Camera/ACamera.h"
 
 #include "GameFramework/Skybox/ASkybox.h"

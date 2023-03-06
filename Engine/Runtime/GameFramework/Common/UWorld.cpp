@@ -10,6 +10,7 @@
 #include "UComponent.h"
 #include "../Camera/UCameraComponent.h"
 #include "../StaticMesh/AStaticMesh.h"
+#include "../StaticMesh/APointCloud.h"
 #include "../Animation/UAnimatedMeshComponent.h"
 #include "../Skybox/ASkybox.h"
 #include "../Camera/ACamera.h"
@@ -122,11 +123,12 @@ namespace Engine
     void UWorld::TickRender(float timeStep)
     {
 
-        auto camrea_view   = m_Registry.view<UTagComponent, UTransformComponent, UCameraComponent>();
-        auto model_view    = m_Registry.view<UTagComponent, UTransformComponent, UStaticMeshComponent>();
-        auto animated_view = m_Registry.view<UTagComponent, UTransformComponent, UAnimatedMeshComponent>();
-        auto light_view    = m_Registry.view<UTagComponent, UTransformComponent, UPointLightComponent>();
-        auto skybox_view   = m_Registry.view<UTagComponent, UTransformComponent, USkyboxComponent>();
+        auto camrea_view     = m_Registry.view<UTagComponent, UTransformComponent, UCameraComponent>();
+        auto model_view      = m_Registry.view<UTagComponent, UTransformComponent, UStaticMeshComponent>();
+        auto pointcloud_view = m_Registry.view<UTagComponent, UTransformComponent, UPointCloudComponent>();
+        auto animated_view   = m_Registry.view<UTagComponent, UTransformComponent, UAnimatedMeshComponent>();
+        auto light_view      = m_Registry.view<UTagComponent, UTransformComponent, UPointLightComponent>();
+        auto skybox_view     = m_Registry.view<UTagComponent, UTransformComponent, USkyboxComponent>();
 
         // Get Main Camera
         for (auto [entity, name, trans, camera] : camrea_view.each())
@@ -154,6 +156,17 @@ namespace Engine
 
         RenderCommand::SetClearColor(m_BackGroundColor);
         RenderCommand::Clear();
+
+        // Point Cloud
+        for (auto [entity, name, trans, pointcloud] : pointcloud_view.each())
+        {
+            auto shader = m_ShaderLibrary.Get("OctreeShader");
+            shader->Bind();
+
+            Renderer::DrawArray(pointcloud.GetPointCloud().m_VertexArray, shader, m_VPMatrix, trans.GetTransform());
+
+            shader->UnBind();
+        }
 
         // use a range-for
         for (auto [entity, name, trans, model] : model_view.each())
@@ -280,6 +293,7 @@ namespace Engine
 
         auto camrea_view      = m_Registry.view<UTagComponent, UTransformComponent, UCameraComponent>();
         auto staticmodel_view = m_Registry.view<UTagComponent, UTransformComponent, UStaticMeshComponent>();
+        auto pointcloud_view  = m_Registry.view<UTagComponent, UTransformComponent, UPointCloudComponent>();
         auto animated_view    = m_Registry.view<UTagComponent, UTransformComponent, UAnimatedMeshComponent>();
         auto light_view       = m_Registry.view<UTagComponent, UTransformComponent, UPointLightComponent>();
         auto skybox_view      = m_Registry.view<UTagComponent, UTransformComponent, USkyboxComponent>();
@@ -305,6 +319,25 @@ namespace Engine
                 Gui::SliderFloat("Metallic", material->GetMetallicRef(), 0.0f, 1.0f);
                 Gui::SliderFloat("Roughness", material->GetRoughnessRef(), 0.0f, 1.0f);
                 Gui::SliderFloat("AO", material->GetAORef(), 0.0f, 1.0f);
+
+                ImGui::TreePop();
+            }
+        }
+
+        // Point Cloud
+        for (auto [entity, name, trans, pointcloud] : pointcloud_view.each())
+        {
+            if (ImGui::TreeNode(name.GetString().c_str()))
+            {
+                APointCloud* pointCloud_actor = static_cast<APointCloud*>(pointcloud.GetOwner());
+
+                // Actor
+                Gui::DragFloat3("Position", trans.GetPositionRef(), 0.005f, -100.0f, 100.0f);
+                Gui::DragFloat3("Rotation", trans.GetRotationRef(), 0.005f, -100.0f, 100.0f);
+                Gui::DragFloat3("Scale", trans.GetScaleRef(), 0.005f, -100.0f, 100.0f);
+
+                // Line
+                ImGui::Separator();
 
                 ImGui::TreePop();
             }

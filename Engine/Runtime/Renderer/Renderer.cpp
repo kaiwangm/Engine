@@ -59,10 +59,13 @@ namespace Engine
         shader->UnBind();
     }
 
-    void Renderer::DrawArray(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader, const glm::mat4& transform)
+    void Renderer::DrawArray(const Ref<VertexArray>& vertexArray,
+                             const Ref<Shader>&      shader,
+                             const glm::mat4&        pvMatrix,
+                             const glm::mat4&        transform)
     {
         shader->Bind();
-        shader->SetMat4("u_ViewProjection", s_SceneData->ViewProjectionMatrix);
+        shader->SetMat4("u_ViewProjection", pvMatrix);
         shader->SetMat4("u_Transform", transform);
 
         vertexArray->Bind();
