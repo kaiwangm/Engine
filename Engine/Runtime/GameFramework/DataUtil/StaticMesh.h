@@ -24,4 +24,4 @@ namespace Engine
         std::vector<Ref<Texture2D>> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName);
         std::vector<Ref<Texture2D>> m_Textures;
     };
-} // namespace Engine
+}

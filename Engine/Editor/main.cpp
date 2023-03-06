@@ -22,6 +22,8 @@ namespace Engine
                 "Skybox", "Assert/Shader/vertex_skybox.glsl", "Assert/Shader/fragment_skybox.glsl", "Path");
             m_World->LoadShader(
                 "BasicPbr", "Assert/Shader/vertex_basicpbr.glsl", "Assert/Shader/fragment_basicpbr.glsl", "Path");
+            m_World->LoadShader(
+                "OctreeShader", "Assert/Shader/octree_vertex.glsl", "Assert/Shader/octree_fragment.glsl", "Path");
 
             m_Camera    = std::make_shared<PerspectiveCamera>(60.0f, 1.778f, 0.1f, 3000.0f * 8);
             auto camera = m_World->AddActor<ACamera>("main camera", m_Camera);
@@ -117,6 +119,10 @@ namespace Engine
 
             auto light3 = m_World->AddActor<APointLight>("point light_3");
             light3.GetTransformComponent().SetPosition(glm::vec3 {1.0f, 1.0f, 1.5f});
+
+            auto pointcloud = m_World->AddActor<APointCloud>("pointcloud", "Assert/Object/longdress/longdress_vox10_1300.ply");
+            pointcloud.GetTransformComponent().SetPosition(glm::vec3 {0.0f, 0.0f, 0.0f});
+            pointcloud.GetTransformComponent().SetScale(glm::vec3 {0.01f, 0.01f, 0.01f});
         }
 
         void OnAttach() override {}

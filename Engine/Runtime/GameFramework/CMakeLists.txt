@@ -5,6 +5,7 @@ add_library(
     DataUtil/Mesh.cpp
     DataUtil/StaticMesh.cpp
     DataUtil/Animation.cpp
+    DataUtil/PointCloud.cpp
     Common/UWorld.cpp
 )
 
