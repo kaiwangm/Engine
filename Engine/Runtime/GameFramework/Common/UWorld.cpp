@@ -21,8 +21,9 @@ namespace Engine
     UWorld::UWorld()
     {
         // Create Buffer
-        m_FrameRenderBuffer        = FrameRenderBuffer::Create();
-        m_FrameRenderBuffer_normal = FrameRenderBuffer::Create();
+        m_FrameRenderBuffer            = FrameRenderBuffer::Create();
+        m_FrameRenderBuffer_normal     = FrameRenderBuffer::Create();
+        m_FrameRenderBuffer_playground = FrameRenderBuffer::Create();
     }
 
     void UWorld::TickLogic(float timeStep, float nowTime)
@@ -172,52 +173,77 @@ namespace Engine
         for (auto [entity, name, trans, model] : model_view.each())
         {
             AStaticMesh* staticMesh_actor = static_cast<AStaticMesh*>(model.GetOwner());
-            MBasicPbr*   material         = static_cast<MBasicPbr*>(staticMesh_actor->GetMaterial());
+            MMaterial*   material         = static_cast<MMaterial*>(staticMesh_actor->GetMaterial());
 
-            auto shader = m_ShaderLibrary.Get("BasicPbr");
-            shader->Bind();
+            std::string materialType = material->GetMaterialType();
 
-            int ligth_num = 0;
-            // use a range-for
-            for (auto [entity, name, trans, light] : light_view.each())
+            if (materialType == "BasicPbr")
             {
-                if (ligth_num >= 4)
+                auto shader = m_ShaderLibrary.Get("BasicPbr");
+
+                shader->Bind();
+
+                int ligth_num = 0;
+                // use a range-for
+                for (auto [entity, name, trans, light] : light_view.each())
                 {
-                    break;
+                    if (ligth_num >= 4)
+                    {
+                        break;
+                    }
+
+                    Renderer::SetShaderUniform(
+                        shader, "lightPositions[" + std::to_string(ligth_num) + "]", trans.GetPosition());
+                    Renderer::SetShaderUniform(
+                        shader, "lightColors[" + std::to_string(ligth_num) + "]", light.GetColorRef());
+
+                    ligth_num++;
                 }
 
-                Renderer::SetShaderUniform(
-                    shader, "lightPositions[" + std::to_string(ligth_num) + "]", trans.GetPosition());
-                Renderer::SetShaderUniform(
-                    shader, "lightColors[" + std::to_string(ligth_num) + "]", light.GetColorRef());
+                Renderer::SetShaderUniform(shader, "camPos", m_MainCamera->GetTransformComponent().GetPosition());
 
-                ligth_num++;
+                const auto meshes = model.GetStaticMesh().m_Meshes;
+
+                for (const auto& mesh : meshes)
+                {
+                    material->Bind(shader);
+
+                    auto sky_cubeMap = m_MainSkybox->GetSkyboxComponent().GetCubeMap();
+
+                    sky_cubeMap->BindIrradianceTexture(5);
+                    sky_cubeMap->BindPrefilterTexture(6);
+                    sky_cubeMap->BindBrdfLutTexture(7);
+
+                    Renderer::Submit(mesh.m_VertexArray, shader, m_VPMatrix, trans.GetTransform());
+
+                    sky_cubeMap->UnBind(7);
+                    sky_cubeMap->UnBind(6);
+                    sky_cubeMap->UnBind(5);
+
+                    material->UnBind(shader);
+                }
+
+                shader->UnBind();
             }
-
-            Renderer::SetShaderUniform(shader, "camPos", m_MainCamera->GetTransformComponent().GetPosition());
-
-            const auto meshes = model.GetStaticMesh().m_Meshes;
-
-            for (const auto& mesh : meshes)
+            else if (materialType == "TriangleShader")
             {
-                material->Bind(shader);
+                auto shader = m_ShaderLibrary.Get("TriangleShader");
 
-                auto sky_cubeMap = m_MainSkybox->GetSkyboxComponent().GetCubeMap();
+                shader->Bind();
 
-                sky_cubeMap->BindIrradianceTexture(5);
-                sky_cubeMap->BindPrefilterTexture(6);
-                sky_cubeMap->BindBrdfLutTexture(7);
+                const auto meshes = model.GetStaticMesh().m_Meshes;
 
-                Renderer::Submit(mesh.m_VertexArray, shader, m_VPMatrix, trans.GetTransform());
+                for (const auto& mesh : meshes)
+                {
+                    material->Bind(shader);
 
-                sky_cubeMap->UnBind(7);
-                sky_cubeMap->UnBind(6);
-                sky_cubeMap->UnBind(5);
+                    Renderer::Submit(mesh.m_VertexArray, shader, m_VPMatrix, trans.GetTransform());
 
-                material->UnBind(shader);
+                    material->UnBind(shader);
+                }
+
+                shader->UnBind();
             }
-
-            shader->UnBind();
         }
 
         // use a range-for
@@ -277,6 +303,22 @@ namespace Engine
         }
 
         Renderer::EndScene(m_FrameRenderBuffer_normal);
+
+        // Render
+        m_MainCamera->GetCameraComponent().GetCamera().SetViewPort(m_FrameRenderBuffer_playground->GetWidth(),
+                                                                   m_FrameRenderBuffer_playground->GetHeight());
+        m_MainCamera->GetCameraComponent().GetCamera().RecalculateViewProjectMatrix();
+        m_VPMatrix = m_MainCamera->GetCameraComponent().GetCamera().GetViewProjectMatrix() *
+                     glm::inverse(m_MainCamera->GetTransformComponent().GetTransform());
+
+        m_FrameRenderBuffer_playground->Bind();
+        RenderCommand::SetViewPort(
+            0, 0, m_FrameRenderBuffer_playground->GetWidth(), m_FrameRenderBuffer_playground->GetHeight());
+
+        RenderCommand::SetClearColor(m_BackGroundColor);
+        RenderCommand::Clear();
+
+        Renderer::EndScene(m_FrameRenderBuffer_playground);
     }
 
     void UWorld::TickGui(float timeStep)
@@ -304,7 +346,7 @@ namespace Engine
             if (ImGui::TreeNode(name.GetString().c_str()))
             {
                 AStaticMesh* staticMesh_actor = static_cast<AStaticMesh*>(model.GetOwner());
-                MBasicPbr*   material         = static_cast<MBasicPbr*>(staticMesh_actor->GetMaterial());
+                MMaterial*   material         = static_cast<MMaterial*>(staticMesh_actor->GetMaterial());
 
                 // Actor
                 Gui::DragFloat3("Position", trans.GetPositionRef(), 0.005f, -100.0f, 100.0f);
@@ -315,10 +357,22 @@ namespace Engine
                 ImGui::Separator();
 
                 // Material
-                ImGui::ColorEdit3("Albedo", glm::value_ptr(material->GetAlbedoRef()));
-                Gui::SliderFloat("Metallic", material->GetMetallicRef(), 0.0f, 1.0f);
-                Gui::SliderFloat("Roughness", material->GetRoughnessRef(), 0.0f, 1.0f);
-                Gui::SliderFloat("AO", material->GetAORef(), 0.0f, 1.0f);
+                std::string materialType = material->GetMaterialType();
+                if (materialType == "BasicPbr")
+                {
+                    MBasicPbr* material_basicPbr = static_cast<MBasicPbr*>(material);
+                    ImGui::Text("Material Type: BasicPbr");
+                    ImGui::ColorEdit3("Albedo", glm::value_ptr(material_basicPbr->GetAlbedoRef()));
+                    Gui::SliderFloat("Metallic", material_basicPbr->GetMetallicRef(), 0.0f, 1.0f);
+                    Gui::SliderFloat("Roughness", material_basicPbr->GetRoughnessRef(), 0.0f, 1.0f);
+                    Gui::SliderFloat("AO", material_basicPbr->GetAORef(), 0.0f, 1.0f);
+                }
+                else if (materialType == "TriangleShader")
+                {
+                    MTriangleShader* material_triangleShader = static_cast<MTriangleShader*>(material);
+                    ImGui::Text("Material Type: TriangleShader");
+                    ImGui::ColorEdit3("Color", glm::value_ptr(material_triangleShader->GetColorRef()));
+                }
 
                 ImGui::TreePop();
             }

@@ -24,6 +24,8 @@ namespace Engine
                 "BasicPbr", "Assert/Shader/vertex_basicpbr.glsl", "Assert/Shader/fragment_basicpbr.glsl", "Path");
             m_World->LoadShader(
                 "OctreeShader", "Assert/Shader/octree_vertex.glsl", "Assert/Shader/octree_fragment.glsl", "Path");
+            m_World->LoadShader(
+                "TriangleShader", "Assert/Shader/triangle_vertex.glsl", "Assert/Shader/triangle_fragment.glsl", "Path");
 
             m_Camera    = std::make_shared<PerspectiveCamera>(60.0f, 1.778f, 0.1f, 3000.0f * 8);
             auto camera = m_World->AddActor<ACamera>("main camera", m_Camera);
@@ -44,6 +46,13 @@ namespace Engine
             // animan.GetTransformComponent().SetPosition(glm::vec3 {1.655f, 0.685f, 0.120f});
             // animan.GetTransformComponent().SetRotation(glm::vec3 {-1.330f, 0.000f, 0.000f});
             // animan.GetTransformComponent().SetScale(glm::vec3 {0.300f, 0.300f, 0.300f});
+
+            auto red_triangle = m_World->AddActor<AStaticMesh>("red_triangle", //
+                                                               "Assert/Object/triangle/triangle.obj",
+                                                               "TriangleShader",
+                                                               "basic_red_triangle",
+                                                               "basic_red_triangle");
+            red_triangle.GetTransformComponent().SetPosition(glm::vec3 {0.0f, 6.0f, 0.0f});
 
             auto red_sphere = m_World->AddActor<AStaticMesh>("red_sphere", //
                                                              "Assert/Object/sphere/sphere.obj",
@@ -120,10 +129,10 @@ namespace Engine
             auto light3 = m_World->AddActor<APointLight>("point light_3");
             light3.GetTransformComponent().SetPosition(glm::vec3 {1.0f, 1.0f, 1.5f});
 
-            auto pointcloud =
-                m_World->AddActor<APointCloud>("pointcloud", "Assert/Object/longdress/longdress_vox10_1300.ply");
-            pointcloud.GetTransformComponent().SetPosition(glm::vec3 {0.0f, 0.0f, 0.0f});
-            pointcloud.GetTransformComponent().SetScale(glm::vec3 {0.01f, 0.01f, 0.01f});
+            // auto pointcloud =
+            //     m_World->AddActor<APointCloud>("pointcloud", "Assert/Object/longdress/longdress_vox10_1300.ply");
+            // pointcloud.GetTransformComponent().SetPosition(glm::vec3 {0.0f, 0.0f, 0.0f});
+            // pointcloud.GetTransformComponent().SetScale(glm::vec3 {0.01f, 0.01f, 0.01f});
         }
 
         void OnAttach() override {}
@@ -159,7 +168,11 @@ namespace Engine
             bool is_normal_focused = false;
             Gui::ShowViewport("ViewPort :: Normal", m_World->m_FrameRenderBuffer_normal, false, is_normal_focused);
 
-            m_Camera->m_IsWindowFocused = is_color_focused | is_normal_focused;
+            bool is_playground_focused = false;
+            Gui::ShowViewport(
+                "ViewPort :: Playground", m_World->m_FrameRenderBuffer_playground, false, is_playground_focused);
+
+            m_Camera->m_IsWindowFocused = is_color_focused | is_normal_focused | is_playground_focused;
 
             ImGui::ShowExampleAppLog(NULL);
         }

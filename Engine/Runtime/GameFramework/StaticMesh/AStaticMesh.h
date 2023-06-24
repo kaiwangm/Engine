@@ -2,6 +2,7 @@
 #include "UStaticMeshComponent.h"
 #include "../Common/AActor.h"
 #include "../Material/MBasicPbr.h"
+#include "../Material/MTriangleShader.h"
 
 namespace Engine
 {
@@ -25,7 +26,7 @@ namespace Engine
                     const std::string& path,
                     const std::string& materialMode,
                     const std::string& materialName,
-                    const std::string& materialFolderName) :
+                    const std::string& materialFolderName = "") :
             AActor(world, handle, name)
         {
             m_Mesh = m_World->RegisterComponents<UStaticMeshComponent>(m_EntityHandle, path);
@@ -38,6 +39,10 @@ namespace Engine
             else if (materialMode == "Texture")
             {
                 m_Material = std::make_shared<MBasicPbr>(materialName, materialFolderName);
+            }
+            else if (materialMode == "TriangleShader")
+            {
+                m_Material = std::make_shared<MTriangleShader>(materialName);
             }
         }
 

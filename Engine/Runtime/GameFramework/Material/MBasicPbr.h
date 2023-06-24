@@ -27,7 +27,7 @@ namespace Engine
 
     public:
         MBasicPbr(const std::string& name) :
-            MMaterial(name), m_Albedo(1.0f), m_Metallic(0.0f), m_Roughness(0.0f), m_AO(1.0f)
+            MMaterial(name, "BasicPbr"), m_Albedo(1.0f), m_Metallic(0.0f), m_Roughness(0.0f), m_AO(1.0f)
         {
             m_UseAlbedoMap    = false;
             m_UseNormalMap    = false;
@@ -37,7 +37,7 @@ namespace Engine
         }
 
         MBasicPbr(const std::string& name, const std::string& folderName) :
-            MMaterial(name), m_Albedo(1.0f), m_Metallic(0.0f), m_Roughness(0.0f), m_AO(1.0f)
+            MMaterial(name, "BasicPbr"), m_Albedo(1.0f), m_Metallic(0.0f), m_Roughness(0.0f), m_AO(1.0f)
         {
             m_AlbedoMap    = Texture2D::Create("Assert/Material/" + folderName + "/" + folderName + "_albedo.png");
             m_NormalMap    = Texture2D::Create("Assert/Material/" + folderName + "/" + folderName + "_normal.png");

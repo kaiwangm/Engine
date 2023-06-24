@@ -23,6 +23,8 @@ namespace Engine
     public:
         Ref<FrameRenderBuffer> m_FrameRenderBuffer;
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_normal;
+        Ref<FrameRenderBuffer> m_FrameRenderBuffer_playground;
+
         glm::vec4              m_BackGroundColor {0.7f, 0.7f, 0.7f, 1.0f};
 
         ACamera* m_MainCamera;
