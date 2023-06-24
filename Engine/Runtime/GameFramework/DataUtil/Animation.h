@@ -249,7 +249,7 @@ namespace Engine
                             {JointTransform(
                                  glm::vec3(posKey.mValue.x, posKey.mValue.y, posKey.mValue.z),
                                  glm::quat(rotKey.mValue.w, rotKey.mValue.x, rotKey.mValue.y, rotKey.mValue.z)),
-                             posKey.mTime});
+                             (float)posKey.mTime});
                     }
                 }
 
