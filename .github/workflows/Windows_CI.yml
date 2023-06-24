@@ -51,7 +51,7 @@ jobs:
         if: runner.os == 'Windows'
         with:
           arch: ${{ matrix.arch }}
-          toolset: ${{ matrix.toolset }}
+          # toolset: ${{ matrix.toolset }}
 
       - name: Install CUDA
         env:
