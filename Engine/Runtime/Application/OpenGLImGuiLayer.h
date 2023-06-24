@@ -7,7 +7,7 @@ namespace Engine
     class OpenGLImGuiLayer : public ImGuiLayer
     {
     public:
-        OpenGLImGuiLayer(const std::string& name);
+        OpenGLImGuiLayer(const std::string& name, const std::string& basedir);
         virtual ~OpenGLImGuiLayer();
         virtual void OnAttach() override;
         virtual void OnDetach() override;
@@ -18,5 +18,9 @@ namespace Engine
 
     private:
         void SetDarkThemeColors();
+
+        std::string m_Basedir;
+        std::string m_InitFilePath;
+        std::string m_FontPath;
     };
 } // namespace Engine

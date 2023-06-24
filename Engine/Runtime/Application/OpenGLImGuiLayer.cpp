@@ -10,7 +10,11 @@
 
 namespace Engine
 {
-    OpenGLImGuiLayer::OpenGLImGuiLayer(const std::string& name) { m_LayerName = name; }
+    OpenGLImGuiLayer::OpenGLImGuiLayer(const std::string& name, const std::string& basedir = "")
+    {
+        m_LayerName = name;
+        m_Basedir   = basedir;
+    }
 
     OpenGLImGuiLayer::~OpenGLImGuiLayer() {}
 
@@ -29,6 +33,10 @@ namespace Engine
                                                             // Windows
         // io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
         // io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
+
+        m_InitFilePath = std::string(m_Basedir + "\\imgui.ini");
+        Log::Info("IniFilename: {0}", m_InitFilePath.c_str());
+        io.IniFilename = m_InitFilePath.c_str();
 
         // Setup Dear ImGui style
         ImGui::StyleColorsDark();
@@ -147,8 +155,10 @@ namespace Engine
         colors[ImGuiCol_ModalWindowDimBg]      = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
 
         ImGuiIO& io = ImGui::GetIO();
+        m_FontPath  = std::string(m_Basedir + "\\Assert\\Font\\pinghei.ttf");
+        Log::Info("Fonts: {0}", m_FontPath);
         io.Fonts->AddFontFromFileTTF(
-            "Assert/Font/pinghei.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
+            m_FontPath.c_str(), 18.0f, NULL, io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
 
         ImGui::GetStyle().FrameRounding = 4.0f;
         ImGui::GetStyle().GrabRounding  = 4.0f;

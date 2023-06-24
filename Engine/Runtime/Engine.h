@@ -28,11 +28,11 @@
 #ifdef ENGINE_USE_ENTRYPOINT
 namespace Engine {
 
-extern Scope<Application> CreateApplication();
+extern Scope<Application> CreateApplication(int argc, char** argv);
 }
 
 int main(int argc, char **argv) {
-    auto app = Engine::CreateApplication();
+    auto app = Engine::CreateApplication(argc, argv);
     app->Run();
 
     return 0;

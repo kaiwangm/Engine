@@ -8,7 +8,7 @@
 
 namespace Engine
 {
-    Ref<ImGuiLayer> ImGuiLayer::Create(const std::string& name)
+    Ref<ImGuiLayer> ImGuiLayer::Create(const std::string& name, const std::string& basedir = "")
     {
         switch (Renderer::GetAPI())
         {
@@ -17,7 +17,7 @@ namespace Engine
                 break;
 
             case RendererAPI::API::OpenGL:
-                return std::make_shared<OpenGLImGuiLayer>(name);
+                return std::make_shared<OpenGLImGuiLayer>(name, basedir);
                 break;
 
             default:
