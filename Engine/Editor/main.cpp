@@ -120,7 +120,8 @@ namespace Engine
             auto light3 = m_World->AddActor<APointLight>("point light_3");
             light3.GetTransformComponent().SetPosition(glm::vec3 {1.0f, 1.0f, 1.5f});
 
-            auto pointcloud = m_World->AddActor<APointCloud>("pointcloud", "Assert/Object/longdress/longdress_vox10_1300.ply");
+            auto pointcloud =
+                m_World->AddActor<APointCloud>("pointcloud", "Assert/Object/longdress/longdress_vox10_1300.ply");
             pointcloud.GetTransformComponent().SetPosition(glm::vec3 {0.0f, 0.0f, 0.0f});
             pointcloud.GetTransformComponent().SetScale(glm::vec3 {0.01f, 0.01f, 0.01f});
         }
@@ -171,7 +172,8 @@ namespace Engine
     class EngineEditor : public Application
     {
     public:
-        EngineEditor() : Application("EngineEditor", 2700, 1500)
+        EngineEditor(const std::string& basedir, const std::string& filepath) :
+            Application("EngineEditor", 2700, 1500, basedir)
         {
             Log::Info("EngineEditor Initialization.");
             PushLayer(std::make_shared<DockSpaceLayer>(m_Running));
@@ -182,5 +184,17 @@ namespace Engine
         ~EngineEditor() { Log::Trace("EngineEditor Shutdown."); }
     };
 
-    Scope<Application> CreateApplication() { return std::make_unique<EngineEditor>(); }
+    Scope<Application> CreateApplication(int argc, char** argv)
+    {
+        std::string basedir = argv[0];
+        basedir             = basedir.substr(0, basedir.find_last_of("\\/"));
+
+        std::string filepath;
+        if (argc >= 2)
+        {
+            filepath = argv[1];
+        }
+
+        return std::make_unique<EngineEditor>(basedir, filepath);
+    }
 } // namespace Engine

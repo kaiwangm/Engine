@@ -11,7 +11,7 @@ namespace Engine
     class Application
     {
     public:
-        Application(std::string appName, uint32_t windowWidth, uint32_t windowHeight);
+        Application(std::string appName, uint32_t windowWidth, uint32_t windowHeight, const std::string& basedir);
         virtual ~Application();
 
         void Run();

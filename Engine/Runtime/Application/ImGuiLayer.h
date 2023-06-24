@@ -13,6 +13,6 @@ namespace Engine
         virtual void Begin() = 0;
         virtual void End()   = 0;
 
-        static Ref<ImGuiLayer> Create(const std::string& name);
+        static Ref<ImGuiLayer> Create(const std::string& name, const std::string& basedir);
     };
 } // namespace Engine

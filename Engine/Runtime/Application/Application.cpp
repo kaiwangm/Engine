@@ -7,7 +7,7 @@ namespace Engine
 {
     Application* Application::s_Instance = nullptr;
 
-    Application::Application(std::string appName, uint32_t windowWidth, uint32_t windowHeight) :
+    Application::Application(std::string appName, uint32_t windowWidth, uint32_t windowHeight, const std::string& basedir) :
         m_Minimized(false), m_Running(true)
     {
         Log::Init();
@@ -20,7 +20,7 @@ namespace Engine
 
         Renderer::Init();
 
-        m_ImGuiLayer = ImGuiLayer::Create("ImGuiLayer");
+        m_ImGuiLayer = ImGuiLayer::Create("ImGuiLayer", basedir);
         PushOverlay(m_ImGuiLayer);
 
         Log::Core_Trace("Engine Initialization Success.");
