@@ -39,5 +39,6 @@ target_link_libraries(
     Engine 
     PUBLIC 
     glm::glm
-    EnTT::EnTT 
+    EnTT::EnTT
+    ozz-animation
 )
