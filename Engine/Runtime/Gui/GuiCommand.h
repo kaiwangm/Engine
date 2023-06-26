@@ -1,7 +1,5 @@
 #pragma once
 
-#include <imgui.h>
-
 #include "Core.h"
 #include "ImNodes/ImGuiNodes.h"
 #include "Renderer.h"
