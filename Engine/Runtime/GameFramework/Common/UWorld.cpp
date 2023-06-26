@@ -12,6 +12,7 @@
 #include "../StaticMesh/AStaticMesh.h"
 #include "../StaticMesh/APointCloud.h"
 #include "../Animation/UAnimatedMeshComponent.h"
+#include "../Animation/USkeletonComponent.h"
 #include "../Skybox/ASkybox.h"
 #include "../Camera/ACamera.h"
 #include "../Light/UPointLightComponent.h"
@@ -119,6 +120,14 @@ namespace Engine
 
         lastX = currentX;
         lastY = currentY;
+
+        // Update Skeleton
+        auto skeleton_view = m_Registry.view<UTagComponent, UTransformComponent, USkeletonComponent>();
+
+        for (auto [entity, name, trans, skeleton] : skeleton_view.each())
+        {
+            skeleton.Update(fmod(0.06 * nowTime, 1.0f));
+        }
     }
 
     void UWorld::TickRender(float timeStep)
@@ -130,6 +139,7 @@ namespace Engine
         auto animated_view   = m_Registry.view<UTagComponent, UTransformComponent, UAnimatedMeshComponent>();
         auto light_view      = m_Registry.view<UTagComponent, UTransformComponent, UPointLightComponent>();
         auto skybox_view     = m_Registry.view<UTagComponent, UTransformComponent, USkyboxComponent>();
+        auto skeleton_view = m_Registry.view<UTagComponent, UTransformComponent, USkeletonComponent>();
 
         // Get Main Camera
         for (auto [entity, name, trans, camera] : camrea_view.each())
@@ -245,6 +255,13 @@ namespace Engine
                 shader->UnBind();
             }
         }
+        
+        // draw skeleton
+        for (auto [entity, name, trans, skeleton] : skeleton_view.each())
+        {
+            auto shader = m_ShaderLibrary.Get("Skeleton");
+            skeleton.Draw(shader, m_VPMatrix, trans.GetTransform());
+        }
 
         // use a range-for
         for (auto [entity, name, trans, model] : animated_view.each())
@@ -339,6 +356,7 @@ namespace Engine
         auto animated_view    = m_Registry.view<UTagComponent, UTransformComponent, UAnimatedMeshComponent>();
         auto light_view       = m_Registry.view<UTagComponent, UTransformComponent, UPointLightComponent>();
         auto skybox_view      = m_Registry.view<UTagComponent, UTransformComponent, USkyboxComponent>();
+        auto skeleton_view = m_Registry.view<UTagComponent, UTransformComponent, USkeletonComponent>();
 
         // Static Model
         for (auto [entity, name, trans, model] : staticmodel_view.each())
@@ -441,6 +459,20 @@ namespace Engine
 
         // Camera
         for (auto [entity, name, trans, camera] : camrea_view.each())
+        {
+            if (ImGui::TreeNode(name.GetString().c_str()))
+            {
+                // Actor
+                Gui::DragFloat3("Position", trans.GetPositionRef(), 0.005f, -100.0f, 100.0f);
+                Gui::DragFloat3("Rotation", trans.GetRotationRef(), 0.005f, -100.0f, 100.0f);
+                Gui::DragFloat3("Scale", trans.GetScaleRef(), 0.005f, -100.0f, 100.0f);
+
+                ImGui::TreePop();
+            }
+        }
+        
+        // Skeleton
+        for (auto [entity, name, trans, skeleton] : skeleton_view.each())
         {
             if (ImGui::TreeNode(name.GetString().c_str()))
             {

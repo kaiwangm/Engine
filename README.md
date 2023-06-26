@@ -6,7 +6,7 @@
 
 My toy modern OpenGL game engine.
 
-![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/BasicPbr_Ac.png)
+![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/Skeleton.png)
 
 ## Getting Started
 

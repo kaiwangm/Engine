@@ -7,6 +7,7 @@ add_library(
     DataUtil/Animation.cpp
     DataUtil/PointCloud.cpp
     Common/UWorld.cpp
+    Animation/USkeletonComponent.cpp
 )
 
 target_link_libraries(
@@ -22,6 +23,7 @@ target_link_libraries(
     PRIVATE 
     EnTT::EnTT 
     assimp::assimp 
+    ozz-animation
 )
 
 target_include_directories(GameFramework INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})

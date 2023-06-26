@@ -11,6 +11,9 @@ namespace Engine
             m_World = std::make_shared<UWorld>();
             m_World->AddActor<AActor>("Actor");
 
+            auto skeleton = m_World->AddActor<ASkeleton>("Skeleton");
+            skeleton.GetTransformComponent().SetPosition(glm::vec3 {0.0f, 0.0f, 3.0f});
+
             m_World->LoadShader("TextureShader", "Assert/Shader/vertex.glsl", "Assert/Shader/fragment.glsl", "Path");
             m_World->LoadShader("TextureShader_normal",
                                 "Assert/Shader/vertex_normal.glsl",
@@ -26,6 +29,8 @@ namespace Engine
                 "OctreeShader", "Assert/Shader/octree_vertex.glsl", "Assert/Shader/octree_fragment.glsl", "Path");
             m_World->LoadShader(
                 "TriangleShader", "Assert/Shader/triangle_vertex.glsl", "Assert/Shader/triangle_fragment.glsl", "Path");
+            m_World->LoadShader(
+                "Skeleton", "Assert/Shader/skeleton_vertex.glsl", "Assert/Shader/skeleton_fragment.glsl", "Path");
 
             m_Camera    = std::make_shared<PerspectiveCamera>(60.0f, 1.778f, 0.1f, 3000.0f * 8);
             auto camera = m_World->AddActor<ACamera>("main camera", m_Camera);

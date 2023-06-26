@@ -12,10 +12,7 @@
 #endif
 */
 
-namespace Engines
-{
 #define BIND_EVENT(x) std::bind(&x, this, std::placeholders::_1)
-} // namespace Engines
 
 #include <functional>
 #include <cstdint>

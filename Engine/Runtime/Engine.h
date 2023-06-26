@@ -14,6 +14,8 @@
 #include "Utils/Octree.h"
 
 #include "GameFramework/Animation/AAnimatedMesh.h"
+#include "GameFramework/Animation/ASkeleton.h"
+
 #include "GameFramework/StaticMesh/AStaticMesh.h"
 #include "GameFramework/StaticMesh/APointCloud.h"
 
