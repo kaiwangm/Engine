@@ -1,6 +1,6 @@
 #pragma once
-#include "USkyboxComponent.h"
-#include "../Common/AActor.h"
+#include <Engine/Runtime/GameFramework/Skybox/USkyboxComponent.h>
+#include <Engine/Runtime/GameFramework/Common/AActor.h>
 
 namespace Engine
 {

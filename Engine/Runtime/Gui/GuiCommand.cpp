@@ -1,4 +1,4 @@
-#include "GuiCommand.h"
+#include <Engine/Runtime/Gui/GuiCommand.h>
 
 namespace Engine
 {

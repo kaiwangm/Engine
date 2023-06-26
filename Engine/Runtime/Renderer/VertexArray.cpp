@@ -1,8 +1,8 @@
-#include "VertexArray.h"
+#include <Engine/Runtime/Renderer/VertexArray.h>
 
-#include "Renderer.h"
+#include <Engine/Runtime/Renderer/Renderer.h>
 #ifdef ENGINE_PLATFORM_OPENGL
-#include "OpenGL_Renderer/OpenGLVertexArray.h"
+#include <Engine/Runtime/Renderer/OpenGL_Renderer/OpenGLVertexArray.h>
 #endif
 
 namespace Engine

@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Core.h"
-#include "Events/ApplicationEvent.h"
-#include "ImGuiLayer.h"
-#include "Layer/LayerStack.h"
-#include "Window.h"
+#include <Engine/Runtime/Core/Core.h>
+#include <Engine/Runtime/Core/Events/ApplicationEvent.h>
+#include <Engine/Runtime/Application/ImGuiLayer.h>
+#include <Engine/Runtime/Core/Layer/LayerStack.h>
+#include <Engine/Runtime/Application/Window.h>
 
 namespace Engine
 {

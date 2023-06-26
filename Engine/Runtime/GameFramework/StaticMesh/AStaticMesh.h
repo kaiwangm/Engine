@@ -1,8 +1,8 @@
 #pragma once
-#include "UStaticMeshComponent.h"
-#include "../Common/AActor.h"
-#include "../Material/MBasicPbr.h"
-#include "../Material/MTriangleShader.h"
+#include <Engine/Runtime/GameFramework/StaticMesh/UStaticMeshComponent.h>
+#include <Engine/Runtime/GameFramework/Common/AActor.h>
+#include <Engine/Runtime/GameFramework/Material/MBasicPbr.h>
+#include <Engine/Runtime/GameFramework/Material/MTriangleShader.h>
 
 namespace Engine
 {

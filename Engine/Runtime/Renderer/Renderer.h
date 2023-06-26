@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Core.h"
-#include "RenderCommand.h"
-#include "RendererAPI.h"
-#include "Shader.h"
-#include "Texture.h"
-#include "VertexArray.h"
+#include <Engine/Runtime/Core/Core.h>
+#include <Engine/Runtime/Renderer/RenderCommand.h>
+#include <Engine/Runtime/Renderer/RendererAPI.h>
+#include <Engine/Runtime/Renderer/Shader.h>
+#include <Engine/Runtime/Renderer/Texture.h>
+#include <Engine/Runtime/Renderer/VertexArray.h>
 
 namespace Engine
 {

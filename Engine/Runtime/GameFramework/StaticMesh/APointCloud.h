@@ -1,6 +1,6 @@
 #pragma once
-#include "UPointCloudComponent.h"
-#include "../Common/AActor.h"
+#include <Engine/Runtime/GameFramework/StaticMesh/UPointCloudComponent.h>
+#include <Engine/Runtime/GameFramework/Common/AActor.h>
 
 namespace Engine
 {

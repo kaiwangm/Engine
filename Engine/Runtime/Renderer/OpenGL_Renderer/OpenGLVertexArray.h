@@ -1,6 +1,6 @@
 #pragma once
-#include "Core.h"
-#include "../VertexArray.h"
+#include <Engine/Runtime/Core/Core.h>
+#include <Engine/Runtime/Renderer/VertexArray.h>
 
 namespace Engine
 {

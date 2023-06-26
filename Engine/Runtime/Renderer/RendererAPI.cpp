@@ -1,7 +1,7 @@
-#include "RendererAPI.h"
+#include <Engine/Runtime/Renderer/RendererAPI.h>
 
 #ifdef ENGINE_PLATFORM_OPENGL
-#include "OpenGL_Renderer/OpenGLRendererAPI.h"
+#include <Engine/Runtime/Renderer/OpenGL_Renderer/OpenGLRendererAPI.h>
 #endif
 
 namespace Engine

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../Core.h"
-#include "../Events/ApplicationEvent.h"
-#include "../Log/Log.h"
+#include <Engine/Runtime/Core/Core.h>
+#include <Engine/Runtime/Core/Events/ApplicationEvent.h>
+#include <Engine/Runtime/Core/Log/Log.h>
 
 namespace Engine
 {

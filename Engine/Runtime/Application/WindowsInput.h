@@ -1,6 +1,5 @@
 #pragma once
-
-#include "Input/Input.h"
+#include <Engine/Runtime/Core/Input/Input.h>
 
 namespace Engine
 {

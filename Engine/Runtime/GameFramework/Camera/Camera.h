@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Core.h"
-#include "Events/ApplicationEvent.h"
-#include "Events/MouseEvent.h"
+#include <Engine/Runtime/Core/Core.h>
+#include <Engine/Runtime/Core/Events/ApplicationEvent.h>
+#include <Engine/Runtime/Core/Events/MouseEvent.h>
 
 namespace Engine
 {

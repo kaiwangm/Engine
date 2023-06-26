@@ -1,21 +1,21 @@
 #pragma once
-#include "../Common/UComponent.h"
-#include "../Core/Log/Log.h"
-#include "../Renderer/Renderer.h"
+#include <Engine/Runtime/GameFramework/Common/UComponent.h>
+#include <Engine/Runtime/Core/Log/Log.h>
+#include <Engine/Runtime/Renderer/Renderer.h>
 
-#include "ozz/animation/runtime/skeleton.h"
-#include "ozz/animation/runtime/animation.h"
-#include "ozz/base/io/archive.h"
-#include "ozz/base/io/stream.h"
-#include "ozz/animation/runtime/sampling_job.h"
-#include "ozz/animation/runtime/local_to_model_job.h"
-#include "ozz/base/maths/simd_math.h"
-#include "ozz/base/maths/soa_transform.h"
-#include "ozz/base/maths/vec_float.h"
-#include "ozz/base/containers/vector.h"
-#include "ozz/base/span.h"
+#include <ozz/animation/runtime/skeleton.h>
+#include <ozz/animation/runtime/animation.h>
+#include <ozz/base/io/archive.h>
+#include <ozz/base/io/stream.h>
+#include <ozz/animation/runtime/sampling_job.h>
+#include <ozz/animation/runtime/local_to_model_job.h>
+#include <ozz/base/maths/simd_math.h>
+#include <ozz/base/maths/soa_transform.h>
+#include <ozz/base/maths/vec_float.h>
+#include <ozz/base/containers/vector.h>
+#include <ozz/base/span.h>
 
-#include "../GameFramework/StaticMesh/UStaticMeshComponent.h"
+#include <Engine/Runtime/GameFramework/StaticMesh/UStaticMeshComponent.h>
 
 namespace Engine
 {

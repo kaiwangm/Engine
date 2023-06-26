@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Core.h"
-#include "ImNodes/ImGuiNodes.h"
-#include "Renderer.h"
+#include <Engine/Runtime/Core/Core.h>
+#include <Engine/Runtime/Gui/ImNodes/ImGuiNodes.h>
+#include <Engine/Runtime/Renderer/Renderer.h>
 
 namespace Engine
 {

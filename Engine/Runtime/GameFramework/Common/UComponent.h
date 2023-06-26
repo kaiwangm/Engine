@@ -7,7 +7,7 @@
 
 #include <string>
 
-#include "UObject.h"
+#include <Engine/Runtime/GameFramework/Common/UObject.h>
 
 namespace Engine
 {

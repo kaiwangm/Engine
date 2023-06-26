@@ -47,6 +47,6 @@ namespace Engine
     using WeakRef = std::weak_ptr<T>;
 } // namespace Engine
 
-#include "Events/Event.h"
-#include "Log/Log.h"
-#include "Timer/Timer.h"
+#include <Engine/Runtime/Core/Events/Event.h>
+#include <Engine/Runtime/Core/Log/Log.h>
+#include <Engine/Runtime/Core/Timer/Timer.h>

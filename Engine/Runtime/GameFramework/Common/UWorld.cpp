@@ -1,21 +1,21 @@
-#include "UWorld.h"
+#include <Engine/Runtime/GameFramework/Common/UWorld.h>
 
 #include <memory>
 
-#include "Shader.h"
-#include "Buffer.h"
-#include "GuiCommand.h"
-#include "Input/Input.h"
+#include <Engine/Runtime/Renderer/Shader.h>
+#include <Engine/Runtime/Renderer/Buffer.h>
+#include <Engine/Runtime/Gui/GuiCommand.h>
+#include <Engine/Runtime/Core/Input/Input.h>
 
-#include "UComponent.h"
-#include "../Camera/UCameraComponent.h"
-#include "../StaticMesh/AStaticMesh.h"
-#include "../StaticMesh/APointCloud.h"
-#include "../Animation/UAnimatedMeshComponent.h"
-#include "../Animation/USkeletonComponent.h"
-#include "../Skybox/ASkybox.h"
-#include "../Camera/ACamera.h"
-#include "../Light/UPointLightComponent.h"
+#include <Engine/Runtime/GameFramework/Common/UComponent.h>
+#include <Engine/Runtime/GameFramework/Camera/UCameraComponent.h>
+#include <Engine/Runtime/GameFramework/StaticMesh/AStaticMesh.h>
+#include <Engine/Runtime/GameFramework/StaticMesh/APointCloud.h>
+#include <Engine/Runtime/GameFramework/Animation/UAnimatedMeshComponent.h>
+#include <Engine/Runtime/GameFramework/Animation/USkeletonComponent.h>
+#include <Engine/Runtime/GameFramework/Skybox/ASkybox.h>
+#include <Engine/Runtime/GameFramework/Camera/ACamera.h>
+#include <Engine/Runtime/GameFramework/Light/UPointLightComponent.h>
 
 namespace Engine
 {

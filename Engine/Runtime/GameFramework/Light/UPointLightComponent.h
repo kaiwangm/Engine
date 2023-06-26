@@ -1,5 +1,5 @@
 #pragma once
-#include "../Common/UComponent.h"
+#include <Engine/Runtime/GameFramework/Common/UComponent.h>
 
 namespace Engine
 {

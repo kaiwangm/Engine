@@ -1,5 +1,5 @@
 #pragma once
-#include "Camera.h"
+#include <Engine/Runtime/GameFramework/Camera/Camera.h>
 
 namespace Engine
 {

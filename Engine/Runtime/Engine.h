@@ -1,29 +1,29 @@
 #pragma once
 
-#include "Application.h"
-#include "Core.h"
-#include "Input/Input.h"
-#include "Layer/Layer.h"
-#include "Renderer.h"
+#include <Engine/Runtime/Application/Application.h>
+#include <Engine/Runtime/Core/Core.h>
+#include <Engine/Runtime/Core/Input/Input.h>
+#include <Engine/Runtime/Core/Layer/Layer.h>
+#include <Engine/Runtime/Renderer/Renderer.h>
 
-#include "Gui/GuiCommand.h"
-#include "Gui/DockSpaceLayer.h"
-#include "Gui/ImGuiLog.h"
+#include <Engine/Runtime/Gui/GuiCommand.h>
+#include <Engine/Runtime/Gui/DockSpaceLayer.h>
+#include <Engine/Runtime/Gui/ImGuiLog.h>
 
-#include "Utils/Spare.h"
-#include "Utils/Octree.h"
+#include <Engine/Runtime/Utils/Spare.h>
+#include <Engine/Runtime/Utils/Octree.h>
 
-#include "GameFramework/Animation/AAnimatedMesh.h"
-#include "GameFramework/Animation/ASkeleton.h"
+#include <Engine/Runtime/GameFramework/Animation/AAnimatedMesh.h>
+#include <Engine/Runtime/GameFramework/Animation/ASkeleton.h>
 
-#include "GameFramework/StaticMesh/AStaticMesh.h"
-#include "GameFramework/StaticMesh/APointCloud.h"
+#include <Engine/Runtime/GameFramework/StaticMesh/AStaticMesh.h>
+#include <Engine/Runtime/GameFramework/StaticMesh/APointCloud.h>
 
-#include "GameFramework/Camera/ACamera.h"
+#include <Engine/Runtime/GameFramework/Camera/ACamera.h>
 
-#include "GameFramework/Skybox/ASkybox.h"
-#include "GameFramework/Light/APointLight.h"
-#include "GameFramework/Material/MBasicPbr.h"
+#include <Engine/Runtime/GameFramework/Skybox/ASkybox.h>
+#include <Engine/Runtime/GameFramework/Light/APointLight.h>
+#include <Engine/Runtime/GameFramework/Material/MBasicPbr.h>
 
 #ifdef ENGINE_PLATFORM_WINDOWS
 

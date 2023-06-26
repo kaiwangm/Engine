@@ -1,6 +1,6 @@
 #pragma once
-#include "Core.h"
-#include "../RendererAPI.h"
+#include <Engine/Runtime/Core/Core.h>
+#include <Engine/Runtime/Renderer/RendererAPI.h>
 
 namespace Engine
 {

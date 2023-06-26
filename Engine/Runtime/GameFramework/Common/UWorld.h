@@ -1,11 +1,11 @@
 #pragma once
-#include "Core.h"
+#include <Engine/Runtime/Core/Core.h>
 
 #include <entt/entt.hpp>
 #include <vector>
 
-#include "UObject.h"
-#include "Renderer.h"
+#include <Engine/Runtime/GameFramework/Common/UObject.h>
+#include <Engine/Runtime/Renderer/Renderer.h>
 
 namespace Engine
 {

@@ -2,7 +2,7 @@
 
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
-#include <math.h>
+#include <cmath>
 
 #include <assimp/Importer.hpp>
 #include <glm/ext.hpp>
@@ -10,10 +10,10 @@
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/string_cast.hpp>
 
-#include "Core.h"
-#include "Renderer.h"
+#include <Engine/Runtime/Core/Core.h>
+#include <Engine/Runtime/Renderer/Renderer.h>
 
-#include "../DataUtil/Mesh.h"
+#include <Engine/Runtime/GameFramework/DataUtil/Mesh.h>
 
 namespace Engine
 {

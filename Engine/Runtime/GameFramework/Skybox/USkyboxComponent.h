@@ -1,7 +1,7 @@
 #pragma once
-#include "Texture.h"
-#include "../DataUtil/Mesh.h"
-#include "../Common/UComponent.h"
+#include <Engine/Runtime/Renderer/Texture.h>
+#include <Engine/Runtime/GameFramework/DataUtil/Mesh.h>
+#include <Engine/Runtime/GameFramework/Common/UComponent.h>
 
 namespace Engine
 {

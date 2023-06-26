@@ -1,8 +1,6 @@
 #pragma once
-
 #include <glm/glm.hpp>
-
-#include "VertexArray.h"
+#include <Engine/Runtime/Renderer/VertexArray.h>
 
 namespace Engine
 {

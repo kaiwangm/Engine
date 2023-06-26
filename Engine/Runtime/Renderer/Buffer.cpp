@@ -1,9 +1,8 @@
-#include "Buffer.h"
-
-#include "Renderer.h"
+#include <Engine/Runtime/Renderer/Buffer.h>
+#include <Engine/Runtime/Renderer/Renderer.h>
 
 #ifdef ENGINE_PLATFORM_OPENGL
-#include "OpenGL_Renderer/OpenGLBuffer.h"
+#include <Engine/Runtime/Renderer/OpenGL_Renderer/OpenGLBuffer.h>
 #endif
 
 namespace Engine

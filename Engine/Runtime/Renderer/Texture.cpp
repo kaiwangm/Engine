@@ -1,9 +1,8 @@
-#include "Texture.h"
-
-#include "Renderer.h"
+#include <Engine/Runtime/Renderer/Texture.h>
+#include <Engine/Runtime/Renderer/Renderer.h>
 
 #ifdef ENGINE_PLATFORM_OPENGL
-#include "OpenGL_Renderer/OpenGLTexture.h"
+#include <Engine/Runtime/Renderer/OpenGL_Renderer/OpenGLTexture.h>
 #endif
 
 namespace Engine

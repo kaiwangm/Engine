@@ -12,8 +12,8 @@
 #include <xtensor/xnpy.hpp>
 #include <xtensor/xview.hpp>
 
-#include "Spare.h"
-#include "hilbert.h"
+#include <Engine/Runtime/Utils/Spare.h>
+#include <Engine/Runtime/Utils/hilbert.h>
 
 namespace Engine
 {

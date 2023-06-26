@@ -1,7 +1,6 @@
-#include "Application.h"
-
-#include "Input/Input.h"
-#include "Renderer.h"
+#include <Engine/Runtime/Application/Application.h>
+#include <Engine/Runtime/Core/Events/Event.h>
+#include <Engine/Runtime/Renderer/Renderer.h>
 
 namespace Engine
 {

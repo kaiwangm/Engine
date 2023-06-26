@@ -1,6 +1,6 @@
 #pragma once
-#include "UAnimatedMeshComponent.h"
-#include "../Common/AActor.h"
+#include <Engine/Runtime/GameFramework/Animation/UAnimatedMeshComponent.h>
+#include <Engine/Runtime/GameFramework/Common/AActor.h>
 
 namespace Engine {
 class AAnimatedMesh final : public AActor {

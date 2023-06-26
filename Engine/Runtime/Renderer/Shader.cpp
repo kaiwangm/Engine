@@ -1,9 +1,8 @@
-#include "Shader.h"
-
-#include "Renderer.h"
+#include <Engine/Runtime/Renderer/Shader.h>
+#include <Engine/Runtime/Renderer/Renderer.h>
 
 #ifdef ENGINE_PLATFORM_OPENGL
-#include "OpenGL_Renderer/OpenGLShader.h"
+#include <Engine/Runtime/Renderer/OpenGL_Renderer/OpenGLShader.h>
 #endif
 
 namespace Engine

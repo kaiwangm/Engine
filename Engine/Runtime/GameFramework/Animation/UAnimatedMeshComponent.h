@@ -1,6 +1,6 @@
 #pragma once
-#include "../DataUtil/Animation.h"
-#include "../Common/UComponent.h"
+#include <Engine/Runtime/GameFramework/DataUtil/Animation.h>
+#include <Engine/Runtime/GameFramework/Common/UComponent.h>
 
 namespace Engine
 {

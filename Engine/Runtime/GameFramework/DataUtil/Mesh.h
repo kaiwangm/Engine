@@ -5,8 +5,8 @@
 
 #include <assimp/Importer.hpp>
 
-#include "Core.h"
-#include "Renderer.h"
+#include <Engine/Runtime/Core/Core.h>
+#include <Engine/Runtime/Renderer/Renderer.h>
 
 namespace Engine
 {

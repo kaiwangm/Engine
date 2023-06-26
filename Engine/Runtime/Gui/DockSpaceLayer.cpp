@@ -1,6 +1,5 @@
-#include "DockSpaceLayer.h"
-
-#include "GuiCommand.h"
+#include <Engine/Runtime/Gui/DockSpaceLayer.h>
+#include <Engine/Runtime/Gui/GuiCommand.h>
 
 namespace Engine
 {

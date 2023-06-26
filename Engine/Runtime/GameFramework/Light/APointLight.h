@@ -1,6 +1,6 @@
 #pragma once
-#include "UPointLightComponent.h"
-#include "../Common/AActor.h"
+#include <Engine/Runtime/GameFramework/Light/UPointLightComponent.h>
+#include <Engine/Runtime/GameFramework/Common/AActor.h>
 
 namespace Engine
 {

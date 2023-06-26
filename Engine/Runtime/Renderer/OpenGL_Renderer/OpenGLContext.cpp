@@ -1,4 +1,4 @@
-#include "OpenGLContext.h"
+#include <Engine/Runtime/Renderer/OpenGL_Renderer/OpenGLContext.h>
 
 #define GETGLSTRING(info) std::string(reinterpret_cast<const char*>(glGetString(info)))
 

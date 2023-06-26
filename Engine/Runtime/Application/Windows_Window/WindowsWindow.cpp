@@ -1,6 +1,5 @@
-#include "WindowsWindow.h"
-
-#include "stb_image.h"
+#include <Engine/Runtime/Application/Windows_Window/WindowsWindow.h>
+#include <stb_image.h>
 
 namespace Engine
 {

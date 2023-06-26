@@ -1,5 +1,5 @@
-#include "Renderer.h"
-#include "Camera/Camera.h"
+#include <Engine/Runtime/Renderer/Renderer.h>
+#include <Engine/Runtime/GameFramework/Camera/Camera.h>
 
 namespace Engine
 {

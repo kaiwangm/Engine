@@ -1,8 +1,8 @@
-#include "OpenGLTexture.h"
-#include "Shader.h"
+#include <Engine/Runtime/Renderer/OpenGL_Renderer/OpenGLTexture.h>
+#include <Engine/Runtime/Renderer/Shader.h>
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include <stb_image.h>
 
 // renderCube() renders a 1x1 3D cube in NDC.
 // -------------------------------------------------

@@ -1,5 +1,4 @@
 #include "OctreeObject.h"
-
 #include "ply_io.h"
 
 namespace Engine

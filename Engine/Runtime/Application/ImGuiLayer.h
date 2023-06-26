@@ -1,7 +1,6 @@
 #pragma once
-
-#include "Core.h"
-#include "Layer/Layer.h"
+#include <Engine/Runtime/Core/Core.h>
+#include <Engine/Runtime/Core/Layer/Layer.h>
 
 namespace Engine
 {

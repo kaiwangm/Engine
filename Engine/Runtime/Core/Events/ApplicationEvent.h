@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Event.h"
+#include <Engine/Runtime/Core/Events/Event.h>
 
 namespace Engine
 {

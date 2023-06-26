@@ -5,7 +5,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
-#include "../Common/UObject.h"
+#include <Engine/Runtime/GameFramework/Common/UObject.h>
 
 namespace Engine
 {

@@ -1,6 +1,6 @@
 #pragma once
-#include "Core.h"
-#include "ImGuiLayer.h"
+#include <Engine/Runtime/Core/Core.h>
+#include <Engine/Runtime/Application/ImGuiLayer.h>
 
 namespace Engine
 {

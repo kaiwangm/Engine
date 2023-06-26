@@ -1,6 +1,6 @@
 #pragma once
-#include "../DataUtil/PointCloud.h"
-#include "../Common/UComponent.h"
+#include <Engine/Runtime/GameFramework/DataUtil/PointCloud.h>
+#include <Engine/Runtime/GameFramework/Common/UComponent.h>
 
 namespace Engine
 {

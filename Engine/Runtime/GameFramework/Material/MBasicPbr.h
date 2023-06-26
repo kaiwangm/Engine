@@ -1,7 +1,6 @@
 #pragma once
-#include "MMaterial.h"
-
-#include "Texture.h"
+#include <Engine/Runtime/GameFramework/Material/MMaterial.h>
+#include <Engine/Runtime/Renderer/Texture.h>
 
 namespace Engine
 {

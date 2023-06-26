@@ -1,4 +1,4 @@
-#include "USkeletonComponent.h"
+#include <Engine/Runtime/GameFramework/Animation/USkeletonComponent.h>
 
 namespace Engine
 {

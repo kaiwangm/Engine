@@ -1,6 +1,6 @@
 #pragma once
-#include "USkeletonComponent.h"
-#include "../Common/AActor.h"
+#include <Engine/Runtime/GameFramework/Animation/USkeletonComponent.h>
+#include <Engine/Runtime/GameFramework/Common/AActor.h>
 
 namespace Engine
 {

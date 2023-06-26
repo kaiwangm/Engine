@@ -1,4 +1,4 @@
-#include "PointCloud.h"
+#include <Engine/Runtime/GameFramework/DataUtil/PointCloud.h>
 
 #include "happly.h"
 

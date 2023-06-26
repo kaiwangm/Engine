@@ -1,9 +1,8 @@
-#include "ImGuiLayer.h"
-
-#include "Renderer.h"
+#include <Engine/Runtime/Application/ImGuiLayer.h>
+#include <Engine/Runtime/Renderer/Renderer.h>
 
 #ifdef ENGINE_PLATFORM_WINDOWS
-#include "OpenGLImGuiLayer.h"
+#include <Engine/Runtime/Application/OpenGLImGuiLayer.h>
 #endif
 
 namespace Engine

@@ -1,9 +1,9 @@
 #pragma once
 
 #include <entt/entt.hpp>
-#include "UObject.h"
-#include "UComponent.h"
-#include "UWorld.h"
+#include <Engine/Runtime/GameFramework/Common/UObject.h>
+#include <Engine/Runtime/GameFramework/Common/UComponent.h>
+#include <Engine/Runtime/GameFramework/Common/UWorld.h>
 
 namespace Engine
 {

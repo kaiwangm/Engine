@@ -1,6 +1,6 @@
 #pragma once
-#include "../DataUtil/StaticMesh.h"
-#include "../Common/UComponent.h"
+#include <Engine/Runtime/GameFramework/DataUtil/StaticMesh.h>
+#include <Engine/Runtime/GameFramework/Common/UComponent.h>
 
 namespace Engine
 {
