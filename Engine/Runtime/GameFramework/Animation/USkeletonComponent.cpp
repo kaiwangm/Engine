@@ -38,7 +38,7 @@ namespace Engine
         return true;
     }
 
-    USkeletonComponent::USkeletonComponent()
+    USkeletonComponent::USkeletonComponent() : m_Mesh("Assert/Object/bone/bone.obj")
     {
         loadSkeleton("Assert/Animation/skeleton.ozz", &skeleton);
         loadAnimation("Assert/Animation/animation.ozz", &animation);
@@ -76,10 +76,10 @@ namespace Engine
         }
     }
 
-    void USkeletonComponent::Draw(Ref<Shader> shader, glm::mat4 vpMat, glm::mat4 transform)
+    void USkeletonComponent::Draw(Ref<Shader> shader, glm::mat4 vpMat, glm::mat4 transform, glm::vec3 viewPos, glm::vec3 color, glm::vec3 lightColor)
     {
         auto models_sp = make_span(models);
-        for (int i = 0; i < num_joints; i++)
+        for (int i = 1; i < num_joints; i++)
         {
             const ozz::math::Float4x4& model_mat = models_sp[i];
             glm::mat4                  model;
@@ -91,7 +91,7 @@ namespace Engine
 
             shader->SetMat4("u_ViewProjection", vpMat);
             shader->SetMat4("u_Transform", model);
-            shader->SetFloat3("color", glm::vec3(1.0f, 0.0f, 0.0f));
+            shader->SetFloat3("viewPos", viewPos);
 
             auto& vertexArray = m_Mesh.GetStaticMesh().m_Meshes[0].m_VertexArray;
             vertexArray->Bind();

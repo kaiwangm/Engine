@@ -139,7 +139,7 @@ namespace Engine
         auto animated_view   = m_Registry.view<UTagComponent, UTransformComponent, UAnimatedMeshComponent>();
         auto light_view      = m_Registry.view<UTagComponent, UTransformComponent, UPointLightComponent>();
         auto skybox_view     = m_Registry.view<UTagComponent, UTransformComponent, USkyboxComponent>();
-        auto skeleton_view = m_Registry.view<UTagComponent, UTransformComponent, USkeletonComponent>();
+        auto skeleton_view   = m_Registry.view<UTagComponent, UTransformComponent, USkeletonComponent>();
 
         // Get Main Camera
         for (auto [entity, name, trans, camera] : camrea_view.each())
@@ -260,7 +260,12 @@ namespace Engine
         for (auto [entity, name, trans, skeleton] : skeleton_view.each())
         {
             auto shader = m_ShaderLibrary.Get("Skeleton");
-            skeleton.Draw(shader, m_VPMatrix, trans.GetTransform());
+            skeleton.Draw(shader,
+                          m_VPMatrix,
+                          trans.GetTransform(),
+                          m_MainCamera->GetTransformComponent().GetPosition(),
+                          glm::vec3(0.0f),
+                          glm::vec3(1.0f));
         }
 
         // use a range-for
@@ -356,7 +361,7 @@ namespace Engine
         auto animated_view    = m_Registry.view<UTagComponent, UTransformComponent, UAnimatedMeshComponent>();
         auto light_view       = m_Registry.view<UTagComponent, UTransformComponent, UPointLightComponent>();
         auto skybox_view      = m_Registry.view<UTagComponent, UTransformComponent, USkyboxComponent>();
-        auto skeleton_view = m_Registry.view<UTagComponent, UTransformComponent, USkeletonComponent>();
+        auto skeleton_view    = m_Registry.view<UTagComponent, UTransformComponent, USkeletonComponent>();
 
         // Static Model
         for (auto [entity, name, trans, model] : staticmodel_view.each())
@@ -470,7 +475,7 @@ namespace Engine
                 ImGui::TreePop();
             }
         }
-        
+
         // Skeleton
         for (auto [entity, name, trans, skeleton] : skeleton_view.each())
         {

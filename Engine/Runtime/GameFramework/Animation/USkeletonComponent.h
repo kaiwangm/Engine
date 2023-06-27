@@ -33,6 +33,6 @@ namespace Engine
     public:
         USkeletonComponent();
         void Update(float ratio);
-        void Draw(Ref<Shader> shader, glm::mat4 vpMat, glm::mat4 transform);
+        void USkeletonComponent::Draw(Ref<Shader> shader, glm::mat4 vpMat, glm::mat4 transform, glm::vec3 viewPos, glm::vec3 color, glm::vec3 lightColor);
     };
 } // namespace Engine
