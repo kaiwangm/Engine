@@ -1,8 +1,16 @@
 #include <Engine/Runtime/GameFramework/Animation/USkeletonComponent.h>
 
+#include <ozz/base/io/archive.h>
+#include <ozz/base/io/stream.h>
+#include <ozz/animation/runtime/sampling_job.h>
+#include <ozz/animation/runtime/local_to_model_job.h>
+#include <ozz/base/maths/vec_float.h>
+#include <ozz/base/maths/soa_transform.h>
+#include <ozz/base/span.h>
+
 namespace Engine
 {
-    bool loadSkeleton(std::string filename, ozz::animation::Skeleton* skeleton)
+    bool USkeletonComponent::loadSkeleton(const std::string filename, ozz::animation::Skeleton* skeleton)
     {
         ozz::io::File file(filename.c_str(), "rb");
         if (!file.opened())
@@ -20,7 +28,7 @@ namespace Engine
         return true;
     }
 
-    bool loadAnimation(std::string filename, ozz::animation::Animation* animation)
+    bool USkeletonComponent::loadAnimation(const std::string filename, ozz::animation::Animation* animation)
     {
         ozz::io::File file(filename.c_str(), "rb");
         if (!file.opened())
@@ -38,7 +46,8 @@ namespace Engine
         return true;
     }
 
-    USkeletonComponent::USkeletonComponent() : m_Mesh("Assert/Object/bone/bone.obj")
+    USkeletonComponent::USkeletonComponent() :
+        m_Joints("Assert/Object/bone/joint.obj"), m_Bones("Assert/Object/bone/bone.obj")
     {
         loadSkeleton("Assert/Animation/skeleton.ozz", &skeleton);
         loadAnimation("Assert/Animation/animation.ozz", &animation);
@@ -48,7 +57,17 @@ namespace Engine
 
         locals.resize(num_soa_joints);
         models.resize(num_joints);
+        parents.resize(num_joints);
+
+        auto joint_parents = skeleton.joint_parents();
+
+        for (int i = 0; i < num_joints; i++)
+        {
+            parents[i] = joint_parents[i];
+        }
     }
+
+    USkeletonComponent::~USkeletonComponent() {}
 
     void USkeletonComponent::Update(float ratio)
     {
@@ -76,10 +95,59 @@ namespace Engine
         }
     }
 
-    void USkeletonComponent::Draw(Ref<Shader> shader, glm::mat4 vpMat, glm::mat4 transform, glm::vec3 viewPos, glm::vec3 color, glm::vec3 lightColor)
+    void USkeletonComponent::Draw(Ref<Shader> shader,
+                                  glm::mat4   vpMat,
+                                  glm::mat4   transform,
+                                  glm::vec3   viewPos,
+                                  glm::vec3   color,
+                                  glm::vec3   lightColor)
     {
-        auto models_sp = make_span(models);
-        for (int i = 1; i < num_joints; i++)
+        auto               models_sp = make_span(models);
+        std::vector<float> bones_length;
+        bones_length.resize(num_joints, 1.0f);
+        std::vector<float> joints_length;
+        joints_length.resize(num_joints, 0.03f);
+
+        for (int i = 0; i < num_joints; i++)
+        {
+            if (parents[i] == -1)
+            {
+                continue;
+            }
+
+            const ozz::math::Float4x4& model_mat = models_sp[i];
+            glm::mat4                  model;
+            memcpy(&model, &model_mat.cols[0], sizeof(glm::mat4));
+
+            const ozz::math::Float4x4& parent_model_mat = models_sp[parents[i]];
+            glm::mat4                  parent_model;
+            memcpy(&parent_model, &parent_model_mat.cols[0], sizeof(glm::mat4));
+
+            bones_length[i] = glm::length(glm::vec3(model[3][0], model[3][1], model[3][2]) -
+                                          glm::vec3(parent_model[3][0], parent_model[3][1], parent_model[3][2]));
+        }
+
+        for (int i = 0; i < num_joints; i++)
+        {
+            if (parents[i] == -1)
+            {
+                continue;
+            }
+
+            const ozz::math::Float4x4& model_mat = models_sp[i];
+            glm::mat4                  model;
+            memcpy(&model, &model_mat.cols[0], sizeof(glm::mat4));
+
+            const ozz::math::Float4x4& parent_model_mat = models_sp[parents[i]];
+            glm::mat4                  parent_model;
+            memcpy(&parent_model, &parent_model_mat.cols[0], sizeof(glm::mat4));
+
+            joints_length[parents[i]] =
+                glm::length(glm::vec3(model[3][0], model[3][1], model[3][2]) -
+                            glm::vec3(parent_model[3][0], parent_model[3][1], parent_model[3][2]));
+        }
+
+        for (int i = 0; i < num_joints; i++)
         {
             const ozz::math::Float4x4& model_mat = models_sp[i];
             glm::mat4                  model;
@@ -91,9 +159,41 @@ namespace Engine
 
             shader->SetMat4("u_ViewProjection", vpMat);
             shader->SetMat4("u_Transform", model);
-            shader->SetFloat3("viewPos", viewPos);
+            shader->SetFloat3("ViewPos", viewPos);
+            shader->SetFloat3("u_Color", color);
+            shader->SetFloat("u_BoneLength", 1.8 * joints_length[i]);
 
-            auto& vertexArray = m_Mesh.GetStaticMesh().m_Meshes[0].m_VertexArray;
+            auto& vertexArray = m_Joints.GetStaticMesh().m_Meshes[0].m_VertexArray;
+            vertexArray->Bind();
+            RenderCommand::DrawIndexed(vertexArray);
+
+            vertexArray->UnBind();
+
+            shader->UnBind();
+        }
+
+        for (int i = 0; i < num_joints; i++)
+        {
+            if (parents[i] == -1)
+            {
+                continue;
+            }
+
+            const ozz::math::Float4x4& model_mat = models_sp[parents[i]];
+            glm::mat4                  model;
+            memcpy(&model, &model_mat.cols[0], sizeof(glm::mat4));
+
+            model = transform * model;
+
+            shader->Bind();
+
+            shader->SetMat4("u_ViewProjection", vpMat);
+            shader->SetMat4("u_Transform", model);
+            shader->SetFloat3("ViewPos", viewPos);
+            shader->SetFloat3("u_Color", color);
+            shader->SetFloat("u_BoneLength", bones_length[i]);
+
+            auto& vertexArray = m_Bones.GetStaticMesh().m_Meshes[0].m_VertexArray;
             vertexArray->Bind();
             RenderCommand::DrawIndexed(vertexArray);
 
@@ -102,4 +202,6 @@ namespace Engine
             shader->UnBind();
         }
     }
+
+    int USkeletonComponent::GetNumJoints() { return num_joints; }
 } // namespace Engine

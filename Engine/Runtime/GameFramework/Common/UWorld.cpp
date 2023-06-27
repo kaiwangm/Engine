@@ -416,6 +416,8 @@ namespace Engine
                 // Line
                 ImGui::Separator();
 
+                ImGui::Text("Point Cloud");
+
                 ImGui::TreePop();
             }
         }
@@ -430,6 +432,8 @@ namespace Engine
 
                 // Line
                 ImGui::Separator();
+
+                ImGui::Text("Light");
 
                 // Light
                 ImGui::ColorEdit3("Color", glm::value_ptr(light.GetColorRef()));
@@ -449,6 +453,8 @@ namespace Engine
 
                 // Line
                 ImGui::Separator();
+
+                ImGui::Text("SkyBox");
 
                 // Skybox
                 // use imgui add a bool selector
@@ -485,6 +491,13 @@ namespace Engine
                 Gui::DragFloat3("Position", trans.GetPositionRef(), 0.005f, -100.0f, 100.0f);
                 Gui::DragFloat3("Rotation", trans.GetRotationRef(), 0.005f, -100.0f, 100.0f);
                 Gui::DragFloat3("Scale", trans.GetScaleRef(), 0.005f, -100.0f, 100.0f);
+
+                // Line
+                ImGui::Separator();
+
+                ImGui::Text("Skeleton");
+
+                ImGui::Text("Joints Num: %d", skeleton.GetNumJoints());
 
                 ImGui::TreePop();
             }
