@@ -1,8 +1,12 @@
-#version 330 core
+#version 460 core
 out vec4 FragColor;
-in vec2 TexCoords;
-in vec3 WorldPos;
-in vec3 Normal;
+
+in Vertex
+{
+    vec2 TexCoords;
+    vec3 WorldPos;
+    vec3 Normal;
+};
 
 // material parameters
 uniform vec3 in_albedo;
