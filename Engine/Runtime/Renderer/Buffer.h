@@ -195,4 +195,22 @@ namespace Engine
 
         static Ref<FrameRenderBuffer> Create();
     };
+
+    class GeometryBuffer
+    {
+    public:
+        virtual ~GeometryBuffer() {}
+        virtual void Bind() const   = 0;
+        virtual void UnBind() const = 0;
+
+        virtual void SetViewPort(uint32_t width, uint32_t height) = 0;
+
+        virtual uint32_t GetWidth() const             = 0;
+        virtual uint32_t GetHeight() const            = 0;
+        virtual void*    GetPositionTextureID() const = 0;
+        virtual void*    GetNormalTextureID() const   = 0;
+        virtual void*    GetAlbedoTextureID() const   = 0;
+
+        static Ref<GeometryBuffer> Create();
+    };
 } // namespace Engine

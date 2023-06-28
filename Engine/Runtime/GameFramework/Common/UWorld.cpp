@@ -22,9 +22,12 @@ namespace Engine
     UWorld::UWorld()
     {
         // Create Buffer
-        m_FrameRenderBuffer            = FrameRenderBuffer::Create();
-        m_FrameRenderBuffer_normal     = FrameRenderBuffer::Create();
+        m_FrameRenderBuffer = FrameRenderBuffer::Create();
+        // m_FrameRenderBuffer_normal     = FrameRenderBuffer::Create();
         m_FrameRenderBuffer_playground = FrameRenderBuffer::Create();
+
+        // GeometryBuffer
+        m_GeometryBuffer = GeometryBuffer::Create();
     }
 
     void UWorld::TickLogic(float timeStep, float nowTime)
@@ -153,6 +156,51 @@ namespace Engine
             m_MainSkybox = static_cast<ASkybox*>(skybox.GetOwner());
         }
 
+        // Render to GeometryBuffer
+        m_MainCamera->GetCameraComponent().GetCamera().SetViewPort(m_GeometryBuffer->GetWidth(),
+                                                                   m_GeometryBuffer->GetHeight());
+        m_MainCamera->GetCameraComponent().GetCamera().RecalculateViewProjectMatrix();
+
+        m_VMatrix  = glm::inverse(m_MainCamera->GetTransformComponent().GetTransform());
+        m_PMatrix  = m_MainCamera->GetCameraComponent().GetCamera().GetViewProjectMatrix();
+        m_VPMatrix = m_PMatrix * m_VMatrix;
+
+        m_GeometryBuffer->Bind();
+        RenderCommand::SetViewPort(0, 0, m_GeometryBuffer->GetWidth(), m_GeometryBuffer->GetHeight());
+
+        RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+        RenderCommand::Clear();
+
+        // use a range-for
+        for (auto [entity, name, trans, model] : model_view.each())
+        {
+            AStaticMesh* staticMesh_actor = static_cast<AStaticMesh*>(model.GetOwner());
+            MMaterial*   material         = static_cast<MMaterial*>(staticMesh_actor->GetMaterial());
+            std::string  materialType     = material->GetMaterialType();
+
+            auto shader = m_ShaderLibrary.Get("GBuffer");
+
+            shader->Bind();
+
+            if (materialType == "BasicPbr")
+            {
+                const auto meshes = model.GetStaticMesh().m_Meshes;
+                for (const auto& mesh : meshes)
+                {
+                    MBasicPbr* material_basicPbr = static_cast<MBasicPbr*>(material);
+                    material_basicPbr->BindAlbedoMap(shader);
+
+                    Renderer::Submit(mesh.m_VertexArray, shader, m_VPMatrix, trans.GetTransform());
+
+                    material_basicPbr->UnBindAlbedoMap(shader);
+                }
+            }
+
+            shader->UnBind();
+        }
+
+        m_GeometryBuffer->UnBind();
+
         // Render to FrameRenderBuffer
         m_MainCamera->GetCameraComponent().GetCamera().SetViewPort(m_FrameRenderBuffer->GetWidth(),
                                                                    m_FrameRenderBuffer->GetHeight());
@@ -255,7 +303,7 @@ namespace Engine
                 shader->UnBind();
             }
         }
-        
+
         // draw skeleton
         for (auto [entity, name, trans, skeleton] : skeleton_view.each())
         {
@@ -294,37 +342,37 @@ namespace Engine
         Renderer::EndScene(m_FrameRenderBuffer);
 
         // Render
-        m_MainCamera->GetCameraComponent().GetCamera().SetViewPort(m_FrameRenderBuffer_normal->GetWidth(),
-                                                                   m_FrameRenderBuffer_normal->GetHeight());
-        m_MainCamera->GetCameraComponent().GetCamera().RecalculateViewProjectMatrix();
-        m_VPMatrix = m_MainCamera->GetCameraComponent().GetCamera().GetViewProjectMatrix() *
-                     glm::inverse(m_MainCamera->GetTransformComponent().GetTransform());
+        // m_MainCamera->GetCameraComponent().GetCamera().SetViewPort(m_FrameRenderBuffer_normal->GetWidth(),
+        //                                                            m_FrameRenderBuffer_normal->GetHeight());
+        // m_MainCamera->GetCameraComponent().GetCamera().RecalculateViewProjectMatrix();
+        // m_VPMatrix = m_MainCamera->GetCameraComponent().GetCamera().GetViewProjectMatrix() *
+        //              glm::inverse(m_MainCamera->GetTransformComponent().GetTransform());
 
-        m_FrameRenderBuffer_normal->Bind();
-        RenderCommand::SetViewPort(
-            0, 0, m_FrameRenderBuffer_normal->GetWidth(), m_FrameRenderBuffer_normal->GetHeight());
+        // m_FrameRenderBuffer_normal->Bind();
+        // RenderCommand::SetViewPort(
+        //     0, 0, m_FrameRenderBuffer_normal->GetWidth(), m_FrameRenderBuffer_normal->GetHeight());
 
-        RenderCommand::SetClearColor(m_BackGroundColor);
-        RenderCommand::Clear();
+        // RenderCommand::SetClearColor(m_BackGroundColor);
+        // RenderCommand::Clear();
 
-        // use a range-for
-        for (auto [entity, name, trans, model] : model_view.each())
-        {
-            auto shader = m_ShaderLibrary.Get("TextureShader_normal");
-            Renderer::SetShaderUniform(shader, "u_Texture", 0);
+        // // use a range-for
+        // for (auto [entity, name, trans, model] : model_view.each())
+        // {
+        //     auto shader = m_ShaderLibrary.Get("TextureShader_normal");
+        //     Renderer::SetShaderUniform(shader, "u_Texture", 0);
 
-            const auto meshes = model.GetStaticMesh().m_Meshes;
+        //     const auto meshes = model.GetStaticMesh().m_Meshes;
 
-            for (const auto& mesh : meshes)
-            {
-                auto texture = mesh.m_Textures[0];
-                texture->Bind(0);
-                Renderer::Submit(mesh.m_VertexArray, shader, m_VPMatrix, trans.GetTransform());
-                texture->UnBind(0);
-            }
-        }
+        //     for (const auto& mesh : meshes)
+        //     {
+        //         auto texture = mesh.m_Textures[0];
+        //         texture->Bind(0);
+        //         Renderer::Submit(mesh.m_VertexArray, shader, m_VPMatrix, trans.GetTransform());
+        //         texture->UnBind(0);
+        //     }
+        // }
 
-        Renderer::EndScene(m_FrameRenderBuffer_normal);
+        // Renderer::EndScene(m_FrameRenderBuffer_normal);
 
         // Render
         m_MainCamera->GetCameraComponent().GetCamera().SetViewPort(m_FrameRenderBuffer_playground->GetWidth(),
@@ -349,6 +397,14 @@ namespace Engine
         Gui::Begin("Render Setting");
 
         Gui::SliderFloat("Exposure", m_Exposure, 0.0f, 3.0f);
+        Gui::ColorEdit4("Background Color", m_BackGroundColor);
+
+        ImGui::Separator();
+
+        // a list select
+        Gui::Text("Geometry Buffer");
+        const char* items[] = {"Position", "Normal", "Albedo"};
+        ImGui::Combo("Viewport GBuffer Map", &m_ViewportGBufferMap, items, IM_ARRAYSIZE(items));
 
         Gui::End();
 
@@ -384,7 +440,7 @@ namespace Engine
                 if (materialType == "BasicPbr")
                 {
                     MBasicPbr* material_basicPbr = static_cast<MBasicPbr*>(material);
-                    ImGui::Text("Material Type: BasicPbr");
+                    Gui::Text("Material Type: BasicPbr");
                     ImGui::ColorEdit3("Albedo", glm::value_ptr(material_basicPbr->GetAlbedoRef()));
                     Gui::SliderFloat("Metallic", material_basicPbr->GetMetallicRef(), 0.0f, 1.0f);
                     Gui::SliderFloat("Roughness", material_basicPbr->GetRoughnessRef(), 0.0f, 1.0f);
@@ -393,7 +449,7 @@ namespace Engine
                 else if (materialType == "TriangleShader")
                 {
                     MTriangleShader* material_triangleShader = static_cast<MTriangleShader*>(material);
-                    ImGui::Text("Material Type: TriangleShader");
+                    Gui::Text("Material Type: TriangleShader");
                     ImGui::ColorEdit3("Color", glm::value_ptr(material_triangleShader->GetColorRef()));
                 }
 
@@ -416,7 +472,7 @@ namespace Engine
                 // Line
                 ImGui::Separator();
 
-                ImGui::Text("Point Cloud");
+                Gui::Text("Point Cloud");
 
                 ImGui::TreePop();
             }
@@ -433,7 +489,7 @@ namespace Engine
                 // Line
                 ImGui::Separator();
 
-                ImGui::Text("Light");
+                Gui::Text("Light");
 
                 // Light
                 ImGui::ColorEdit3("Color", glm::value_ptr(light.GetColorRef()));
@@ -454,7 +510,7 @@ namespace Engine
                 // Line
                 ImGui::Separator();
 
-                ImGui::Text("SkyBox");
+                Gui::Text("SkyBox");
 
                 // Skybox
                 // use imgui add a bool selector
@@ -495,9 +551,9 @@ namespace Engine
                 // Line
                 ImGui::Separator();
 
-                ImGui::Text("Skeleton");
+                Gui::Text("Skeleton");
 
-                ImGui::Text("Joints Num: %d", skeleton.GetNumJoints());
+                Gui::Text("Joints Num: {}", skeleton.GetNumJoints());
 
                 ImGui::TreePop();
             }

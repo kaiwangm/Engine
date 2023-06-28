@@ -27,6 +27,8 @@ namespace Engine
                 "TriangleShader", "Assert/Shader/triangle_vertex.glsl", "Assert/Shader/triangle_fragment.glsl", "Path");
             m_World->LoadShader(
                 "Skeleton", "Assert/Shader/skeleton_vertex.glsl", "Assert/Shader/skeleton_fragment.glsl", "Path");
+            m_World->LoadShader(
+                "GBuffer", "Assert/Shader/gbuffer_vertex.glsl", "Assert/Shader/gbuffer_fragment.glsl", "Path");
 
             m_Camera    = std::make_shared<PerspectiveCamera>(60.0f, 1.778f, 0.1f, 3000.0f * 8);
             auto camera = m_World->AddActor<ACamera>("main camera", m_Camera);
@@ -195,14 +197,18 @@ namespace Engine
             bool is_color_focused = false;
             Gui::ShowViewport("ViewPort :: Color", m_World->m_FrameRenderBuffer, true, is_color_focused);
 
-            bool is_normal_focused = false;
-            Gui::ShowViewport("ViewPort :: Normal", m_World->m_FrameRenderBuffer_normal, false, is_normal_focused);
+            bool is_gbuffer_focused = false;
+            Gui::ShowViewport("ViewPort :: GBuffer",
+                              m_World->m_GeometryBuffer,
+                              false,
+                              is_gbuffer_focused,
+                              m_World->m_ViewportGBufferMap);
 
             bool is_playground_focused = false;
             Gui::ShowViewport(
                 "ViewPort :: Playground", m_World->m_FrameRenderBuffer_playground, false, is_playground_focused);
 
-            m_Camera->m_IsWindowFocused = is_color_focused | is_normal_focused | is_playground_focused;
+            m_Camera->m_IsWindowFocused = is_color_focused | is_gbuffer_focused | is_playground_focused;
 
             ImGui::ShowExampleAppLog(NULL);
         }

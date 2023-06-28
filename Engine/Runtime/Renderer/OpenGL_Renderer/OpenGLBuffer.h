@@ -93,4 +93,33 @@ namespace Engine
         GLuint   m_RenderBuffer_RendererID;
     };
 
+    class OpenGLGeometryBuffer : public GeometryBuffer
+    {
+    public:
+        OpenGLGeometryBuffer();
+        virtual ~OpenGLGeometryBuffer();
+
+        virtual void Bind() const override;
+        virtual void UnBind() const override;
+
+        virtual void SetViewPort(uint32_t width, uint32_t height) override;
+
+        virtual uint32_t GetWidth() const override;
+        virtual uint32_t GetHeight() const override;
+        virtual void*    GetPositionTextureID() const override;
+        virtual void*    GetNormalTextureID() const override;
+        virtual void*    GetAlbedoTextureID() const override;
+
+    private:
+        uint32_t m_Width;
+        uint32_t m_Height;
+        GLuint   m_FrameBuffer_RendererID;
+        // GLuint   m_Texture_RendererID;
+        GLuint m_RenderBuffer_RendererID;
+
+        GLuint m_Position_RendererID;
+        GLuint m_Normal_RendererID;
+        GLuint m_Albedo_RendererID;
+    };
+
 } // namespace Engine

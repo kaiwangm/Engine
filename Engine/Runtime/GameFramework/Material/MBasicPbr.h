@@ -131,5 +131,25 @@ namespace Engine
         float&     GetMetallicRef() { return m_Metallic; }
         float&     GetRoughnessRef() { return m_Roughness; }
         float&     GetAORef() { return m_AO; }
+
+        void BindAlbedoMap(const Ref<Shader> shader)
+        {
+            Renderer::SetShaderUniform(shader, "in_albedo", m_Albedo);
+            Renderer::SetShaderUniform(shader, "useAlbedoMap", m_UseAlbedoMap);
+            Renderer::SetShaderUniform(shader, "albedoMap", 0);
+
+            if (m_UseAlbedoMap == true)
+            {
+                m_AlbedoMap->Bind(0);
+            }
+        }
+
+        void UnBindAlbedoMap(const Ref<Shader> shader)
+        {
+            if (m_UseAlbedoMap == true)
+            {
+                m_AlbedoMap->UnBind(0);
+            }
+        }
     };
 } // namespace Engine

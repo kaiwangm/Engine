@@ -6,7 +6,7 @@
 
 My toy modern OpenGL game engine.
 
-![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/Skeleton_Render.png)
+![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/GBuffer.png)
 
 ## Getting Started
 

@@ -63,8 +63,8 @@ namespace Engine
     void OpenGLFrameRenderBuffer::UnBind() const
     {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glBindTexture(GL_TEXTURE_2D, 0);
-        glBindRenderbuffer(GL_RENDERBUFFER, 0);
+        // glBindTexture(GL_TEXTURE_2D, 0);
+        // glBindRenderbuffer(GL_RENDERBUFFER, 0);
     }
 
     void OpenGLFrameRenderBuffer::SetViewPort(uint32_t width, uint32_t height)
@@ -72,21 +72,21 @@ namespace Engine
         if (width != m_Width || height != m_Height)
         {
             glBindFramebuffer(GL_FRAMEBUFFER, m_FrameBuffer_RendererID);
-            glBindTexture(GL_TEXTURE_2D, m_Texture_RendererID);
-            glBindRenderbuffer(GL_RENDERBUFFER, m_RenderBuffer_RendererID);
 
+            glBindTexture(GL_TEXTURE_2D, m_Texture_RendererID);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_Texture_RendererID, 0);
-            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+            glBindTexture(GL_TEXTURE_2D, 0);
+
+            glBindRenderbuffer(GL_RENDERBUFFER, m_RenderBuffer_RendererID);
             glFramebufferRenderbuffer(
                 GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_RenderBuffer_RendererID);
+            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+            glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
-            glBindTexture(GL_TEXTURE_2D, 0);
-            glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
             m_Width  = width;
             m_Height = height;
@@ -100,4 +100,83 @@ namespace Engine
     uint32_t OpenGLFrameRenderBuffer::GetWidth() const { return m_Width; }
 
     uint32_t OpenGLFrameRenderBuffer::GetHeight() const { return m_Height; }
+
+    OpenGLGeometryBuffer::OpenGLGeometryBuffer() : m_Width(0), m_Height(0)
+    {
+        glGenFramebuffers(1, &m_FrameBuffer_RendererID);
+        glGenRenderbuffers(1, &m_RenderBuffer_RendererID);
+
+        glGenTextures(1, &m_Position_RendererID);
+        glGenTextures(1, &m_Normal_RendererID);
+        glGenTextures(1, &m_Albedo_RendererID);
+    }
+
+    OpenGLGeometryBuffer::~OpenGLGeometryBuffer()
+    {
+        glDeleteTextures(1, &m_Albedo_RendererID);
+        glDeleteTextures(1, &m_Normal_RendererID);
+        glDeleteTextures(1, &m_Position_RendererID);
+
+        glDeleteRenderbuffers(1, &m_RenderBuffer_RendererID);
+        glDeleteFramebuffers(1, &m_FrameBuffer_RendererID);
+    }
+
+    void OpenGLGeometryBuffer::Bind() const { glBindFramebuffer(GL_FRAMEBUFFER, m_FrameBuffer_RendererID); }
+
+    void OpenGLGeometryBuffer::UnBind() const { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
+
+    void OpenGLGeometryBuffer::SetViewPort(uint32_t width, uint32_t height)
+    {
+        if (width != m_Width || height != m_Height)
+        {
+            glBindFramebuffer(GL_FRAMEBUFFER, m_FrameBuffer_RendererID);
+
+            glBindTexture(GL_TEXTURE_2D, m_Position_RendererID);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_Position_RendererID, 0);
+            glBindTexture(GL_TEXTURE_2D, 0);
+
+            glBindTexture(GL_TEXTURE_2D, m_Normal_RendererID);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, m_Normal_RendererID, 0);
+            glBindTexture(GL_TEXTURE_2D, 0);
+
+            glBindTexture(GL_TEXTURE_2D, m_Albedo_RendererID);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, m_Albedo_RendererID, 0);
+            glBindTexture(GL_TEXTURE_2D, 0);
+
+            GLuint attachments[3] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
+            glDrawBuffers(3, attachments);
+
+            glBindRenderbuffer(GL_RENDERBUFFER, m_RenderBuffer_RendererID);
+            glFramebufferRenderbuffer(
+                GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_RenderBuffer_RendererID);
+            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+            glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+            m_Width  = width;
+            m_Height = height;
+        }
+
+        return;
+    }
+
+    uint32_t OpenGLGeometryBuffer::GetWidth() const { return m_Width; }
+
+    uint32_t OpenGLGeometryBuffer::GetHeight() const { return m_Height; }
+
+    void* OpenGLGeometryBuffer::GetPositionTextureID() const { return (void*)(uint64_t)m_Position_RendererID; }
+
+    void* OpenGLGeometryBuffer::GetNormalTextureID() const { return (void*)(uint64_t)m_Normal_RendererID; }
+
+    void* OpenGLGeometryBuffer::GetAlbedoTextureID() const { return (void*)(uint64_t)m_Albedo_RendererID; }
 } // namespace Engine
