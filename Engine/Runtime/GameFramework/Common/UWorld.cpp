@@ -22,8 +22,8 @@ namespace Engine
     UWorld::UWorld()
     {
         // Create Buffer
-        m_FrameRenderBuffer = FrameRenderBuffer::Create();
-        // m_FrameRenderBuffer_normal     = FrameRenderBuffer::Create();
+        m_FrameRenderBuffer            = FrameRenderBuffer::Create();
+        m_FrameRenderBuffer_gbuffer    = FrameRenderBuffer::Create();
         m_FrameRenderBuffer_playground = FrameRenderBuffer::Create();
 
         // GeometryBuffer
@@ -157,8 +157,8 @@ namespace Engine
         }
 
         // Render to GeometryBuffer
-        m_MainCamera->GetCameraComponent().GetCamera().SetViewPort(m_GeometryBuffer->GetWidth(),
-                                                                   m_GeometryBuffer->GetHeight());
+        m_MainCamera->GetCameraComponent().GetCamera().SetViewPort(m_FrameRenderBuffer_gbuffer->GetWidth(),
+                                                                   m_FrameRenderBuffer_gbuffer->GetHeight());
         m_MainCamera->GetCameraComponent().GetCamera().RecalculateViewProjectMatrix();
 
         m_VMatrix  = glm::inverse(m_MainCamera->GetTransformComponent().GetTransform());
@@ -341,40 +341,7 @@ namespace Engine
 
         Renderer::EndScene(m_FrameRenderBuffer);
 
-        // Render
-        // m_MainCamera->GetCameraComponent().GetCamera().SetViewPort(m_FrameRenderBuffer_normal->GetWidth(),
-        //                                                            m_FrameRenderBuffer_normal->GetHeight());
-        // m_MainCamera->GetCameraComponent().GetCamera().RecalculateViewProjectMatrix();
-        // m_VPMatrix = m_MainCamera->GetCameraComponent().GetCamera().GetViewProjectMatrix() *
-        //              glm::inverse(m_MainCamera->GetTransformComponent().GetTransform());
-
-        // m_FrameRenderBuffer_normal->Bind();
-        // RenderCommand::SetViewPort(
-        //     0, 0, m_FrameRenderBuffer_normal->GetWidth(), m_FrameRenderBuffer_normal->GetHeight());
-
-        // RenderCommand::SetClearColor(m_BackGroundColor);
-        // RenderCommand::Clear();
-
-        // // use a range-for
-        // for (auto [entity, name, trans, model] : model_view.each())
-        // {
-        //     auto shader = m_ShaderLibrary.Get("TextureShader_normal");
-        //     Renderer::SetShaderUniform(shader, "u_Texture", 0);
-
-        //     const auto meshes = model.GetStaticMesh().m_Meshes;
-
-        //     for (const auto& mesh : meshes)
-        //     {
-        //         auto texture = mesh.m_Textures[0];
-        //         texture->Bind(0);
-        //         Renderer::Submit(mesh.m_VertexArray, shader, m_VPMatrix, trans.GetTransform());
-        //         texture->UnBind(0);
-        //     }
-        // }
-
-        // Renderer::EndScene(m_FrameRenderBuffer_normal);
-
-        // Render
+        // Render Playground
         m_MainCamera->GetCameraComponent().GetCamera().SetViewPort(m_FrameRenderBuffer_playground->GetWidth(),
                                                                    m_FrameRenderBuffer_playground->GetHeight());
         m_MainCamera->GetCameraComponent().GetCamera().RecalculateViewProjectMatrix();
@@ -389,6 +356,53 @@ namespace Engine
         RenderCommand::Clear();
 
         Renderer::EndScene(m_FrameRenderBuffer_playground);
+
+        // Render GBuffer Viewport
+        m_FrameRenderBuffer_gbuffer->Bind();
+        RenderCommand::SetViewPort(
+            0, 0, m_FrameRenderBuffer_gbuffer->GetWidth(), m_FrameRenderBuffer_gbuffer->GetHeight());
+
+        RenderCommand::SetClearColor(m_BackGroundColor);
+        RenderCommand::Clear();
+
+        std::string gbuffer_shader_name[5] = {
+            "ViewGBufferPosition", "ViewGBufferNormal", "ViewGBufferAlbedo", "ViewGBufferOpacity", "ViewGBufferDepth"};
+        auto gbuffer_viewport_shader = m_ShaderLibrary.Get(gbuffer_shader_name[m_ViewportGBufferMap]);
+
+        gbuffer_viewport_shader->Bind();
+
+        if (m_ViewportGBufferMap == 0)
+        {
+            gbuffer_viewport_shader->SetInt("g_Position", 0);
+            m_GeometryBuffer->BindPositionTexture(0);
+        }
+        else if (m_ViewportGBufferMap == 1)
+        {
+            gbuffer_viewport_shader->SetInt("g_Normal", 0);
+            m_GeometryBuffer->BindNormalTexture(0);
+        }
+        else if (m_ViewportGBufferMap == 2)
+        {
+            gbuffer_viewport_shader->SetInt("g_Albedo", 0);
+            m_GeometryBuffer->BindAlbedoTexture(0);
+        }
+        else if (m_ViewportGBufferMap == 3)
+        {
+            gbuffer_viewport_shader->SetInt("g_Opacity", 0);
+            m_GeometryBuffer->BindOpacityTexture(0);
+        }
+        else if (m_ViewportGBufferMap == 4)
+        {
+            gbuffer_viewport_shader->SetInt("g_Depth", 0);
+            m_GeometryBuffer->BindDepthTexture(0);
+        }
+
+        RenderCommand::RenderToQuad();
+
+        m_GeometryBuffer->UnBindTexture(0);
+        gbuffer_viewport_shader->UnBind();
+
+        Renderer::EndScene(m_FrameRenderBuffer_gbuffer);
     }
 
     void UWorld::TickGui(float timeStep)
@@ -403,7 +417,7 @@ namespace Engine
 
         // a list select
         Gui::Text("Geometry Buffer");
-        const char* items[] = {"Position", "Normal", "Albedo"};
+        const char* items[] = {"Position", "Normal", "Albedo", "Opacity", "Depth"};
         ImGui::Combo("Viewport GBuffer Map", &m_ViewportGBufferMap, items, IM_ARRAYSIZE(items));
 
         Gui::End();
@@ -553,7 +567,7 @@ namespace Engine
 
                 Gui::Text("Skeleton");
 
-                Gui::Text("Joints Num: {}", skeleton.GetNumJoints());
+                Gui::Text("Joints Num: {0}", skeleton.GetNumJoints());
 
                 ImGui::TreePop();
             }

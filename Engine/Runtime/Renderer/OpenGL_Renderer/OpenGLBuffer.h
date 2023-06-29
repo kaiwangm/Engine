@@ -109,6 +109,15 @@ namespace Engine
         virtual void*    GetPositionTextureID() const override;
         virtual void*    GetNormalTextureID() const override;
         virtual void*    GetAlbedoTextureID() const override;
+        virtual void*    GetOpacityTextureID() const override;
+        virtual void*    GetDepthTextureID() const override;
+
+        virtual void BindPositionTexture(const uint32_t& slot) const override;
+        virtual void BindNormalTexture(const uint32_t& slot) const override;
+        virtual void BindAlbedoTexture(const uint32_t& slot) const override;
+        virtual void BindOpacityTexture(const uint32_t& slot) const override;
+        virtual void BindDepthTexture(const uint32_t& slot) const override;
+        virtual void UnBindTexture(const uint32_t& slot) const override;
 
     private:
         uint32_t m_Width;
@@ -120,6 +129,8 @@ namespace Engine
         GLuint m_Position_RendererID;
         GLuint m_Normal_RendererID;
         GLuint m_Albedo_RendererID;
+        GLuint m_Opacity_RendererID;
+        GLuint m_Depth_RendererID;
     };
 
 } // namespace Engine

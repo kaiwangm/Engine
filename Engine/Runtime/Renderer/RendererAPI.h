@@ -24,6 +24,8 @@ namespace Engine
         virtual void DrawArray(const Ref<VertexArray>& vertexArray)   = 0;
         virtual void DrawSkybox(const Ref<VertexArray>& vertexArray)  = 0;
 
+        virtual void RenderToQuad() = 0;
+
         inline static API         GetAPI() { return s_API; }
         static Scope<RendererAPI> Create();
 

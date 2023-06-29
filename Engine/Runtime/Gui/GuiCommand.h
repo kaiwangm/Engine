@@ -85,10 +85,6 @@ namespace Engine
                 framebuffer->SetViewPort((uint32_t)wsize.x, (uint32_t)wsize.y);
                 ImGui::Image(framebuffer->GetTextureID(), wsize, ImVec2(0, 1), ImVec2(1, 0));
 
-                if (show_overlap)
-                {
-                }
-
                 ImGui::EndChild();
             }
             ImGui::End();
@@ -96,10 +92,10 @@ namespace Engine
 
         template<class... Args>
         static void ShowViewport(const std::string&  text,
-                                 Ref<GeometryBuffer> framebuffer,
+                                 Ref<GeometryBuffer> gbuffer,
+                                 Ref<FrameRenderBuffer> framebuffer,
                                  const bool          show_overlap,
                                  bool&               is_focused,
-                                 const int&          texture_id,
                                  Args... args)
         {
             ImGui::Begin(fmt::format(text, args...).c_str());
@@ -107,20 +103,11 @@ namespace Engine
                 ImGui::BeginChild("Render");
                 is_focused   = ImGui::IsWindowFocused();
                 ImVec2 wsize = ImGui::GetWindowSize();
+
+                gbuffer->SetViewPort((uint32_t)wsize.x, (uint32_t)wsize.y);
                 framebuffer->SetViewPort((uint32_t)wsize.x, (uint32_t)wsize.y);
 
-                if (texture_id == 0)
-                {
-                    ImGui::Image(framebuffer->GetPositionTextureID(), wsize, ImVec2(0, 1), ImVec2(1, 0));
-                }
-                else if (texture_id == 1)
-                {
-                    ImGui::Image(framebuffer->GetNormalTextureID(), wsize, ImVec2(0, 1), ImVec2(1, 0));
-                }
-                else if (texture_id == 2)
-                {
-                    ImGui::Image(framebuffer->GetAlbedoTextureID(), wsize, ImVec2(0, 1), ImVec2(1, 0));
-                }
+                ImGui::Image(framebuffer->GetTextureID(), wsize, ImVec2(0, 1), ImVec2(1, 0));
 
                 ImGui::EndChild();
             }

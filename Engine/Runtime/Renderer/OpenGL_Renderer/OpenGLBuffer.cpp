@@ -109,10 +109,14 @@ namespace Engine
         glGenTextures(1, &m_Position_RendererID);
         glGenTextures(1, &m_Normal_RendererID);
         glGenTextures(1, &m_Albedo_RendererID);
+        glGenTextures(1, &m_Opacity_RendererID);
+        glGenTextures(1, &m_Depth_RendererID);
     }
 
     OpenGLGeometryBuffer::~OpenGLGeometryBuffer()
     {
+        glDeleteTextures(1, &m_Depth_RendererID);
+        glDeleteTextures(1, &m_Opacity_RendererID);
         glDeleteTextures(1, &m_Albedo_RendererID);
         glDeleteTextures(1, &m_Normal_RendererID);
         glDeleteTextures(1, &m_Position_RendererID);
@@ -152,8 +156,26 @@ namespace Engine
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, m_Albedo_RendererID, 0);
             glBindTexture(GL_TEXTURE_2D, 0);
 
-            GLuint attachments[3] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
-            glDrawBuffers(3, attachments);
+            glBindTexture(GL_TEXTURE_2D, m_Opacity_RendererID);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_FLOAT, NULL);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, m_Opacity_RendererID, 0);
+            glBindTexture(GL_TEXTURE_2D, 0);
+
+            glBindTexture(GL_TEXTURE_2D, m_Depth_RendererID);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_FLOAT, NULL);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT6, GL_TEXTURE_2D, m_Depth_RendererID, 0);
+            glBindTexture(GL_TEXTURE_2D, 0);
+
+            GLuint attachments[5] = {GL_COLOR_ATTACHMENT0,
+                                     GL_COLOR_ATTACHMENT1,
+                                     GL_COLOR_ATTACHMENT2,
+                                     GL_COLOR_ATTACHMENT3,
+                                     GL_COLOR_ATTACHMENT6};
+            glDrawBuffers(5, attachments);
 
             glBindRenderbuffer(GL_RENDERBUFFER, m_RenderBuffer_RendererID);
             glFramebufferRenderbuffer(
@@ -179,4 +201,35 @@ namespace Engine
     void* OpenGLGeometryBuffer::GetNormalTextureID() const { return (void*)(uint64_t)m_Normal_RendererID; }
 
     void* OpenGLGeometryBuffer::GetAlbedoTextureID() const { return (void*)(uint64_t)m_Albedo_RendererID; }
+
+    void* OpenGLGeometryBuffer::GetOpacityTextureID() const { return (void*)(uint64_t)m_Opacity_RendererID; }
+
+    void* OpenGLGeometryBuffer::GetDepthTextureID() const { return (void*)(uint64_t)m_Depth_RendererID; }
+
+    void OpenGLGeometryBuffer::BindPositionTexture(const uint32_t& slot) const
+    {
+        glBindTextureUnit(slot, m_Position_RendererID);
+    }
+
+    void OpenGLGeometryBuffer::BindNormalTexture(const uint32_t& slot) const
+    {
+        glBindTextureUnit(slot, m_Normal_RendererID);
+    }
+
+    void OpenGLGeometryBuffer::BindAlbedoTexture(const uint32_t& slot) const
+    {
+        glBindTextureUnit(slot, m_Albedo_RendererID);
+    }
+
+    void OpenGLGeometryBuffer::BindOpacityTexture(const uint32_t& slot) const
+    {
+        glBindTextureUnit(slot, m_Opacity_RendererID);
+    }
+
+    void OpenGLGeometryBuffer::BindDepthTexture(const uint32_t& slot) const
+    {
+        glBindTextureUnit(slot, m_Depth_RendererID);
+    }
+
+    void OpenGLGeometryBuffer::UnBindTexture(const uint32_t& slot) const { glBindTextureUnit(slot, 0); }
 } // namespace Engine

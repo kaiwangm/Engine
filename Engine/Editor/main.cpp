@@ -30,7 +30,32 @@ namespace Engine
             m_World->LoadShader(
                 "GBuffer", "Assert/Shader/gbuffer_vertex.glsl", "Assert/Shader/gbuffer_fragment.glsl", "Path");
 
-            m_Camera    = std::make_shared<PerspectiveCamera>(60.0f, 1.778f, 0.1f, 3000.0f * 8);
+            m_World->LoadShader("ViewGBufferPosition",
+                                "Assert/Shader/screen_quad_vertex.glsl",
+                                "Assert/Shader/gbuffer_viewport/position.glsl",
+                                "Path");
+
+            m_World->LoadShader("ViewGBufferNormal",
+                                "Assert/Shader/screen_quad_vertex.glsl",
+                                "Assert/Shader/gbuffer_viewport/normal.glsl",
+                                "Path");
+
+            m_World->LoadShader("ViewGBufferAlbedo",
+                                "Assert/Shader/screen_quad_vertex.glsl",
+                                "Assert/Shader/gbuffer_viewport/albedo.glsl",
+                                "Path");
+
+            m_World->LoadShader("ViewGBufferOpacity",
+                                "Assert/Shader/screen_quad_vertex.glsl",
+                                "Assert/Shader/gbuffer_viewport/opacity.glsl",
+                                "Path");
+
+            m_World->LoadShader("ViewGBufferDepth",
+                                "Assert/Shader/screen_quad_vertex.glsl",
+                                "Assert/Shader/gbuffer_viewport/depth.glsl",
+                                "Path");
+
+            m_Camera    = std::make_shared<PerspectiveCamera>(60.0f, 1.778f, 0.1f, 800.0f);
             auto camera = m_World->AddActor<ACamera>("main camera", m_Camera);
             camera.GetTransformComponent().SetPosition(glm::vec3 {0.339f, 3.711f, 8.815f});
             camera.GetTransformComponent().SetRotation(glm::vec3 {-0.088f, -6.732f, 0.000f});
@@ -200,9 +225,9 @@ namespace Engine
             bool is_gbuffer_focused = false;
             Gui::ShowViewport("ViewPort :: GBuffer",
                               m_World->m_GeometryBuffer,
-                              false,
-                              is_gbuffer_focused,
-                              m_World->m_ViewportGBufferMap);
+                              m_World->m_FrameRenderBuffer_gbuffer,
+                              true,
+                              is_gbuffer_focused);
 
             bool is_playground_focused = false;
             Gui::ShowViewport(

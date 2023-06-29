@@ -25,6 +25,8 @@ namespace Engine
 
         static void DrawSkybox(const Ref<VertexArray>& vertexArray) { s_RendererAPI->DrawSkybox(vertexArray); }
 
+        static void RenderToQuad() { s_RendererAPI->RenderToQuad(); }
+
     private:
         static Scope<RendererAPI> s_RendererAPI;
     };

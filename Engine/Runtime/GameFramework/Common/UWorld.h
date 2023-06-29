@@ -22,7 +22,7 @@ namespace Engine
 
     public:
         Ref<FrameRenderBuffer> m_FrameRenderBuffer;
-        Ref<FrameRenderBuffer> m_FrameRenderBuffer_normal;
+        Ref<FrameRenderBuffer> m_FrameRenderBuffer_gbuffer;
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_playground;
 
         Ref<GeometryBuffer> m_GeometryBuffer;
