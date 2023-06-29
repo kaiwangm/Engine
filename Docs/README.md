@@ -17,6 +17,7 @@
 - 2022-05-01 ✨ Basic PBR : Specular IBL
 - 2023-06-26 ✨ Basic Skeleton Animation
 - 2023-06-28 ✨ Geometry Buffer
+- 2023-06-28 ✨ Geometry Buffer Viewport
 - ......
 
 <!--
