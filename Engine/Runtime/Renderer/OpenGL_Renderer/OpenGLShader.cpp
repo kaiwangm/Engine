@@ -10,7 +10,7 @@ namespace Engine
                                const std::string& mode) :
         Shader(name)
     {
-        Log::Core_Info("Creating Shader:");
+        Log::Core_Info("Creating Shader: {0}", name);
         Log::Core_Info("    Vertex Shader Path: {0}", vertexSrc);
         Log::Core_Info("    Fragment Shader Path: {0}", fragmentSrc);
 

@@ -20,8 +20,8 @@ namespace Engine
         auto sink3 = std::make_shared<spdlog::sinks::ostream_sink_mt>(*s_OString);
         std::vector<spdlog::sink_ptr> sinks = {sink1, sink2, sink3};
 
-        std::string patten = "[%Y-%m-%d %H:%M:%S.%e] [%n -> %^%l%$] %v";
-        spdlog::init_thread_pool(8192, 3);
+        std::string patten = "[%Y-%m-%d %H:%M:%S.%e] [%n] [%^%l%$] %v";
+        spdlog::init_thread_pool(8192, 1);
 
         s_CoreLogger = std::make_shared<spdlog::async_logger>(
             "Engine", sinks.begin(), sinks.end(), spdlog::thread_pool(), spdlog::async_overflow_policy::block);
