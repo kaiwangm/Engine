@@ -55,16 +55,14 @@ namespace Engine
                                 "Assert/Shader/viewport/depth.glsl",
                                 "Path");
 
-            m_World->LoadShader("ViewAO",
-                                "Assert/Shader/screen_quad_vertex.glsl",
-                                "Assert/Shader/viewport/ao.glsl",
-                                "Path");
+            m_World->LoadShader(
+                "ViewAO", "Assert/Shader/screen_quad_vertex.glsl", "Assert/Shader/viewport/ao.glsl", "Path");
 
             m_World->LoadShader("ComputeAO",
                                 "Assert/Shader/screen_quad_vertex.glsl",
                                 "Assert/Shader/compute_ssao_fragment.glsl",
                                 "Path");
-            
+
             m_World->LoadShader("ViewGBufferRoughness",
                                 "Assert/Shader/screen_quad_vertex.glsl",
                                 "Assert/Shader/viewport/roughness.glsl",
@@ -243,10 +241,8 @@ namespace Engine
             Gui::ShowViewport("ViewPort :: Color", m_World->m_FrameRenderBuffer, true, is_color_focused);
 
             bool is_buffers_focused = false;
-            Gui::ShowViewport("ViewPort :: Buffers",
-                              m_World->m_FrameRenderBuffer_bufferViewport,
-                              true,
-                              is_buffers_focused);
+            Gui::ShowViewport(
+                "ViewPort :: Buffers", m_World->m_FrameRenderBuffer_bufferViewport, true, is_buffers_focused);
 
             bool is_playground_focused = false;
             Gui::ShowViewport(
