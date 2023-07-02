@@ -54,13 +54,17 @@ jobs:
         with:
           arch: ${{ matrix.arch }}
           # toolset: ${{ matrix.toolset }}
+      
+      - name: Setup Ninja
+        uses: ashutoshvarma/setup-ninja@v1.1
 
-      - name: Install CUDA
-        env:
-          cuda: ${{ matrix.cuda }}
-          visual_studio: ${{ matrix.visual_studio }}
-        shell: powershell
-        run: .\.github\workflows\install_cuda_windows.ps1
+
+      # - name: Install CUDA
+      #   env:
+      #     cuda: ${{ matrix.cuda }}
+      #     visual_studio: ${{ matrix.visual_studio }}
+      #   shell: powershell
+      #   run: .\.github\workflows\install_cuda_windows.ps1
 
       - name: Get cmake
         # Install latest CMake.
