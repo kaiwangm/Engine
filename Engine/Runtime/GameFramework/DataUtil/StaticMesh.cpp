@@ -29,7 +29,8 @@ namespace Engine
     StaticMesh::StaticMesh(const std::string& path) : m_Directory(path.substr(0, path.find_last_of('/')))
     {
         Assimp::Importer import;
-        const aiScene*   scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+        const aiScene*   scene =
+            import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
 
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
         {
@@ -83,9 +84,25 @@ namespace Engine
             {
                 vertices.push_back(amesh->mTextureCoords[0][i].x);
                 vertices.push_back(amesh->mTextureCoords[0][i].y);
+
+                vertices.push_back(amesh->mTangents[i].x);
+                vertices.push_back(amesh->mTangents[i].y);
+                vertices.push_back(amesh->mTangents[i].z);
+
+                vertices.push_back(amesh->mBitangents[i].x);
+                vertices.push_back(amesh->mBitangents[i].y);
+                vertices.push_back(amesh->mBitangents[i].z);
             }
             else
             {
+                vertices.push_back(0.0f);
+                vertices.push_back(0.0f);
+
+                vertices.push_back(0.0f);
+                vertices.push_back(0.0f);
+                vertices.push_back(0.0f);
+
+                vertices.push_back(0.0f);
                 vertices.push_back(0.0f);
                 vertices.push_back(0.0f);
             }
@@ -101,12 +118,14 @@ namespace Engine
         Mesh mesh(vertices.data(),
                   indices.data(),
                   amesh->mNumVertices,
-                  8,
+                  3 + 3 + 2 + 3 + 3,
                   amesh->mNumFaces * 3,
                   {
                       {0, ShaderDataType::Float3, "a_Position"},
                       {1, ShaderDataType::Float3, "a_Normal"},
                       {2, ShaderDataType::Float2, "a_TexCoord"},
+                      {3, ShaderDataType::Float3, "a_Tangent"},
+                      {4, ShaderDataType::Float3, "a_Bitangent"},
                   });
 
         if (amesh->mMaterialIndex >= 0)

@@ -145,6 +145,9 @@ namespace Engine
         auto skybox_view     = m_Registry.view<UTagComponent, UTransformComponent, USkyboxComponent>();
         auto skeleton_view   = m_Registry.view<UTagComponent, UTransformComponent, USkeletonComponent>();
 
+        m_GeometryBuffer->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
+        m_SSAOBuffer->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
+
         // Get Main Camera
         for (auto [entity, name, trans, camera] : camrea_view.each())
         {
@@ -158,8 +161,8 @@ namespace Engine
         }
 
         // Render to GeometryBuffer
-        m_MainCamera->GetCameraComponent().GetCamera().SetViewPort(m_FrameRenderBuffer_bufferViewport->GetWidth(),
-                                                                   m_FrameRenderBuffer_bufferViewport->GetHeight());
+        m_MainCamera->GetCameraComponent().GetCamera().SetViewPort(m_FrameRenderBuffer->GetWidth(),
+                                                                   m_FrameRenderBuffer->GetHeight());
         m_MainCamera->GetCameraComponent().GetCamera().RecalculateViewProjectMatrix();
 
         m_VMatrix  = glm::inverse(m_MainCamera->GetTransformComponent().GetTransform());
@@ -167,7 +170,7 @@ namespace Engine
         m_VPMatrix = m_PMatrix * m_VMatrix;
 
         m_GeometryBuffer->Bind();
-        RenderCommand::SetViewPort(0, 0, m_GeometryBuffer->GetWidth(), m_GeometryBuffer->GetHeight());
+        RenderCommand::SetViewPort(0, 0, m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
 
         RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
         RenderCommand::Clear();
@@ -189,7 +192,7 @@ namespace Engine
                 for (const auto& mesh : meshes)
                 {
                     MBasicPbr* material_basicPbr = static_cast<MBasicPbr*>(material);
-                    material_basicPbr->BindAlbedoMap(shader);
+                    material_basicPbr->BindAllMap(shader);
 
                     shader->Bind();
                     shader->SetMat4("u_MProjection", m_PMatrix);
@@ -199,7 +202,7 @@ namespace Engine
 
                     Renderer::Submit(mesh.m_VertexArray, shader, m_VPMatrix, trans.GetTransform());
 
-                    material_basicPbr->UnBindAlbedoMap(shader);
+                    material_basicPbr->UnBindAllMap(shader);
                 }
             }
 
@@ -209,8 +212,8 @@ namespace Engine
         m_GeometryBuffer->UnBind();
 
         // Render to SSAOBuffer
-        m_MainCamera->GetCameraComponent().GetCamera().SetViewPort(m_FrameRenderBuffer_bufferViewport->GetWidth(),
-                                                                   m_FrameRenderBuffer_bufferViewport->GetHeight());
+        m_MainCamera->GetCameraComponent().GetCamera().SetViewPort(m_FrameRenderBuffer->GetWidth(),
+                                                                   m_FrameRenderBuffer->GetHeight());
         m_MainCamera->GetCameraComponent().GetCamera().RecalculateViewProjectMatrix();
 
         m_VMatrix  = glm::inverse(m_MainCamera->GetTransformComponent().GetTransform());
@@ -247,8 +250,8 @@ namespace Engine
         computeAO_shader->SetFloat("bias", m_SSAOBuffer->GetBiasRef());
         computeAO_shader->SetFloat("power", m_SSAOBuffer->GetPowerRef());
 
-        computeAO_shader->SetFloat("screenWidth", m_GeometryBuffer->GetWidth());
-        computeAO_shader->SetFloat("screenHeight", m_GeometryBuffer->GetHeight());
+        computeAO_shader->SetFloat("screenWidth", m_FrameRenderBuffer->GetWidth());
+        computeAO_shader->SetFloat("screenHeight", m_FrameRenderBuffer->GetHeight());
 
         computeAO_shader->Bind();
         RenderCommand::RenderToQuad();
@@ -432,7 +435,9 @@ namespace Engine
                                                "ViewGBufferAlbedo",
                                                "ViewGBufferOpacity",
                                                "ViewGBufferDepth",
-                                               "ViewAO"};
+                                               "ViewAO",
+                                               "ViewGBufferRoughness",
+                                               "ViewGBufferMetallic"};
         auto        gbuffer_viewport_shader = m_ShaderLibrary.Get(gbuffer_shader_name[m_ViewportGBufferMap]);
 
         gbuffer_viewport_shader->Bind();
@@ -467,6 +472,16 @@ namespace Engine
             gbuffer_viewport_shader->SetInt("g_AO", 0);
             m_SSAOBuffer->BindSSAOTexture(0);
         }
+        else if (m_ViewportGBufferMap == 6)
+        {
+            gbuffer_viewport_shader->SetInt("g_Roughness", 0);
+            m_GeometryBuffer->BindRoughnessTexture(0);
+        }
+        else if (m_ViewportGBufferMap == 7)
+        {
+            gbuffer_viewport_shader->SetInt("g_Metallic", 0);
+            m_GeometryBuffer->BindMetallicTexture(0);
+        }
 
         RenderCommand::RenderToQuad();
 
@@ -488,7 +503,7 @@ namespace Engine
         ImGui::Separator();
 
         Gui::Text("Buffer Viewport");
-        const char* items[] = {"Position", "Normal", "Albedo", "Opacity", "Depth", "Ambient Occlusion"};
+        const char* items[] = {"Position", "Normal", "Albedo", "Opacity", "Depth", "Ambient Occlusion", "Roughness", "Metallic"};
         ImGui::Combo("Viewport GBuffer Map", &m_ViewportGBufferMap, items, IM_ARRAYSIZE(items));
 
         ImGui::Separator();

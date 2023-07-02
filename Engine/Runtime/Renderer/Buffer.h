@@ -212,12 +212,16 @@ namespace Engine
         virtual void*    GetAlbedoTextureID() const   = 0;
         virtual void*    GetOpacityTextureID() const  = 0;
         virtual void*    GetDepthTextureID() const    = 0;
+        virtual void*    GetRoughnessTextureID() const = 0;
+        virtual void*    GetMetallicTextureID() const  = 0;
 
         virtual void BindPositionTexture(const uint32_t& slot) const = 0;
         virtual void BindNormalTexture(const uint32_t& slot) const   = 0;
         virtual void BindAlbedoTexture(const uint32_t& slot) const   = 0;
         virtual void BindOpacityTexture(const uint32_t& slot) const  = 0;
         virtual void BindDepthTexture(const uint32_t& slot) const    = 0;
+        virtual void BindRoughnessTexture(const uint32_t& slot) const = 0;
+        virtual void BindMetallicTexture(const uint32_t& slot) const  = 0;
         virtual void UnBindTexture(const uint32_t& slot) const       = 0;
 
         static Ref<GeometryBuffer> Create();

@@ -79,12 +79,16 @@ namespace Engine
         virtual void*    GetAlbedoTextureID() const override;
         virtual void*    GetOpacityTextureID() const override;
         virtual void*    GetDepthTextureID() const override;
+        virtual void*    GetRoughnessTextureID() const override;
+        virtual void*    GetMetallicTextureID() const  override;
 
         virtual void BindPositionTexture(const uint32_t& slot) const override;
         virtual void BindNormalTexture(const uint32_t& slot) const override;
         virtual void BindAlbedoTexture(const uint32_t& slot) const override;
         virtual void BindOpacityTexture(const uint32_t& slot) const override;
         virtual void BindDepthTexture(const uint32_t& slot) const override;
+        virtual void BindRoughnessTexture(const uint32_t& slot) const override;
+        virtual void BindMetallicTexture(const uint32_t& slot) const override;
         virtual void UnBindTexture(const uint32_t& slot) const override;
 
     private:
@@ -99,6 +103,8 @@ namespace Engine
         GLuint m_Albedo_RendererID;
         GLuint m_Opacity_RendererID;
         GLuint m_Depth_RendererID;
+        GLuint m_Roughness_RendererID;
+        GLuint m_Metallic_RendererID;
     };
 
     class OpenGLSSAOBuffer : public SSAOBuffer

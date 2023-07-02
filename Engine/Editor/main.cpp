@@ -64,6 +64,16 @@ namespace Engine
                                 "Assert/Shader/screen_quad_vertex.glsl",
                                 "Assert/Shader/compute_ssao_fragment.glsl",
                                 "Path");
+            
+            m_World->LoadShader("ViewGBufferRoughness",
+                                "Assert/Shader/screen_quad_vertex.glsl",
+                                "Assert/Shader/viewport/roughness.glsl",
+                                "Path");
+
+            m_World->LoadShader("ViewGBufferMetallic",
+                                "Assert/Shader/screen_quad_vertex.glsl",
+                                "Assert/Shader/viewport/metallic.glsl",
+                                "Path");
 
             m_Camera    = std::make_shared<PerspectiveCamera>(60.0f, 1.778f, 0.1f, 800.0f);
             auto camera = m_World->AddActor<ACamera>("main camera", m_Camera);
@@ -234,8 +244,6 @@ namespace Engine
 
             bool is_buffers_focused = false;
             Gui::ShowViewport("ViewPort :: Buffers",
-                              m_World->m_GeometryBuffer,
-                              m_World->m_SSAOBuffer,
                               m_World->m_FrameRenderBuffer_bufferViewport,
                               true,
                               is_buffers_focused);

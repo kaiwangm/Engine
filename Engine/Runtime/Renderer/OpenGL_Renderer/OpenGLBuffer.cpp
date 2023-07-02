@@ -148,10 +148,14 @@ namespace Engine
         glGenTextures(1, &m_Albedo_RendererID);
         glGenTextures(1, &m_Opacity_RendererID);
         glGenTextures(1, &m_Depth_RendererID);
+        glGenTextures(1, &m_Roughness_RendererID);
+        glGenTextures(1, &m_Metallic_RendererID);
     }
 
     OpenGLGeometryBuffer::~OpenGLGeometryBuffer()
     {
+        glDeleteTextures(1, &m_Metallic_RendererID);
+        glDeleteTextures(1, &m_Roughness_RendererID);
         glDeleteTextures(1, &m_Depth_RendererID);
         glDeleteTextures(1, &m_Opacity_RendererID);
         glDeleteTextures(1, &m_Albedo_RendererID);
@@ -204,15 +208,31 @@ namespace Engine
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_FLOAT, NULL);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT6, GL_TEXTURE_2D, m_Depth_RendererID, 0);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, m_Depth_RendererID, 0);
             glBindTexture(GL_TEXTURE_2D, 0);
 
-            GLuint attachments[5] = {GL_COLOR_ATTACHMENT0,
+            glBindTexture(GL_TEXTURE_2D, m_Roughness_RendererID);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_FLOAT, NULL);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT5, GL_TEXTURE_2D, m_Roughness_RendererID, 0);
+            glBindTexture(GL_TEXTURE_2D, 0);
+
+            glBindTexture(GL_TEXTURE_2D, m_Metallic_RendererID);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_FLOAT, NULL);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT6, GL_TEXTURE_2D, m_Metallic_RendererID, 0);
+            glBindTexture(GL_TEXTURE_2D, 0);
+
+            GLuint attachments[7] = {GL_COLOR_ATTACHMENT0,
                                      GL_COLOR_ATTACHMENT1,
                                      GL_COLOR_ATTACHMENT2,
                                      GL_COLOR_ATTACHMENT3,
+                                     GL_COLOR_ATTACHMENT4,
+                                     GL_COLOR_ATTACHMENT5,
                                      GL_COLOR_ATTACHMENT6};
-            glDrawBuffers(5, attachments);
+            glDrawBuffers(7, attachments);
 
             glBindRenderbuffer(GL_RENDERBUFFER, m_RenderBuffer_RendererID);
             glFramebufferRenderbuffer(
@@ -243,6 +263,10 @@ namespace Engine
 
     void* OpenGLGeometryBuffer::GetDepthTextureID() const { return (void*)(uint64_t)m_Depth_RendererID; }
 
+    void* OpenGLGeometryBuffer::GetRoughnessTextureID() const { return (void*)(uint64_t)m_Roughness_RendererID; }
+
+    void* OpenGLGeometryBuffer::GetMetallicTextureID() const { return (void*)(uint64_t)m_Metallic_RendererID; }
+
     void OpenGLGeometryBuffer::BindPositionTexture(const uint32_t& slot) const
     {
         glBindTextureUnit(slot, m_Position_RendererID);
@@ -266,6 +290,16 @@ namespace Engine
     void OpenGLGeometryBuffer::BindDepthTexture(const uint32_t& slot) const
     {
         glBindTextureUnit(slot, m_Depth_RendererID);
+    }
+
+    void OpenGLGeometryBuffer::BindRoughnessTexture(const uint32_t& slot) const
+    {
+        glBindTextureUnit(slot, m_Roughness_RendererID);
+    }
+
+    void OpenGLGeometryBuffer::BindMetallicTexture(const uint32_t& slot) const
+    {
+        glBindTextureUnit(slot, m_Metallic_RendererID);
     }
 
     void OpenGLGeometryBuffer::UnBindTexture(const uint32_t& slot) const { glBindTextureUnit(slot, 0); }
