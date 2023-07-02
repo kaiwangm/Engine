@@ -15,7 +15,7 @@ uniform vec3 in_albedo;
 uniform sampler2D albedoMap;
 
 float near = 0.1; 
-float far  = 8.0; 
+float far  = 800.0; 
 
 float LinearizeDepth(float depth) 
 {
@@ -40,5 +40,5 @@ void main()
 
     g_Opacity = 1.0;
 
-    g_Depth = LinearizeDepth(gl_FragCoord.z) / far;
+    g_Depth = LinearizeDepth(gl_FragCoord.z);
 }  

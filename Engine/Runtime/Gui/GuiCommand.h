@@ -93,6 +93,7 @@ namespace Engine
         template<class... Args>
         static void ShowViewport(const std::string&  text,
                                  Ref<GeometryBuffer> gbuffer,
+                                 Ref<SSAOBuffer>     ssao_buffer,
                                  Ref<FrameRenderBuffer> framebuffer,
                                  const bool          show_overlap,
                                  bool&               is_focused,
@@ -105,6 +106,7 @@ namespace Engine
                 ImVec2 wsize = ImGui::GetWindowSize();
 
                 gbuffer->SetViewPort((uint32_t)wsize.x, (uint32_t)wsize.y);
+                ssao_buffer->SetViewPort((uint32_t)wsize.x, (uint32_t)wsize.y);
                 framebuffer->SetViewPort((uint32_t)wsize.x, (uint32_t)wsize.y);
 
                 ImGui::Image(framebuffer->GetTextureID(), wsize, ImVec2(0, 1), ImVec2(1, 0));

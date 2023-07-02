@@ -213,13 +213,40 @@ namespace Engine
         virtual void*    GetOpacityTextureID() const  = 0;
         virtual void*    GetDepthTextureID() const    = 0;
 
-        virtual void BindPositionTexture(const uint32_t& slot) const  = 0;
-        virtual void BindNormalTexture(const uint32_t& slot) const    = 0;
-        virtual void BindAlbedoTexture(const uint32_t& slot) const    = 0;
-        virtual void BindOpacityTexture(const uint32_t& slot) const   = 0;
-        virtual void BindDepthTexture(const uint32_t& slot) const     = 0;
-        virtual void UnBindTexture(const uint32_t& slot) const = 0;
+        virtual void BindPositionTexture(const uint32_t& slot) const = 0;
+        virtual void BindNormalTexture(const uint32_t& slot) const   = 0;
+        virtual void BindAlbedoTexture(const uint32_t& slot) const   = 0;
+        virtual void BindOpacityTexture(const uint32_t& slot) const  = 0;
+        virtual void BindDepthTexture(const uint32_t& slot) const    = 0;
+        virtual void UnBindTexture(const uint32_t& slot) const       = 0;
 
         static Ref<GeometryBuffer> Create();
+    };
+
+    class SSAOBuffer
+    {
+    public:
+        virtual ~SSAOBuffer() {}
+        virtual void Bind() const   = 0;
+        virtual void UnBind() const = 0;
+
+        virtual void SetViewPort(uint32_t width, uint32_t height) = 0;
+
+        virtual uint32_t GetWidth() const  = 0;
+        virtual uint32_t GetHeight() const = 0;
+        virtual float&   GetRadiusRef() = 0;
+        virtual float&   GetBiasRef()   = 0;
+        virtual float&   GetPowerRef()  = 0;
+
+        virtual void* GetSSAOTextureID() const  = 0;
+        virtual void* GetNoiseTextureID() const = 0;
+
+        virtual void BindSSAOTexture(const uint32_t& slot) const  = 0;
+        virtual void BindNoiseTexture(const uint32_t& slot) const = 0;
+        virtual void UnBindTexture(const uint32_t& slot) const    = 0;
+
+        virtual std::vector<glm::vec3>& GetSSAOKernel() = 0;
+
+        static Ref<SSAOBuffer> Create();
     };
 } // namespace Engine

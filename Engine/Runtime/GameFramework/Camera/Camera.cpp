@@ -1,8 +1,7 @@
 #include <Engine/Runtime/GameFramework/Camera/Camera.h>
+#include <Engine/Runtime/Core/Input/Input.h>
 
 #include <glm/gtc/matrix_transform.hpp>
-
-#include <Engine/Runtime/Core/Input/Input.h>
 
 namespace Engine
 {

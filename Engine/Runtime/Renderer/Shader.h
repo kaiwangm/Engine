@@ -21,6 +21,7 @@ namespace Engine
         virtual void SetMat2(const std::string& name, const glm::mat2& matrix)         = 0;
         virtual void SetMat3(const std::string& name, const glm::mat3& matrix)         = 0;
         virtual void SetMat4(const std::string& name, const glm::mat4& matrix)         = 0;
+        virtual void SetBool(const std::string& name, const bool& value)               = 0;
 
         static Ref<Shader> Create(const std::string& name,
                                   const std::string& vertexSrc,

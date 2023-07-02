@@ -26,6 +26,7 @@ namespace Engine
         virtual void SetMat2(const std::string& name, const glm::mat2& matrix) override;
         virtual void SetMat3(const std::string& name, const glm::mat3& matrix) override;
         virtual void SetMat4(const std::string& name, const glm::mat4& matrix) override;
+        virtual void SetBool(const std::string& name, const bool& value) override;
 
     private:
         void        Compile(const std::string& vertexShaderSource, const std::string& fragmentShaderSource);

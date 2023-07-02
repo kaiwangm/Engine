@@ -22,10 +22,11 @@ namespace Engine
 
     public:
         Ref<FrameRenderBuffer> m_FrameRenderBuffer;
-        Ref<FrameRenderBuffer> m_FrameRenderBuffer_gbuffer;
+        Ref<FrameRenderBuffer> m_FrameRenderBuffer_bufferViewport;
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_playground;
 
         Ref<GeometryBuffer> m_GeometryBuffer;
+        Ref<SSAOBuffer>     m_SSAOBuffer;
 
         glm::vec4 m_BackGroundColor {0.7f, 0.7f, 0.7f, 1.0f};
 

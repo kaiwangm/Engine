@@ -95,6 +95,12 @@ namespace Engine
         glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
     }
 
+    void OpenGLShader::SetBool(const std::string& name, const bool& value)
+    {
+        GLint location = glGetUniformLocation(m_RendererID, name.c_str());
+        glUniform1i(location, value);
+    }
+
     void OpenGLShader::Compile(const std::string& vertexShaderSource, const std::string& fragmentShaderSource)
     {
         // Read our shaders into the appropriate buffers

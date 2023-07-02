@@ -1,5 +1,4 @@
 #include <Engine/Runtime/GameFramework/Animation/USkeletonComponent.h>
-
 #include <ozz/base/io/archive.h>
 #include <ozz/base/io/stream.h>
 #include <ozz/animation/runtime/sampling_job.h>

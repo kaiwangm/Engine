@@ -9,4 +9,4 @@ void main()
 {    
     float opacity = texture(g_Opacity, v_TexCoord).x;
     FragColor = vec4(opacity, opacity, opacity, 1.0);
-}  
+}

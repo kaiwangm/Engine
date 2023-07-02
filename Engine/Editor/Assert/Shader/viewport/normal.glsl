@@ -8,4 +8,4 @@ uniform sampler2D g_Normal;
 void main()
 {    
     FragColor = vec4(texture(g_Normal, v_TexCoord).xyz, 1.0);
-}  
+}

@@ -4,39 +4,7 @@
 
 namespace Engine
 {
-    static GLenum ShaderDataTypeToOpenGLBaseType(ShaderDataType type)
-    {
-        switch (type)
-        {
-            case ShaderDataType::Float:
-                return GL_FLOAT;
-            case ShaderDataType::Float2:
-                return GL_FLOAT;
-            case ShaderDataType::Float3:
-                return GL_FLOAT;
-            case ShaderDataType::Float4:
-                return GL_FLOAT;
-            case ShaderDataType::Mat3:
-                return GL_FLOAT;
-            case ShaderDataType::Mat4:
-                return GL_FLOAT;
-            case ShaderDataType::Int:
-                return GL_INT;
-            case ShaderDataType::Int2:
-                return GL_INT;
-            case ShaderDataType::Int3:
-                return GL_INT;
-            case ShaderDataType::Int4:
-                return GL_INT;
-            case ShaderDataType::Bool:
-                return GL_BOOL;
-            default:
-                Log::Core_Error("Unknown DataType!");
-                return -1;
-        }
-
-        return 0;
-    }
+    static GLenum ShaderDataTypeToOpenGLBaseType(ShaderDataType type);
 
     class OpenGLVertexBuffer : public VertexBuffer
     {
@@ -63,7 +31,7 @@ namespace Engine
         virtual void Bind() const override;
         virtual void UnBind() const override;
 
-        virtual uint32_t GetCount() const override { return m_Count; };
+        virtual uint32_t GetCount() const override;
 
     private:
         GLuint   m_RendererID;
@@ -122,8 +90,8 @@ namespace Engine
     private:
         uint32_t m_Width;
         uint32_t m_Height;
-        GLuint   m_FrameBuffer_RendererID;
-        // GLuint   m_Texture_RendererID;
+
+        GLuint m_FrameBuffer_RendererID;
         GLuint m_RenderBuffer_RendererID;
 
         GLuint m_Position_RendererID;
@@ -131,6 +99,55 @@ namespace Engine
         GLuint m_Albedo_RendererID;
         GLuint m_Opacity_RendererID;
         GLuint m_Depth_RendererID;
+    };
+
+    class OpenGLSSAOBuffer : public SSAOBuffer
+    {
+    public:
+        OpenGLSSAOBuffer();
+        virtual ~OpenGLSSAOBuffer();
+
+        virtual void Bind() const override;
+        virtual void UnBind() const override;
+
+        virtual void SetViewPort(uint32_t width, uint32_t height) override;
+
+        virtual uint32_t GetWidth() const override;
+        virtual uint32_t GetHeight() const override;
+        virtual float&   GetRadiusRef() override;
+        virtual float&   GetBiasRef() override;
+        virtual float&   GetPowerRef() override;
+
+        virtual void* GetSSAOTextureID() const override;
+        virtual void* GetNoiseTextureID() const override;
+
+        virtual void BindSSAOTexture(const uint32_t& slot) const override;
+        virtual void BindNoiseTexture(const uint32_t& slot) const override;
+        virtual void UnBindTexture(const uint32_t& slot) const override;
+
+        virtual std::vector<glm::vec3>& GetSSAOKernel() override;
+
+    public:
+        float m_Radius;
+        float m_Bias;
+        float m_Power;
+
+    private:
+        uint32_t m_Width;
+        uint32_t m_Height;
+
+        GLuint m_FrameBuffer_RendererID;
+        GLuint m_RenderBuffer_RendererID;
+
+        GLuint m_SSAO_RendererID;
+
+    private:
+        std::vector<glm::vec3> ssaoKernel;
+        std::vector<glm::vec3> ssaoNoise;
+        GLuint                 noiseTexture;
+
+    private:
+        static GLfloat lerp(GLfloat a, GLfloat b, GLfloat f);
     };
 
 } // namespace Engine

@@ -22,12 +22,13 @@ namespace Engine
     UWorld::UWorld()
     {
         // Create Buffer
-        m_FrameRenderBuffer            = FrameRenderBuffer::Create();
-        m_FrameRenderBuffer_gbuffer    = FrameRenderBuffer::Create();
-        m_FrameRenderBuffer_playground = FrameRenderBuffer::Create();
+        m_FrameRenderBuffer                = FrameRenderBuffer::Create();
+        m_FrameRenderBuffer_bufferViewport = FrameRenderBuffer::Create();
+        m_FrameRenderBuffer_playground     = FrameRenderBuffer::Create();
 
         // GeometryBuffer
         m_GeometryBuffer = GeometryBuffer::Create();
+        m_SSAOBuffer     = SSAOBuffer::Create();
     }
 
     void UWorld::TickLogic(float timeStep, float nowTime)
@@ -157,12 +158,12 @@ namespace Engine
         }
 
         // Render to GeometryBuffer
-        m_MainCamera->GetCameraComponent().GetCamera().SetViewPort(m_FrameRenderBuffer_gbuffer->GetWidth(),
-                                                                   m_FrameRenderBuffer_gbuffer->GetHeight());
+        m_MainCamera->GetCameraComponent().GetCamera().SetViewPort(m_FrameRenderBuffer_bufferViewport->GetWidth(),
+                                                                   m_FrameRenderBuffer_bufferViewport->GetHeight());
         m_MainCamera->GetCameraComponent().GetCamera().RecalculateViewProjectMatrix();
 
         m_VMatrix  = glm::inverse(m_MainCamera->GetTransformComponent().GetTransform());
-        m_PMatrix  = m_MainCamera->GetCameraComponent().GetCamera().GetViewProjectMatrix();
+        m_PMatrix  = m_MainCamera->GetCameraComponent().GetCamera().GetProjectionMatrix();
         m_VPMatrix = m_PMatrix * m_VMatrix;
 
         m_GeometryBuffer->Bind();
@@ -190,6 +191,12 @@ namespace Engine
                     MBasicPbr* material_basicPbr = static_cast<MBasicPbr*>(material);
                     material_basicPbr->BindAlbedoMap(shader);
 
+                    shader->Bind();
+                    shader->SetMat4("u_MProjection", m_PMatrix);
+                    shader->SetMat4("u_MView", m_VMatrix);
+                    shader->SetMat4("u_MTransform", trans.GetTransform());
+                    shader->UnBind();
+
                     Renderer::Submit(mesh.m_VertexArray, shader, m_VPMatrix, trans.GetTransform());
 
                     material_basicPbr->UnBindAlbedoMap(shader);
@@ -201,13 +208,68 @@ namespace Engine
 
         m_GeometryBuffer->UnBind();
 
+        // Render to SSAOBuffer
+        m_MainCamera->GetCameraComponent().GetCamera().SetViewPort(m_FrameRenderBuffer_bufferViewport->GetWidth(),
+                                                                   m_FrameRenderBuffer_bufferViewport->GetHeight());
+        m_MainCamera->GetCameraComponent().GetCamera().RecalculateViewProjectMatrix();
+
+        m_VMatrix  = glm::inverse(m_MainCamera->GetTransformComponent().GetTransform());
+        m_PMatrix  = m_MainCamera->GetCameraComponent().GetCamera().GetProjectionMatrix();
+        m_VPMatrix = m_PMatrix * m_VMatrix;
+
+        m_SSAOBuffer->Bind();
+        RenderCommand::SetViewPort(0, 0, m_GeometryBuffer->GetWidth(), m_GeometryBuffer->GetHeight());
+
+        RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+        RenderCommand::Clear();
+
+        auto computeAO_shader = m_ShaderLibrary.Get("ComputeAO");
+        computeAO_shader->Bind();
+
+        computeAO_shader->SetInt("g_Position", 0);
+        m_GeometryBuffer->BindPositionTexture(0);
+        computeAO_shader->SetInt("g_Normal", 1);
+        m_GeometryBuffer->BindNormalTexture(1);
+        computeAO_shader->SetInt("g_Depth", 2);
+        m_GeometryBuffer->BindDepthTexture(2);
+
+        computeAO_shader->SetInt("texNoise", 3);
+        m_SSAOBuffer->BindNoiseTexture(3);
+
+        std::vector<glm::vec3>& kernel = m_SSAOBuffer->GetSSAOKernel();
+        for (unsigned int i = 0; i < kernel.size(); ++i)
+        {
+            computeAO_shader->SetFloat3("samples[" + std::to_string(i) + "]", kernel[i]);
+        }
+        computeAO_shader->SetMat4("projection", m_PMatrix);
+
+        computeAO_shader->SetFloat("radius", m_SSAOBuffer->GetRadiusRef());
+        computeAO_shader->SetFloat("bias", m_SSAOBuffer->GetBiasRef());
+        computeAO_shader->SetFloat("power", m_SSAOBuffer->GetPowerRef());
+
+        computeAO_shader->SetFloat("screenWidth", m_GeometryBuffer->GetWidth());
+        computeAO_shader->SetFloat("screenHeight", m_GeometryBuffer->GetHeight());
+
+        computeAO_shader->Bind();
+        RenderCommand::RenderToQuad();
+
+        m_SSAOBuffer->UnBindTexture(3);
+
+        m_GeometryBuffer->UnBindTexture(2);
+        m_GeometryBuffer->UnBindTexture(1);
+        m_GeometryBuffer->UnBindTexture(0);
+
+        computeAO_shader->UnBind();
+
+        m_SSAOBuffer->UnBind();
+
         // Render to FrameRenderBuffer
         m_MainCamera->GetCameraComponent().GetCamera().SetViewPort(m_FrameRenderBuffer->GetWidth(),
                                                                    m_FrameRenderBuffer->GetHeight());
         m_MainCamera->GetCameraComponent().GetCamera().RecalculateViewProjectMatrix();
 
         m_VMatrix  = glm::inverse(m_MainCamera->GetTransformComponent().GetTransform());
-        m_PMatrix  = m_MainCamera->GetCameraComponent().GetCamera().GetViewProjectMatrix();
+        m_PMatrix  = m_MainCamera->GetCameraComponent().GetCamera().GetProjectionMatrix();
         m_VPMatrix = m_PMatrix * m_VMatrix;
 
         m_FrameRenderBuffer->Bind();
@@ -345,7 +407,7 @@ namespace Engine
         m_MainCamera->GetCameraComponent().GetCamera().SetViewPort(m_FrameRenderBuffer_playground->GetWidth(),
                                                                    m_FrameRenderBuffer_playground->GetHeight());
         m_MainCamera->GetCameraComponent().GetCamera().RecalculateViewProjectMatrix();
-        m_VPMatrix = m_MainCamera->GetCameraComponent().GetCamera().GetViewProjectMatrix() *
+        m_VPMatrix = m_MainCamera->GetCameraComponent().GetCamera().GetProjectionMatrix() *
                      glm::inverse(m_MainCamera->GetTransformComponent().GetTransform());
 
         m_FrameRenderBuffer_playground->Bind();
@@ -358,16 +420,20 @@ namespace Engine
         Renderer::EndScene(m_FrameRenderBuffer_playground);
 
         // Render GBuffer Viewport
-        m_FrameRenderBuffer_gbuffer->Bind();
+        m_FrameRenderBuffer_bufferViewport->Bind();
         RenderCommand::SetViewPort(
-            0, 0, m_FrameRenderBuffer_gbuffer->GetWidth(), m_FrameRenderBuffer_gbuffer->GetHeight());
+            0, 0, m_FrameRenderBuffer_bufferViewport->GetWidth(), m_FrameRenderBuffer_bufferViewport->GetHeight());
 
         RenderCommand::SetClearColor(m_BackGroundColor);
         RenderCommand::Clear();
 
-        std::string gbuffer_shader_name[5] = {
-            "ViewGBufferPosition", "ViewGBufferNormal", "ViewGBufferAlbedo", "ViewGBufferOpacity", "ViewGBufferDepth"};
-        auto gbuffer_viewport_shader = m_ShaderLibrary.Get(gbuffer_shader_name[m_ViewportGBufferMap]);
+        std::string gbuffer_shader_name[]   = {"ViewGBufferPosition",
+                                               "ViewGBufferNormal",
+                                               "ViewGBufferAlbedo",
+                                               "ViewGBufferOpacity",
+                                               "ViewGBufferDepth",
+                                               "ViewAO"};
+        auto        gbuffer_viewport_shader = m_ShaderLibrary.Get(gbuffer_shader_name[m_ViewportGBufferMap]);
 
         gbuffer_viewport_shader->Bind();
 
@@ -396,13 +462,18 @@ namespace Engine
             gbuffer_viewport_shader->SetInt("g_Depth", 0);
             m_GeometryBuffer->BindDepthTexture(0);
         }
+        else if (m_ViewportGBufferMap == 5)
+        {
+            gbuffer_viewport_shader->SetInt("g_AO", 0);
+            m_SSAOBuffer->BindSSAOTexture(0);
+        }
 
         RenderCommand::RenderToQuad();
 
         m_GeometryBuffer->UnBindTexture(0);
         gbuffer_viewport_shader->UnBind();
 
-        Renderer::EndScene(m_FrameRenderBuffer_gbuffer);
+        Renderer::EndScene(m_FrameRenderBuffer_bufferViewport);
     }
 
     void UWorld::TickGui(float timeStep)
@@ -410,15 +481,22 @@ namespace Engine
         // Render Setting
         Gui::Begin("Render Setting");
 
+        Gui::Text("General");
         Gui::SliderFloat("Exposure", m_Exposure, 0.0f, 3.0f);
         Gui::ColorEdit4("Background Color", m_BackGroundColor);
 
         ImGui::Separator();
 
-        // a list select
-        Gui::Text("Geometry Buffer");
-        const char* items[] = {"Position", "Normal", "Albedo", "Opacity", "Depth"};
+        Gui::Text("Buffer Viewport");
+        const char* items[] = {"Position", "Normal", "Albedo", "Opacity", "Depth", "Ambient Occlusion"};
         ImGui::Combo("Viewport GBuffer Map", &m_ViewportGBufferMap, items, IM_ARRAYSIZE(items));
+
+        ImGui::Separator();
+
+        Gui::Text("Screen Space Ambient Occlusion (SSAO)");
+        ImGui::SliderFloat("Radius", &m_SSAOBuffer->GetRadiusRef(), 0.05f, 2.0f);
+        ImGui::SliderFloat("Bias", &m_SSAOBuffer->GetBiasRef(), 0.0f, 0.005f);
+        ImGui::SliderFloat("Power", &m_SSAOBuffer->GetPowerRef(), 0.0f, 5.0f);
 
         Gui::End();
 

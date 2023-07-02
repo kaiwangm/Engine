@@ -18,6 +18,9 @@
 - 2023-06-26 ✨ Basic Skeleton Animation
 - 2023-06-28 ✨ Geometry Buffer
 - 2023-06-28 ✨ Geometry Buffer Viewport
+- 2023-07-02 ✨ SSAO Buffer
+- 2023-07-02 ✨ SSAO Buffer Viewport
+- 2023-07-02 ✨ Render Settings Gui
 - ......
 
 <!--

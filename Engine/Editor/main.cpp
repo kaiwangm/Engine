@@ -32,27 +32,37 @@ namespace Engine
 
             m_World->LoadShader("ViewGBufferPosition",
                                 "Assert/Shader/screen_quad_vertex.glsl",
-                                "Assert/Shader/gbuffer_viewport/position.glsl",
+                                "Assert/Shader/viewport/position.glsl",
                                 "Path");
 
             m_World->LoadShader("ViewGBufferNormal",
                                 "Assert/Shader/screen_quad_vertex.glsl",
-                                "Assert/Shader/gbuffer_viewport/normal.glsl",
+                                "Assert/Shader/viewport/normal.glsl",
                                 "Path");
 
             m_World->LoadShader("ViewGBufferAlbedo",
                                 "Assert/Shader/screen_quad_vertex.glsl",
-                                "Assert/Shader/gbuffer_viewport/albedo.glsl",
+                                "Assert/Shader/viewport/albedo.glsl",
                                 "Path");
 
             m_World->LoadShader("ViewGBufferOpacity",
                                 "Assert/Shader/screen_quad_vertex.glsl",
-                                "Assert/Shader/gbuffer_viewport/opacity.glsl",
+                                "Assert/Shader/viewport/opacity.glsl",
                                 "Path");
 
             m_World->LoadShader("ViewGBufferDepth",
                                 "Assert/Shader/screen_quad_vertex.glsl",
-                                "Assert/Shader/gbuffer_viewport/depth.glsl",
+                                "Assert/Shader/viewport/depth.glsl",
+                                "Path");
+
+            m_World->LoadShader("ViewAO",
+                                "Assert/Shader/screen_quad_vertex.glsl",
+                                "Assert/Shader/viewport/ao.glsl",
+                                "Path");
+
+            m_World->LoadShader("ComputeAO",
+                                "Assert/Shader/screen_quad_vertex.glsl",
+                                "Assert/Shader/compute_ssao_fragment.glsl",
                                 "Path");
 
             m_Camera    = std::make_shared<PerspectiveCamera>(60.0f, 1.778f, 0.1f, 800.0f);
@@ -222,18 +232,19 @@ namespace Engine
             bool is_color_focused = false;
             Gui::ShowViewport("ViewPort :: Color", m_World->m_FrameRenderBuffer, true, is_color_focused);
 
-            bool is_gbuffer_focused = false;
-            Gui::ShowViewport("ViewPort :: GBuffer",
+            bool is_buffers_focused = false;
+            Gui::ShowViewport("ViewPort :: Buffers",
                               m_World->m_GeometryBuffer,
-                              m_World->m_FrameRenderBuffer_gbuffer,
+                              m_World->m_SSAOBuffer,
+                              m_World->m_FrameRenderBuffer_bufferViewport,
                               true,
-                              is_gbuffer_focused);
+                              is_buffers_focused);
 
             bool is_playground_focused = false;
             Gui::ShowViewport(
                 "ViewPort :: Playground", m_World->m_FrameRenderBuffer_playground, false, is_playground_focused);
 
-            m_Camera->m_IsWindowFocused = is_color_focused | is_gbuffer_focused | is_playground_focused;
+            m_Camera->m_IsWindowFocused = is_color_focused | is_buffers_focused | is_playground_focused;
 
             ImGui::ShowExampleAppLog(NULL);
         }

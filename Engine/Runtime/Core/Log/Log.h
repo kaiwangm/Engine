@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Engine/Runtime/Core/Core.h>
-
 #include <spdlog/spdlog.h>
 
 namespace Engine

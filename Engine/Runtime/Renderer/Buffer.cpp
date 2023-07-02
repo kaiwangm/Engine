@@ -86,4 +86,24 @@ namespace Engine
 
         return nullptr;
     }
+
+    Ref<SSAOBuffer> SSAOBuffer::Create()
+    {
+        switch (Renderer::GetAPI())
+        {
+            case RendererAPI::API::None:
+                Log::Core_Error("RendererAPI::None is currently not supported.");
+                break;
+
+            case RendererAPI::API::OpenGL:
+                return std::make_shared<OpenGLSSAOBuffer>();
+                break;
+
+            default:
+                Log::Core_Error("RendererAPI::Unknow API.");
+                break;
+        }
+
+        return nullptr;
+    }
 } // namespace Engine
