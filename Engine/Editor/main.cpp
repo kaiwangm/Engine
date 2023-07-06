@@ -73,11 +73,22 @@ namespace Engine
                                 "Assert/Shader/viewport/metallic.glsl",
                                 "Path");
 
-            m_Camera    = std::make_shared<PerspectiveCamera>(60.0f, 1.778f, 0.1f, 800.0f);
-            auto camera = m_World->AddActor<ACamera>("main camera", m_Camera);
-            camera.GetTransformComponent().SetPosition(glm::vec3 {0.339f, 3.711f, 8.815f});
-            camera.GetTransformComponent().SetRotation(glm::vec3 {-0.088f, -6.732f, 0.000f});
-            camera.GetTransformComponent().SetScale(glm::vec3 {1.000f, 1.000f, 1.000f});
+            auto camera_00                      = std::make_shared<PerspectiveCamera>(60.0f, 1.778f, 0.1f, 800.0f);
+            camera_00->GetIsViewportCameraRef() = true;
+            auto camera_s                       = m_World->AddActor<ACamera>("viewport camera", camera_00);
+            camera_s.GetTransformComponent().SetPosition(glm::vec3 {0.339f, 3.711f, 8.815f});
+            camera_s.GetTransformComponent().SetRotation(glm::vec3 {-0.088f, -6.732f, 0.000f});
+            camera_s.GetTransformComponent().SetScale(glm::vec3 {1.000f, 1.000f, 1.000f});
+
+            auto camera_01                      = std::make_shared<PerspectiveCamera>(60.0f, 1.778f, 0.1f, 800.0f);
+            camera_01->GetIsViewportCameraRef() = false;
+            auto camera_a                       = m_World->AddActor<ACamera>("camera_01", camera_01);
+            camera_a.GetTransformComponent().SetPosition(glm::vec3 {7.335f, 5.087f, 9.957f});
+            camera_a.GetTransformComponent().SetRotation(glm::vec3 {-0.307f, -5.678f, 0.000f});
+            camera_a.GetTransformComponent().SetScale(glm::vec3 {1.000f, 1.000f, 1.000f});
+
+            m_World->m_MainCamera = static_cast<ACamera*>(camera_s.GetCameraComponent().GetOwner());
+            m_Camera = camera_00;
 
             auto skybox =
                 m_World->AddActor<ASkybox>("skybox", "Assert/Skybox/TheSkyIsOnFire/the_sky_is_on_fire_8k.hdr");
@@ -248,7 +259,8 @@ namespace Engine
             Gui::ShowViewport(
                 "ViewPort :: Playground", m_World->m_FrameRenderBuffer_playground, false, is_playground_focused);
 
-            m_Camera->m_IsWindowFocused = is_color_focused | is_buffers_focused | is_playground_focused;
+            m_World->m_MainCamera->GetCameraComponent().GetCamera().m_IsWindowFocused =
+                is_color_focused | is_buffers_focused | is_playground_focused;
 
             ImGui::ShowExampleAppLog(NULL);
         }

@@ -12,8 +12,8 @@ namespace Engine
 
     void Camera::OnUpdate(float timeStep)
     {
-        auto camera_pos = this->GetPosition();
-        auto camera_rot = this->GetRotation();
+        auto camera_pos = this->GetPositionRef();
+        auto camera_rot = this->GetRotationRef();
 
         if (Input::IsKeyPressed(GLFW_KEY_A))
         {

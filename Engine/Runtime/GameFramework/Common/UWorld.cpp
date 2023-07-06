@@ -148,12 +148,6 @@ namespace Engine
         m_GeometryBuffer->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
         m_SSAOBuffer->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
 
-        // Get Main Camera
-        for (auto [entity, name, trans, camera] : camrea_view.each())
-        {
-            m_MainCamera = static_cast<ACamera*>(camera.GetOwner());
-        }
-
         // Get Main SkyBox
         for (auto [entity, name, trans, skybox] : skybox_view.each())
         {
@@ -503,7 +497,8 @@ namespace Engine
         ImGui::Separator();
 
         Gui::Text("Buffer Viewport");
-        const char* items[] = {"Position", "Normal", "Albedo", "Opacity", "Depth", "Ambient Occlusion", "Roughness", "Metallic"};
+        const char* items[] = {
+            "Position", "Normal", "Albedo", "Opacity", "Depth", "Ambient Occlusion", "Roughness", "Metallic"};
         ImGui::Combo("Viewport GBuffer Map", &m_ViewportGBufferMap, items, IM_ARRAYSIZE(items));
 
         ImGui::Separator();
@@ -518,6 +513,7 @@ namespace Engine
         // Scence Collection
         Gui::Begin("Scence Collection");
 
+        auto object_view      = m_Registry.view<UTagComponent, UTransformComponent>();
         auto camrea_view      = m_Registry.view<UTagComponent, UTransformComponent, UCameraComponent>();
         auto staticmodel_view = m_Registry.view<UTagComponent, UTransformComponent, UStaticMeshComponent>();
         auto pointcloud_view  = m_Registry.view<UTagComponent, UTransformComponent, UPointCloudComponent>();
@@ -526,21 +522,104 @@ namespace Engine
         auto skybox_view      = m_Registry.view<UTagComponent, UTransformComponent, USkyboxComponent>();
         auto skeleton_view    = m_Registry.view<UTagComponent, UTransformComponent, USkeletonComponent>();
 
-        // Static Model
-        for (auto [entity, name, trans, model] : staticmodel_view.each())
+        static ImGuiTreeNodeFlags base_flags =
+            ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
+
+        int        index          = 0;
+        static int selection_mask = (1 << 2);
+        int        node_clicked   = -1;
+
+        static entt::entity entity_selected = entt::null;
+
+        for (auto [entity, name, trans] : object_view.each())
         {
-            if (ImGui::TreeNode(name.GetString().c_str()))
+            ImGuiTreeNodeFlags node_flags  = base_flags;
+            const bool         is_selected = (selection_mask & (1 << index)) != 0;
+            if (is_selected)
+                node_flags |= ImGuiTreeNodeFlags_Selected;
+
+            bool node_open = ImGui::TreeNodeEx((void*)(intptr_t)index, node_flags, name.GetString().c_str());
+            if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
             {
-                AStaticMesh* staticMesh_actor = static_cast<AStaticMesh*>(model.GetOwner());
-                MMaterial*   material         = static_cast<MMaterial*>(staticMesh_actor->GetMaterial());
+                node_clicked    = index;
+                entity_selected = entity;
+            }
 
-                // Actor
-                Gui::DragFloat3("Position", trans.GetPositionRef(), 0.005f, -100.0f, 100.0f);
-                Gui::DragFloat3("Rotation", trans.GetRotationRef(), 0.005f, -100.0f, 100.0f);
-                Gui::DragFloat3("Scale", trans.GetScaleRef(), 0.005f, -100.0f, 100.0f);
+            if (node_open)
+            {
+                ImGui::TreePop();
+            }
 
-                // Line
+            index = index + 1;
+        }
+
+        Gui::End();
+
+        Gui::Begin("Details");
+
+        if (entity_selected != entt::null && m_Registry.valid(entity_selected) == true)
+        {
+
+            if (m_Registry.any_of<UTagComponent>(entity_selected) == true)
+            {
+                auto& tagComponent = m_Registry.get<UTagComponent>(entity_selected);
+                Gui::Text(tagComponent.GetString().c_str());
                 ImGui::Separator();
+            }
+
+            if (m_Registry.any_of<UTransformComponent>(entity_selected) == true)
+            {
+                auto& tansformComponent = m_Registry.get<UTransformComponent>(entity_selected);
+                Gui::Text("Transform");
+                ImGui::Separator();
+
+                Gui::DragFloat3("Position", tansformComponent.GetPositionRef(), 0.005f, -100.0f, 100.0f);
+                Gui::DragFloat3("Rotation", tansformComponent.GetRotationRef(), 0.005f, -100.0f, 100.0f);
+                Gui::DragFloat3("Scale", tansformComponent.GetScaleRef(), 0.005f, -100.0f, 100.0f);
+            }
+
+            if (m_Registry.any_of<UCameraComponent>(entity_selected) == true)
+            {
+                auto& cameraComponent = m_Registry.get<UCameraComponent>(entity_selected);
+                auto& camera          = cameraComponent.GetCamera();
+                Gui::Text("Camera");
+                ImGui::Separator();
+
+                std::string cameraType = camera.GetCameraType();
+                if (cameraType == "PerspectiveCamera")
+                {
+                    auto& perspectiveCamera = reinterpret_cast<PerspectiveCamera&>(camera);
+                    Gui::Text("Camera Type: {}", cameraType);
+                    if (ImGui::Button("Viewport Camera") == true)
+                    {
+                        m_MainCamera->GetCameraComponent().GetCamera().GetIsViewportCameraRef() = false;
+                        m_MainCamera = static_cast<ACamera*>(cameraComponent.GetOwner());
+                        m_MainCamera->GetCameraComponent().GetCamera().GetIsViewportCameraRef() = true;
+                    }
+                    Gui::Text("Aspect: {0}", perspectiveCamera.GetAspectRatioRef());
+
+                    static bool check_disable = false;
+                    ImGui::BeginDisabled(check_disable);
+                    if (ImGui::Checkbox("Viewport Camera", &perspectiveCamera.GetIsViewportCameraRef()))
+                    {
+                        check_disable = true;
+                    }
+                    ImGui::EndDisabled();
+
+                    Gui::SliderFloat("Fov", perspectiveCamera.GetFovRef(), 15.0f, 160.0f);
+                    Gui::SliderFloat("Near", perspectiveCamera.GetNearClipRef(), 0.01f, 100.0f);
+                    Gui::SliderFloat("Far", perspectiveCamera.GetFarClipRef(), 0.3f, 1000.0f);
+                }
+            }
+
+            if (m_Registry.any_of<UStaticMeshComponent>(entity_selected) == true)
+            {
+                auto& staticMeshComponent = m_Registry.get<UStaticMeshComponent>(entity_selected);
+                Gui::Text("Static Mesh");
+                ImGui::Separator();
+
+                AStaticMesh* staticMesh_actor = static_cast<AStaticMesh*>(staticMeshComponent.GetOwner());
+                MMaterial*   material         = static_cast<MMaterial*>(staticMesh_actor->GetMaterial());
 
                 // Material
                 std::string materialType = material->GetMaterialType();
@@ -559,110 +638,47 @@ namespace Engine
                     Gui::Text("Material Type: TriangleShader");
                     ImGui::ColorEdit3("Color", glm::value_ptr(material_triangleShader->GetColorRef()));
                 }
-
-                ImGui::TreePop();
             }
-        }
 
-        // Point Cloud
-        for (auto [entity, name, trans, pointcloud] : pointcloud_view.each())
-        {
-            if (ImGui::TreeNode(name.GetString().c_str()))
+            if (m_Registry.any_of<UPointCloudComponent>(entity_selected) == true)
             {
-                APointCloud* pointCloud_actor = static_cast<APointCloud*>(pointcloud.GetOwner());
-
-                // Actor
-                Gui::DragFloat3("Position", trans.GetPositionRef(), 0.005f, -100.0f, 100.0f);
-                Gui::DragFloat3("Rotation", trans.GetRotationRef(), 0.005f, -100.0f, 100.0f);
-                Gui::DragFloat3("Scale", trans.GetScaleRef(), 0.005f, -100.0f, 100.0f);
-
-                // Line
-                ImGui::Separator();
-
+                auto& pointCloudComponent = m_Registry.get<UPointCloudComponent>(entity_selected);
                 Gui::Text("Point Cloud");
-
-                ImGui::TreePop();
+                ImGui::Separator();
             }
-        }
 
-        // Light
-        for (auto [entity, name, trans, light] : light_view.each())
-        {
-            if (ImGui::TreeNode(name.GetString().c_str()))
+            if (m_Registry.any_of<UPointLightComponent>(entity_selected) == true)
             {
-                // Actor
-                Gui::DragFloat3("Position", trans.GetPositionRef(), 0.005f, -100.0f, 100.0f);
-
-                // Line
+                auto& pointLightComponent = m_Registry.get<UPointLightComponent>(entity_selected);
+                Gui::Text("Point Light");
                 ImGui::Separator();
 
-                Gui::Text("Light");
-
-                // Light
-                ImGui::ColorEdit3("Color", glm::value_ptr(light.GetColorRef()));
-                Gui::SliderFloat("Intensity", light.GetIntensityRef(), 0.0f, 1.0f);
-
-                ImGui::TreePop();
+                ImGui::ColorEdit3("Color", glm::value_ptr(pointLightComponent.GetColorRef()));
+                Gui::SliderFloat("Intensity", pointLightComponent.GetIntensityRef(), 0.0f, 1.0f);
             }
-        }
 
-        // SkyBox
-        for (auto [entity, name, trans, sky] : skybox_view.each())
-        {
-            if (ImGui::TreeNode(name.GetString().c_str()))
+            if (m_Registry.any_of<USkyboxComponent>(entity_selected) == true)
             {
-                // Actor
-                Gui::DragFloat3("Rotation", trans.GetRotationRef(), 0.005f, -100.0f, 100.0f);
-
-                // Line
+                auto& skyboxComponent = m_Registry.get<USkyboxComponent>(entity_selected);
+                Gui::Text("Skybox");
                 ImGui::Separator();
-
-                Gui::Text("SkyBox");
 
                 // Skybox
                 // use imgui add a bool selector
 
                 const char* items[] = {"CubeMap", "Irradiance", "Prefilter"};
-                ImGui::Combo("Show Map", &sky.GetCruuentTextureIndexRef(), items, IM_ARRAYSIZE(items));
+                ImGui::Combo("Show Map", &skyboxComponent.GetCruuentTextureIndexRef(), items, IM_ARRAYSIZE(items));
 
                 Gui::SliderFloat("Mipmap Level", m_VisPrePrefilterMipLevel, 0.0f, 32.0f);
-
-                ImGui::TreePop();
             }
-        }
 
-        // Camera
-        for (auto [entity, name, trans, camera] : camrea_view.each())
-        {
-            if (ImGui::TreeNode(name.GetString().c_str()))
+            if (m_Registry.any_of<USkeletonComponent>(entity_selected) == true)
             {
-                // Actor
-                Gui::DragFloat3("Position", trans.GetPositionRef(), 0.005f, -100.0f, 100.0f);
-                Gui::DragFloat3("Rotation", trans.GetRotationRef(), 0.005f, -100.0f, 100.0f);
-                Gui::DragFloat3("Scale", trans.GetScaleRef(), 0.005f, -100.0f, 100.0f);
-
-                ImGui::TreePop();
-            }
-        }
-
-        // Skeleton
-        for (auto [entity, name, trans, skeleton] : skeleton_view.each())
-        {
-            if (ImGui::TreeNode(name.GetString().c_str()))
-            {
-                // Actor
-                Gui::DragFloat3("Position", trans.GetPositionRef(), 0.005f, -100.0f, 100.0f);
-                Gui::DragFloat3("Rotation", trans.GetRotationRef(), 0.005f, -100.0f, 100.0f);
-                Gui::DragFloat3("Scale", trans.GetScaleRef(), 0.005f, -100.0f, 100.0f);
-
-                // Line
+                auto& skeletonComponent = m_Registry.get<USkeletonComponent>(entity_selected);
+                Gui::Text("Skeleton");
                 ImGui::Separator();
 
-                Gui::Text("Skeleton");
-
-                Gui::Text("Joints Num: {0}", skeleton.GetNumJoints());
-
-                ImGui::TreePop();
+                Gui::Text("Joints Num: {0}", skeletonComponent.GetNumJoints());
             }
         }
 
