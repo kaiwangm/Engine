@@ -29,7 +29,9 @@
 #include <fmt/core.h>
 
 #ifdef ENGINE_PLATFORM_WINDOWS
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
 #include <windows.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>

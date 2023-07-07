@@ -32,6 +32,7 @@ find_package(freetype CONFIG REQUIRED)
 find_package(EnTT CONFIG REQUIRED)
 find_package(sol2 CONFIG REQUIRED)
 find_package(PCL CONFIG REQUIRED)
+find_package(OpenVDB CONFIG REQUIRED)
 find_package(unofficial-nativefiledialog CONFIG REQUIRED)
 find_package(GTest CONFIG REQUIRED)
 

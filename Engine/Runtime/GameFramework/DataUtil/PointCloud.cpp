@@ -1,6 +1,8 @@
 #include <Engine/Runtime/GameFramework/DataUtil/PointCloud.h>
 #include <pcl/io/ply_io.h>
 #include <pcl/point_types.h>
+#include <openvdb/openvdb.h>
+#include <openvdb/tools/LevelSetSphere.h>
 
 namespace Engine
 {
@@ -8,6 +10,14 @@ namespace Engine
 
     PointCloud::PointCloud(const std::string& filepath) : m_FilePath(filepath)
     {
+        openvdb::initialize();
+        openvdb::FloatGrid::Ptr      grid     = openvdb::FloatGrid::create();
+        openvdb::FloatGrid::Accessor accessor = grid->getAccessor();
+        openvdb::Coord               xyz(1000, -200000000, 30000000);
+        accessor.setValue(xyz, 1.0);
+
+        Log::Info("Grid xyz = {}", accessor.getValue(xyz));
+
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr pointcloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 
         if (pcl::io::loadPLYFile<pcl::PointXYZRGB>(m_FilePath, *pointcloud) == -1)

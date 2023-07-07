@@ -25,7 +25,6 @@ git clone https://github.com/microsoft/vcpkg
 
 
 
-
 3. Build.
 
 ```

@@ -23,6 +23,7 @@
     "cereal",
     "sol2",
     "pcl",
+    "openvdb",
     "nativefiledialog",
     "gtest"
   ]
