@@ -35,5 +35,6 @@ namespace Engine
     protected:
         std::string     m_LayerName;
         LayerUpdateMeta m_LayerUpdateMeta;
+        std::unordered_map<std::string, std::function<void()>> m_Callbacks;
     };
 } // namespace Engine

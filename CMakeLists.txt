@@ -30,6 +30,7 @@ find_package(TBB CONFIG REQUIRED)
 find_package(freetype CONFIG REQUIRED)
 find_package(EnTT CONFIG REQUIRED)
 find_package(sol2 CONFIG REQUIRED)
+find_package(unofficial-nativefiledialog CONFIG REQUIRED)
 find_package(GTest CONFIG REQUIRED)
 
 include(Cmake/Findozz-animation.cmake)

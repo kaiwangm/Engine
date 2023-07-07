@@ -21,6 +21,7 @@ target_link_libraries(
     PRIVATE 
     imgui::imgui 
     imguizmo::imguizmo
+    unofficial::nativefiledialog::nfd
 )
 
 target_include_directories(Gui INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})

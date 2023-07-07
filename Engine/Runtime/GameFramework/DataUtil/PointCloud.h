@@ -12,11 +12,13 @@ namespace Engine
     struct PointCloud
     {
         PointCloud();
-        PointCloud(const std::string& path);
-        std::string m_Directory;
+        PointCloud(const std::string& filepath);
+        std::string m_FilePath;
 
         Ref<VertexArray>                    m_VertexArray;
         std::vector<std::array<float, 3>>   m_vertices;
         std::vector<std::array<uint8_t, 3>> m_colors;
+
+        int m_NumPoints;
     };
 } // namespace Engine

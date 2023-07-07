@@ -14,5 +14,7 @@ namespace Engine
         UPointCloudComponent(const std::string path) : m_PointCloud(path) {}
 
         PointCloud& GetPointCloud() { return m_PointCloud; }
+        std::string GetFilePath() { return m_PointCloud.m_FilePath; }
+        int GetNumPoints() { return m_PointCloud.m_NumPoints; }
     };
 }; // namespace Engine

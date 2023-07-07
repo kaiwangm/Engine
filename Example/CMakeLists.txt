@@ -1,2 +1,2 @@
 # add_subdirectory(Octree)
-# add_subdirectory(PointCloudViewer)
+add_subdirectory(PointCloudViewer)

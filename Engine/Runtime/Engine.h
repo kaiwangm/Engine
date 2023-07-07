@@ -29,7 +29,6 @@
 
 #ifdef ENGINE_USE_ENTRYPOINT
 namespace Engine {
-
 extern Scope<Application> CreateApplication(int argc, char** argv);
 }
 

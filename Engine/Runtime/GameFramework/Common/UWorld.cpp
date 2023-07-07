@@ -573,7 +573,7 @@ namespace Engine
 
                 Gui::DragFloat3("Position", tansformComponent.GetPositionRef(), 0.005f, -100.0f, 100.0f);
                 Gui::DragFloat3("Rotation", tansformComponent.GetRotationRef(), 0.005f, -100.0f, 100.0f);
-                Gui::DragFloat3("Scale", tansformComponent.GetScaleRef(), 0.005f, -100.0f, 100.0f);
+                Gui::DragFloat3("Scale", tansformComponent.GetScaleRef(), 0.005f, 0.0f, 100.0f);
             }
 
             if (m_Registry.any_of<UCameraComponent>(entity_selected) == true)
@@ -643,6 +643,11 @@ namespace Engine
                 auto& pointCloudComponent = m_Registry.get<UPointCloudComponent>(entity_selected);
                 Gui::Text("Point Cloud");
                 ImGui::Separator();
+
+                Gui::Text("FilePath:");
+                ImGui::TextWrapped("%s", pointCloudComponent.GetFilePath().c_str());
+
+                Gui::Text("Num Points: {}", pointCloudComponent.GetNumPoints());
             }
 
             if (m_Registry.any_of<UPointLightComponent>(entity_selected) == true)

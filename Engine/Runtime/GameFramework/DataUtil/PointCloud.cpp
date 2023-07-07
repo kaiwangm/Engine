@@ -6,9 +6,9 @@ namespace Engine
 {
     PointCloud::PointCloud() { m_VertexArray = VertexArray::Create(); }
 
-    PointCloud::PointCloud(const std::string& path) : m_Directory(path.substr(0, path.find_last_of('/')))
+    PointCloud::PointCloud(const std::string& filepath) : m_FilePath(filepath)
     {
-        happly::PLYData plyIn(path);
+        happly::PLYData plyIn(m_FilePath);
         // plyIn.write(name, happly::DataFormat::Binary);
         auto x = plyIn.getElement("vertex").getProperty<float>("x");
         auto y = plyIn.getElement("vertex").getProperty<float>("y");
@@ -17,10 +17,12 @@ namespace Engine
         auto g = plyIn.getElement("vertex").getProperty<unsigned char>("green");
         auto b = plyIn.getElement("vertex").getProperty<unsigned char>("blue");
 
-        m_vertices = std::vector<std::array<float, 3>>(x.size());
-        m_colors   = std::vector<std::array<uint8_t, 3>>(x.size());
+        m_NumPoints = x.size();
 
-        for (int i = 0; i < x.size(); ++i)
+        m_vertices = std::vector<std::array<float, 3>>(m_NumPoints);
+        m_colors   = std::vector<std::array<uint8_t, 3>>(m_NumPoints);
+
+        for (int i = 0; i < m_NumPoints; ++i)
         {
             m_vertices[i][0] = x[i];
             m_vertices[i][1] = y[i];
@@ -99,7 +101,7 @@ namespace Engine
         }
 
         Ref<VertexBuffer> octree_VertexBuffer =
-            VertexBuffer::Create(&points[0], sizeof(float) * points.size(), points.size() / 7.0);
+            VertexBuffer::Create(&points[0], sizeof(float) * points.size(), points.size() / 7);
         octree_VertexBuffer->SetLayout({
             //{0, ShaderDataType::Float3, "a_Position"},
             //{1, ShaderDataType::Float2, "a_TexCoord"},

@@ -68,7 +68,7 @@ namespace Engine
 
         static void ShowImNodesDemoWindow();
 
-        static void DockSpace(bool& app_open_ref);
+        static void DockSpace(bool& app_open_ref, std::unordered_map<std::string, std::function<void()>>& callbacks);
 
         template<class... Args>
         static void ShowViewport(const std::string&     text,

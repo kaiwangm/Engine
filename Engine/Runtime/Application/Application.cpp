@@ -6,8 +6,12 @@ namespace Engine
 {
     Application* Application::s_Instance = nullptr;
 
-    Application::Application(std::string appName, uint32_t windowWidth, uint32_t windowHeight, const std::string& basedir) :
-        m_Minimized(false), m_Running(true)
+    Application::Application(std::string        appName,
+                             uint32_t           windowWidth,
+                             uint32_t           windowHeight,
+                             const std::string& basedir) :
+        m_Minimized(false),
+        m_Running(true)
     {
         Log::Init();
         Log::Core_Trace("Engine Initialization.");

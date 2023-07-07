@@ -22,6 +22,7 @@
     "entt",
     "cereal",
     "sol2",
+    "nativefiledialog",
     "gtest"
   ]
 }

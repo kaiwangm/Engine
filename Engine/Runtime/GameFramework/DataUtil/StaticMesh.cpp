@@ -23,7 +23,7 @@ namespace Engine
                                 {2, ShaderDataType::Float2, "a_TexCoord"},
                             }});
 
-        m_Meshes[0].AddTexture(Texture2D::Create("Assert/Object/checkerboard/Checkerboard.png"));
+        m_Meshes[0].AddTexture(Texture2D::Create("Assert/Editor/Object/checkerboard/Checkerboard.png"));
     }
 
     StaticMesh::StaticMesh(const std::string& path) : m_Directory(path.substr(0, path.find_last_of('/')))
@@ -44,7 +44,7 @@ namespace Engine
         {
             if (mesh.m_Textures.size() == 0)
             {
-                mesh.AddTexture(Texture2D::Create("Assert/Object/checkerboard/Checkerboard.png"));
+                mesh.AddTexture(Texture2D::Create("Assert/Editor/Object/checkerboard/Checkerboard.png"));
             }
         }
     }

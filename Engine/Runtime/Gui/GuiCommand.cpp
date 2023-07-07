@@ -2,7 +2,7 @@
 
 namespace Engine
 {
-    void GuiCommand::DockSpace(bool& app_open_ref)
+    void GuiCommand::DockSpace(bool& app_open_ref, std::unordered_map<std::string, std::function<void()>>& callbacks)
     {
         // If you strip some features of, this demo is pretty much equivalent to
         // calling DockSpaceOverViewport()!
@@ -75,7 +75,8 @@ namespace Engine
         if (show_app_about)
         {
             if (!ImGui::Begin("About", &show_app_about))
-            {}
+            {
+            }
             ImGui::Text("Dear ImGui %s", ImGui::GetVersion());
 
             ImGui::End();
@@ -103,6 +104,11 @@ namespace Engine
         {
             if (ImGui::BeginMenu("File"))
             {
+                if (ImGui::MenuItem("Open", NULL, false))
+                {
+                    callbacks["Open"]();
+                }
+                ImGui::MenuItem("Save", NULL, false);
                 ImGui::MenuItem("About", NULL, &show_app_about);
 
                 ImGui::Separator();
@@ -120,16 +126,21 @@ namespace Engine
             if (ImGui::BeginMenu("Edit"))
             {
                 if (ImGui::MenuItem("Undo", "CTRL+Z"))
-                {}
+                {
+                }
                 if (ImGui::MenuItem("Redo", "CTRL+Y", false, false))
-                {} // Disabled item
+                {
+                } // Disabled item
                 ImGui::Separator();
                 if (ImGui::MenuItem("Cut", "CTRL+X"))
-                {}
+                {
+                }
                 if (ImGui::MenuItem("Copy", "CTRL+C"))
-                {}
+                {
+                }
                 if (ImGui::MenuItem("Paste", "CTRL+V"))
-                {}
+                {
+                }
                 ImGui::EndMenu();
             }
             ImGui::EndMenuBar();

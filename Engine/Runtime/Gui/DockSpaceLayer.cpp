@@ -3,5 +3,8 @@
 
 namespace Engine
 {
-    void DockSpaceLayer::TickGui() { Gui::DockSpace(m_app_open); }
+    void DockSpaceLayer::TickGui()
+    {
+        // Gui::DockSpace(m_app_open, m_Callbacks);
+    }
 } // namespace Engine
