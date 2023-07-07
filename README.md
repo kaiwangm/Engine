@@ -6,7 +6,7 @@
 
 My toy modern OpenGL game engine.
 
-![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/SSAOBuffer.png)
+![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/Gizmo.png)
 
 ## Getting Started
 

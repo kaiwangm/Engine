@@ -11,15 +11,15 @@ namespace Engine
 
     void Renderer::BeginScene(const Ref<Camera>& camera)
     {
-        s_SceneData->ViewProjectionMatrix = camera->GetViewProjectMatrix();
+        // s_SceneData->ViewProjectionMatrix = camera->GetViewProjectMatrix();
     }
 
     void Renderer::BeginScene(const Ref<Camera>& camera, const Ref<FrameRenderBuffer> framerenderbuffer)
     {
         camera->SetViewPort(framerenderbuffer->GetWidth(), framerenderbuffer->GetHeight());
-        camera->RecalculateViewProjectMatrix();
+        camera->RecalculateProjectionMatrix();
 
-        s_SceneData->ViewProjectionMatrix = camera->GetViewProjectMatrix();
+        // s_SceneData->ViewProjectionMatrix = camera->GetViewProjectMatrix();
 
         framerenderbuffer->Bind();
 

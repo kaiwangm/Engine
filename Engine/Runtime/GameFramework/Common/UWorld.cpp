@@ -157,7 +157,7 @@ namespace Engine
         // Render to GeometryBuffer
         m_MainCamera->GetCameraComponent().GetCamera().SetViewPort(m_FrameRenderBuffer->GetWidth(),
                                                                    m_FrameRenderBuffer->GetHeight());
-        m_MainCamera->GetCameraComponent().GetCamera().RecalculateViewProjectMatrix();
+        m_MainCamera->GetCameraComponent().GetCamera().RecalculateProjectionMatrix();
 
         m_VMatrix  = glm::inverse(m_MainCamera->GetTransformComponent().GetTransform());
         m_PMatrix  = m_MainCamera->GetCameraComponent().GetCamera().GetProjectionMatrix();
@@ -208,7 +208,7 @@ namespace Engine
         // Render to SSAOBuffer
         m_MainCamera->GetCameraComponent().GetCamera().SetViewPort(m_FrameRenderBuffer->GetWidth(),
                                                                    m_FrameRenderBuffer->GetHeight());
-        m_MainCamera->GetCameraComponent().GetCamera().RecalculateViewProjectMatrix();
+        m_MainCamera->GetCameraComponent().GetCamera().RecalculateProjectionMatrix();
 
         m_VMatrix  = glm::inverse(m_MainCamera->GetTransformComponent().GetTransform());
         m_PMatrix  = m_MainCamera->GetCameraComponent().GetCamera().GetProjectionMatrix();
@@ -263,7 +263,7 @@ namespace Engine
         // Render to FrameRenderBuffer
         m_MainCamera->GetCameraComponent().GetCamera().SetViewPort(m_FrameRenderBuffer->GetWidth(),
                                                                    m_FrameRenderBuffer->GetHeight());
-        m_MainCamera->GetCameraComponent().GetCamera().RecalculateViewProjectMatrix();
+        m_MainCamera->GetCameraComponent().GetCamera().RecalculateProjectionMatrix();
 
         m_VMatrix  = glm::inverse(m_MainCamera->GetTransformComponent().GetTransform());
         m_PMatrix  = m_MainCamera->GetCameraComponent().GetCamera().GetProjectionMatrix();
@@ -403,7 +403,7 @@ namespace Engine
         // Render Playground
         m_MainCamera->GetCameraComponent().GetCamera().SetViewPort(m_FrameRenderBuffer_playground->GetWidth(),
                                                                    m_FrameRenderBuffer_playground->GetHeight());
-        m_MainCamera->GetCameraComponent().GetCamera().RecalculateViewProjectMatrix();
+        m_MainCamera->GetCameraComponent().GetCamera().RecalculateProjectionMatrix();
         m_VPMatrix = m_MainCamera->GetCameraComponent().GetCamera().GetProjectionMatrix() *
                      glm::inverse(m_MainCamera->GetTransformComponent().GetTransform());
 
@@ -528,8 +528,6 @@ namespace Engine
         int        index          = 0;
         static int selection_mask = (1 << 2);
         int        node_clicked   = -1;
-
-        static entt::entity entity_selected = entt::null;
 
         for (auto [entity, name, trans] : object_view.each())
         {

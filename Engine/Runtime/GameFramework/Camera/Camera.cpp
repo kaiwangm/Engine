@@ -1,55 +1,15 @@
 #include <Engine/Runtime/GameFramework/Camera/Camera.h>
 #include <Engine/Runtime/Core/Input/Input.h>
 
+#include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 namespace Engine
 {
     Camera::Camera() : m_ProjectionMatrix(1.0f), m_ViewMatrix(1.0f), m_IsWindowFocused(false)
     {
         m_ViewProjectMatrix = m_ProjectionMatrix * m_ViewMatrix;
-    }
-
-    void Camera::OnUpdate(float timeStep)
-    {
-        auto camera_pos = this->GetPositionRef();
-        auto camera_rot = this->GetRotationRef();
-
-        if (Input::IsKeyPressed(GLFW_KEY_A))
-        {
-            camera_pos.x -= m_CameraTranslationSpeed * timeStep;
-        }
-        if (Input::IsKeyPressed(GLFW_KEY_D))
-        {
-            camera_pos.x += m_CameraTranslationSpeed * timeStep;
-        }
-        if (Input::IsKeyPressed(GLFW_KEY_LEFT_CONTROL))
-        {
-            camera_pos.y -= m_CameraTranslationSpeed * timeStep;
-        }
-        if (Input::IsKeyPressed(GLFW_KEY_SPACE))
-        {
-            camera_pos.y += m_CameraTranslationSpeed * timeStep;
-        }
-        if (Input::IsKeyPressed(GLFW_KEY_W))
-        {
-            camera_pos.z -= m_CameraTranslationSpeed * timeStep;
-        }
-        if (Input::IsKeyPressed(GLFW_KEY_S))
-        {
-            camera_pos.z += m_CameraTranslationSpeed * timeStep;
-        }
-        if (Input::IsKeyPressed(GLFW_KEY_E))
-        {
-            camera_rot -= m_CameraRotationSpeed * timeStep;
-        }
-        if (Input::IsKeyPressed(GLFW_KEY_Q))
-        {
-            camera_rot += m_CameraRotationSpeed * timeStep;
-        }
-
-        this->SetRotation(camera_rot);
-        this->SetPosition(camera_pos);
     }
 
     void Camera::OnEvent(Event& event)
@@ -62,21 +22,6 @@ namespace Engine
     {
         SetViewPort(event.GetWidth(), event.GetHeight());
         return false;
-    }
-
-    void Camera::RecalculateViewMatrix()
-    {
-        glm::mat4 transform = glm::translate(glm::mat4(1.0f), m_Position);
-        glm::mat4 rotate    = glm::rotate(glm::mat4(1.0f), glm::radians(m_Rotation), glm::vec3(0.0f, 0.0f, 1.0f));
-
-        m_ViewMatrix = glm::inverse(transform * rotate);
-    }
-
-    void Camera::RecalculateViewProjectMatrix()
-    {
-        RecalculateViewMatrix();
-        RecalculateProjectionMatrix();
-        m_ViewProjectMatrix = m_ProjectionMatrix * m_ViewMatrix;
     }
 
     OrthographicCamera::OrthographicCamera(float left,

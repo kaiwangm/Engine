@@ -41,6 +41,8 @@ namespace Engine
         float m_VisPrePrefilterMipLevel = 0.0f;
         int   m_ViewportGBufferMap      = 0;
 
+        entt::entity entity_selected = entt::null;
+
     public:
         UWorld();
 
@@ -72,5 +74,7 @@ namespace Engine
         void TickLogic(float timeStep, float nowTime);
         void TickRender(float timeStep);
         void TickGui(float timeStep);
+
+        entt::registry& GetRegistry() { return m_Registry; }
     };
 }; // namespace Engine

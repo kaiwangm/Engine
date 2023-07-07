@@ -10,32 +10,16 @@ namespace Engine
     {
     public:
         Camera();
-        virtual void SetPosition(const glm::vec3& position) { m_Position = position; }
-
-        virtual void SetRotation(const float& rotation) { m_Rotation = rotation; }
-
         virtual void SetViewPort(uint32_t width, uint32_t height) = 0;
-
-        virtual void SetCameraTranslationSpeed(float speed) { m_CameraTranslationSpeed = speed; }
-
-        virtual void SetCameraRotationSpeed(float speed) { m_CameraRotationSpeed = speed; }
-
         virtual const std::string GetCameraType() const = 0;
 
-        glm::vec3& GetPositionRef() { return m_Position; }
-        float&     GetRotationRef() { return m_Rotation; }
         bool&      GetIsViewportCameraRef() { return m_IsViewportCamera; }
         glm::mat4& GetProjectionMatrix() { return m_ProjectionMatrix; }
-        glm::mat4& GetViewMatrix() { return m_ViewMatrix; }
-        glm::mat4& GetViewProjectMatrix() { return m_ViewProjectMatrix; }
 
-        void OnUpdate(float timeStep);
         void OnEvent(Event& event);
         bool OnWindowResizeEvent(WindowResizeEvent& event);
 
-        virtual void RecalculateViewMatrix();
         virtual void RecalculateProjectionMatrix() = 0;
-        virtual void RecalculateViewProjectMatrix();
 
         bool m_IsWindowFocused;
 
@@ -44,13 +28,7 @@ namespace Engine
         glm::mat4 m_ViewMatrix;
         glm::mat4 m_ViewProjectMatrix;
 
-        glm::vec3 m_Position = {0.0f, 0.0f, 0.0f};
-        float     m_Rotation = 0.0f;
         bool      m_IsViewportCamera = false;
-
-    public:
-        float m_CameraTranslationSpeed = 3.0;
-        float m_CameraRotationSpeed    = 3.0;
     };
 
     class OrthographicCamera : public Camera
@@ -83,10 +61,10 @@ namespace Engine
 
     public:
         virtual const std::string GetCameraType() const { return "PerspectiveCamera"; }
-        float& GetFovRef() { return m_Fov; }
-        float& GetAspectRatioRef() { return m_AspectRatio; }
-        float& GetNearClipRef() { return m_NearClip; }
-        float& GetFarClipRef() { return m_FarClip; }
+        float&                    GetFovRef() { return m_Fov; }
+        float&                    GetAspectRatioRef() { return m_AspectRatio; }
+        float&                    GetNearClipRef() { return m_NearClip; }
+        float&                    GetFarClipRef() { return m_FarClip; }
 
     public:
         float m_Fov;
