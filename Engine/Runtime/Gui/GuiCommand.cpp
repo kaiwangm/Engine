@@ -116,6 +116,11 @@ namespace Engine
                 ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen);
                 ImGui::MenuItem("Padding", NULL, &opt_padding);
 
+                static bool show_imgui_demo = false;
+                ImGui::MenuItem("ImGui Demo", NULL, &show_imgui_demo);
+                if (show_imgui_demo)
+                    ImGui::ShowDemoWindow();
+
                 ImGui::Separator();
 
                 if (ImGui::MenuItem("Exit", NULL, false, p_open != NULL))

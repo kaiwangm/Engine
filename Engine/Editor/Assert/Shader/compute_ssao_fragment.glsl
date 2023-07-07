@@ -5,9 +5,9 @@ layout (location = 0) out float ambientOcclusion;
 
 in vec2 v_TexCoord;
 
-uniform sampler2D g_Position;  // gPosition
-uniform sampler2D g_Normal;  // gNormal
-uniform sampler2D g_Depth;  // texNoise
+uniform sampler2D g_ViewPosition;
+uniform sampler2D g_ViewNormal;
+uniform sampler2D g_Depth;
 
 int kernelSize = 256;
 uniform vec3 samples[256];
@@ -25,8 +25,8 @@ uniform mat4 projection;
 
 void main()
 {
-    vec3 fragPos = texture(g_Position, v_TexCoord).xyz;
-    vec3 normal = texture(g_Normal, v_TexCoord).rgb;
+    vec3 fragPos = texture(g_ViewPosition, v_TexCoord).xyz;
+    vec3 normal = texture(g_ViewNormal, v_TexCoord).rgb;
     vec3 randomVec = texture(g_Depth, v_TexCoord * noiseScale).xyz;
 
     vec3 tangent = normalize(randomVec - normal * dot(randomVec, normal));
@@ -46,7 +46,7 @@ void main()
 		offset.xyz /= offset.w;
 		offset.xyz  = offset.xyz * 0.5 + 0.5;
 
-		float sampleDepth = texture(g_Position, offset.xy).z;
+		float sampleDepth = texture(g_ViewPosition, offset.xy).z;
 
 		float rangeCheck = smoothstep(0.0, 1.0, radius / abs(fragPos.z - sampleDepth));
 

@@ -15,10 +15,6 @@ namespace Engine
 
             m_World->LoadShader(
                 "TextureShader", "Assert/Editor/Shader/vertex.glsl", "Assert/Editor/Shader/fragment.glsl", "Path");
-            m_World->LoadShader("TextureShader_normal",
-                                "Assert/Editor/Shader/vertex_normal.glsl",
-                                "Assert/Editor/Shader/fragment_normal.glsl",
-                                "Path");
             m_World->LoadShader("Animated",
                                 "Assert/Editor/Shader/vertex_animated.glsl",
                                 "Assert/Editor/Shader/fragment_animated.glsl",
@@ -113,136 +109,9 @@ namespace Engine
             auto skybox =
                 m_World->AddActor<ASkybox>("skybox", "Assert/Editor/Skybox/TheSkyIsOnFire/the_sky_is_on_fire_8k.hdr");
 
-            // auto board = m_World->AddActor<AStaticMesh>("board");
-            // board.GetTransformComponent().SetPosition(glm::vec3 {-2.350f, 2.165f, 0.000f});
-
-            // auto gallery = m_World->AddActor<AStaticMesh>("gallery", "Assert/Editor/Object/gallery/gallery.obj");
-
-            // auto animan = m_World->AddActor<AAnimatedMesh>("animan", "Assert/Editor/Object/animan/model.dae");
-
-            // animan.GetTransformComponent().SetPosition(glm::vec3 {1.655f, 0.685f, 0.120f});
-            // animan.GetTransformComponent().SetRotation(glm::vec3 {-1.330f, 0.000f, 0.000f});
-            // animan.GetTransformComponent().SetScale(glm::vec3 {0.300f, 0.300f, 0.300f});
-
             m_World->AddActor<AActor>("EmptyActor");
             m_World->AddActor<AActor>("EmptyActor00");
             m_World->AddActor<AActor>("EmptyActor01");
-
-            // auto red_triangle = m_World->AddActor<AStaticMesh>("red_triangle", //
-            //                                                    "Assert/Editor/Object/triangle/triangle.obj",
-            //                                                    "TriangleShader",
-            //                                                    "basic_red_triangle",
-            //                                                    "basic_red_triangle");
-            // red_triangle.GetTransformComponent().SetPosition(glm::vec3 {1.0f, 5.5f, 0.0f});
-
-            // auto red_sphere = m_World->AddActor<AStaticMesh>("red_sphere", //
-            //                                                  "Assert/Editor/Object/sphere/sphere.obj",
-            //                                                  "BasicPbr",
-            //                                                  "basic_red_sphere",
-            //                                                  "basic_red_sphere");
-            // red_sphere.GetTransformComponent().SetPosition(glm::vec3 {1.0f, 1.5f, 0.0f});
-            // MBasicPbr* red_sphere_material = static_cast<MBasicPbr*>(red_sphere.GetMaterial());
-            // red_sphere_material->SetAlbedo(glm::vec3 {1.0f, 0.0f, 0.0f});
-            // red_sphere_material->SetMetallic(0.3f);
-            // red_sphere_material->SetRoughness(0.5f);
-
-            // auto brown_sphere = m_World->AddActor<AStaticMesh>("brown_sphere", //
-            //                                                    "Assert/Editor/Object/sphere/sphere.obj",
-            //                                                    "BasicPbr",
-            //                                                    "basic_brown_sphere",
-            //                                                    "basic_brown_sphere");
-            // brown_sphere.GetTransformComponent().SetPosition(glm::vec3 {3.0f, 1.5f, 0.0f});
-            // MBasicPbr* brown_sphere_material = static_cast<MBasicPbr*>(brown_sphere.GetMaterial());
-            // brown_sphere_material->SetAlbedo(glm::vec3 {0.77f, 0.37f, 0.12f});
-            // brown_sphere_material->SetMetallic(0.2f);
-            // brown_sphere_material->SetRoughness(0.8f);
-
-            // auto aqua_shpere = m_World->AddActor<AStaticMesh>("aqua_sphere", //
-            //                                                   "Assert/Editor/Object/sphere/sphere.obj",
-            //                                                   "BasicPbr",
-            //                                                   "basic_aqua_sphere",
-            //                                                   "basic_aqua_sphere");
-            // aqua_shpere.GetTransformComponent().SetPosition(glm::vec3 {5.0f, 1.5f, 0.0f});
-            // MBasicPbr* aqua_shpere_material = static_cast<MBasicPbr*>(aqua_shpere.GetMaterial());
-            // aqua_shpere_material->SetAlbedo(glm::vec3 {0.0f, 1.0f, 1.0f});
-            // aqua_shpere_material->SetMetallic(0.9f);
-            // aqua_shpere_material->SetRoughness(0.3f);
-
-            // auto wood_sphere = m_World->AddActor<AStaticMesh>("wood_sphere", //
-            //                                                   "Assert/Editor/Object/sphere/sphere.obj",
-            //                                                   "Texture",
-            //                                                   "bamboo-wood-semigloss_sphere",
-            //                                                   "bamboo-wood-semigloss");
-            // wood_sphere.GetTransformComponent().SetPosition(glm::vec3 {1.0f, 3.5f, 0.0f});
-
-            // auto metal_sphere = m_World->AddActor<AStaticMesh>("metal_sphere", //
-            //                                                    "Assert/Editor/Object/sphere/sphere.obj",
-            //                                                    "Texture",
-            //                                                    "streaky-metal1_sphere",
-            //                                                    "streaky-metal1");
-            // metal_sphere.GetTransformComponent().SetPosition(glm::vec3 {3.0f, 3.5f, 0.0f});
-
-            // auto plastic_sphere = m_World->AddActor<AStaticMesh>("plastic_sphere", //
-            //                                                      "Assert/Editor/Object/sphere/sphere.obj",
-            //                                                      "Texture",
-            //                                                      "scuffed-plastic_sphere",
-            //                                                      "scuffed-plastic");
-            // plastic_sphere.GetTransformComponent().SetPosition(glm::vec3 {5.0f, 3.5f, 0.0f});
-
-            // auto basetile_sphere = m_World->AddActor<AStaticMesh>("basetile_sphere", //
-            //                                                       "Assert/Editor/Object/sphere/sphere.obj",
-            //                                                       "Texture",
-            //                                                       "base-white-tile_sphere",
-            //                                                       "base-white-tile");
-            // basetile_sphere.GetTransformComponent().SetPosition(glm::vec3 {3.0f, 5.5f, 0.0f});
-
-            // auto blacktile_sphere = m_World->AddActor<AStaticMesh>("blacktile_sphere", //
-            //                                                        "Assert/Editor/Object/sphere/sphere.obj",
-            //                                                        "Texture",
-            //                                                        "metal_panel_sphere",
-            //                                                        "metal_panel");
-            // blacktile_sphere.GetTransformComponent().SetPosition(glm::vec3 {5.0f, 5.5f, 0.0f});
-
-            // auto wood_monkey = m_World->AddActor<AStaticMesh>(
-            //     "wood_mmonkey", "Assert/Editor/Object/monkey/monkey.obj", "Texture", "monkey_wood",
-            //     "bamboo-wood-semigloss");
-            // wood_monkey.GetTransformComponent().SetPosition(glm::vec3 {5.0f, 1.5f, 3.0f});
-
-            // auto ground = m_World->AddActor<AStaticMesh>("ground", //
-            //                                              "Assert/Editor/Object/ground/ground.obj",
-            //                                              "Texture",
-            //                                              "black-white-tile_sphere",
-            //                                              "black-white-tile");
-            // ground.GetTransformComponent().SetPosition(glm::vec3 {0.0f, 0.0f, 0.0f});
-
-            // auto teapot = m_World->AddActor<AStaticMesh>("teapot", //
-            //                                              "Assert/Editor/Object/teapot/teapot.obj",
-            //                                              "Texture",
-            //                                              "streaky-metal1_teapot",
-            //                                              "streaky-metal1");
-            // teapot.GetTransformComponent().SetPosition(glm::vec3 {5.0f, 0.8f, 5.8f});
-            // teapot.GetTransformComponent().SetScale(glm::vec3 {0.6f, 0.6f, 0.6f});
-
-            // auto skeleton = m_World->AddActor<ASkeleton>("Skeleton");
-            // skeleton.GetTransformComponent().SetPosition(glm::vec3 {1.0f, 0.8f, 3.0f});
-
-            // auto light0 = m_World->AddActor<APointLight>("point light_0");
-            // light0.GetTransformComponent().SetPosition(glm::vec3 {0.0f, 1.5f, 1.5f});
-
-            // auto light1 = m_World->AddActor<APointLight>("point light_1");
-            // light1.GetTransformComponent().SetPosition(glm::vec3 {1.0f, 1.5f, 1.5f});
-
-            // auto light2 = m_World->AddActor<APointLight>("point light_2");
-            // light2.GetTransformComponent().SetPosition(glm::vec3 {0.0f, 2.5f, 1.5f});
-
-            // auto light3 = m_World->AddActor<APointLight>("point light_3");
-            // light3.GetTransformComponent().SetPosition(glm::vec3 {1.0f, 2.5f, 1.5f});
-
-            // auto pointcloud =
-            //     m_World->AddActor<APointCloud>("pointcloud",
-            //     "Assert/Editor/Object/longdress/longdress_vox10_1300.ply");
-            // pointcloud.GetTransformComponent().SetPosition(glm::vec3 {0.0f, 0.0f, 0.0f});
-            // pointcloud.GetTransformComponent().SetScale(glm::vec3 {0.01f, 0.01f, 0.01f});
 
             m_Callbacks["Open"] = std::function<void()>([&]() {
                 std::string filepath = OpenFile();
@@ -273,35 +142,13 @@ namespace Engine
 
             m_World->TickGui(m_LayerUpdateMeta.m_timeStep);
 
-            // Gui::Begin("Application");
-            // Gui::Text("Time Step: {0}", m_LayerUpdateMeta.m_timeStep);
-            // Gui::Text("Now Time: {0}", m_LayerUpdateMeta.m_nowTime);
-
-            // static std::vector<float> arr(600, 0.0);
-            // arr.push_back(m_LayerUpdateMeta.m_timeStep);
-            // arr.erase(arr.begin());
-            // ImGui::PlotLines("Frame Times", &arr[0], 600);
-            // Gui::End();
-
-            // Gui::ShowImNodesDemoWindow();
-            // ImGui::ShowDemoWindow();
-
             bool is_color_focused = false;
             Gui::ShowViewport(
                 "ViewPort :: Color", m_World->m_FrameRenderBuffer, true, is_color_focused, std::function {[&]() {
                     EditorGui();
                 }});
 
-            bool is_buffers_focused = false;
-            // Gui::ShowViewport(
-            //     "ViewPort :: Buffers", m_World->m_FrameRenderBuffer_bufferViewport, true, is_buffers_focused);
-
-            bool is_playground_focused = false;
-            // Gui::ShowViewport(
-            //     "ViewPort :: Playground", m_World->m_FrameRenderBuffer_playground, false, is_playground_focused);
-
-            m_World->m_MainCamera->GetCameraComponent().GetCamera().m_IsWindowFocused =
-                is_color_focused | is_buffers_focused | is_playground_focused;
+            m_World->m_MainCamera->GetCameraComponent().GetCamera().m_IsWindowFocused = is_color_focused;
 
             ImGui::ShowExampleAppLog(NULL);
         }

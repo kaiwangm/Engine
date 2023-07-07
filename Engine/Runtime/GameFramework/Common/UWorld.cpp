@@ -223,10 +223,10 @@ namespace Engine
         auto computeAO_shader = m_ShaderLibrary.Get("ComputeAO");
         computeAO_shader->Bind();
 
-        computeAO_shader->SetInt("g_Position", 0);
-        m_GeometryBuffer->BindPositionTexture(0);
-        computeAO_shader->SetInt("g_Normal", 1);
-        m_GeometryBuffer->BindNormalTexture(1);
+        computeAO_shader->SetInt("g_ViewPosition", 0);
+        m_GeometryBuffer->BindViewPositionTexture(0);
+        computeAO_shader->SetInt("g_ViewNormal", 1);
+        m_GeometryBuffer->BindViewNormalTexture(1);
         computeAO_shader->SetInt("g_Depth", 2);
         m_GeometryBuffer->BindDepthTexture(2);
 
@@ -424,27 +424,30 @@ namespace Engine
         RenderCommand::SetClearColor(m_BackGroundColor);
         RenderCommand::Clear();
 
-        std::string gbuffer_shader_name[]   = {"ViewGBufferPosition",
-                                               "ViewGBufferNormal",
-                                               "ViewGBufferAlbedo",
-                                               "ViewGBufferOpacity",
-                                               "ViewGBufferDepth",
-                                               "ViewAO",
-                                               "ViewGBufferRoughness",
-                                               "ViewGBufferMetallic"};
-        auto        gbuffer_viewport_shader = m_ShaderLibrary.Get(gbuffer_shader_name[m_ViewportGBufferMap]);
+        std::string gbuffer_shader_name[] = {
+            "ViewGBufferPosition",
+            "ViewGBufferNormal",
+            "ViewGBufferAlbedo",
+            "ViewGBufferDepth",
+            "ViewAO",
+            "ViewGBufferRoughness",
+            "ViewGBufferMetallic",
+            "ViewGBufferPosition",
+            "ViewGBufferNormal",
+        };
+        auto gbuffer_viewport_shader = m_ShaderLibrary.Get(gbuffer_shader_name[m_ViewportGBufferMap]);
 
         gbuffer_viewport_shader->Bind();
 
         if (m_ViewportGBufferMap == 0)
         {
             gbuffer_viewport_shader->SetInt("g_Position", 0);
-            m_GeometryBuffer->BindPositionTexture(0);
+            m_GeometryBuffer->BindViewPositionTexture(0);
         }
         else if (m_ViewportGBufferMap == 1)
         {
             gbuffer_viewport_shader->SetInt("g_Normal", 0);
-            m_GeometryBuffer->BindNormalTexture(0);
+            m_GeometryBuffer->BindViewNormalTexture(0);
         }
         else if (m_ViewportGBufferMap == 2)
         {
@@ -453,28 +456,33 @@ namespace Engine
         }
         else if (m_ViewportGBufferMap == 3)
         {
-            gbuffer_viewport_shader->SetInt("g_Opacity", 0);
-            m_GeometryBuffer->BindOpacityTexture(0);
-        }
-        else if (m_ViewportGBufferMap == 4)
-        {
             gbuffer_viewport_shader->SetInt("g_Depth", 0);
             m_GeometryBuffer->BindDepthTexture(0);
         }
-        else if (m_ViewportGBufferMap == 5)
+        else if (m_ViewportGBufferMap == 4)
         {
             gbuffer_viewport_shader->SetInt("g_AO", 0);
             m_SSAOBuffer->BindSSAOTexture(0);
         }
-        else if (m_ViewportGBufferMap == 6)
+        else if (m_ViewportGBufferMap == 5)
         {
             gbuffer_viewport_shader->SetInt("g_Roughness", 0);
             m_GeometryBuffer->BindRoughnessTexture(0);
         }
-        else if (m_ViewportGBufferMap == 7)
+        else if (m_ViewportGBufferMap == 6)
         {
             gbuffer_viewport_shader->SetInt("g_Metallic", 0);
             m_GeometryBuffer->BindMetallicTexture(0);
+        }
+        else if (m_ViewportGBufferMap == 7)
+        {
+            gbuffer_viewport_shader->SetInt("g_Position", 0);
+            m_GeometryBuffer->BindWorldPositionTexture(0);
+        }
+        else if (m_ViewportGBufferMap == 8)
+        {
+            gbuffer_viewport_shader->SetInt("g_Normal", 0);
+            m_GeometryBuffer->BindWorldNormalTexture(0);
         }
 
         RenderCommand::RenderToQuad();
@@ -498,7 +506,16 @@ namespace Engine
 
         Gui::Text("Buffer Viewport");
         const char* items[] = {
-            "Position", "Normal", "Albedo", "Opacity", "Depth", "Ambient Occlusion", "Roughness", "Metallic"};
+            "ViewPosition",
+            "ViewNormal",
+            "Albedo",
+            "Depth",
+            "Ambient Occlusion",
+            "Roughness",
+            "Metallic",
+            "WorldPosition",
+            "WorldNormal",
+        };
         ImGui::Combo("Viewport GBuffer Map", &m_ViewportGBufferMap, items, IM_ARRAYSIZE(items));
 
         ImGui::Separator();

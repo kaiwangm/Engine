@@ -14,10 +14,6 @@ namespace Engine
             m_World = std::make_shared<UWorld>();
 
             m_World->LoadShader("TextureShader", "Assert/Editor/Shader/vertex.glsl", "Assert/Editor/Shader/fragment.glsl", "Path");
-            m_World->LoadShader("TextureShader_normal",
-                                "Assert/Editor/Shader/vertex_normal.glsl",
-                                "Assert/Editor/Shader/fragment_normal.glsl",
-                                "Path");
             m_World->LoadShader(
                 "Animated", "Assert/Editor/Shader/vertex_animated.glsl", "Assert/Editor/Shader/fragment_animated.glsl", "Path");
             m_World->LoadShader(
@@ -95,17 +91,6 @@ namespace Engine
 
             auto skybox =
                 m_World->AddActor<ASkybox>("skybox", "Assert/Editor/Skybox/TheSkyIsOnFire/the_sky_is_on_fire_8k.hdr");
-
-            // auto board = m_World->AddActor<AStaticMesh>("board");
-            // board.GetTransformComponent().SetPosition(glm::vec3 {-2.350f, 2.165f, 0.000f});
-
-            // auto gallery = m_World->AddActor<AStaticMesh>("gallery", "Assert/Editor/Object/gallery/gallery.obj");
-
-            // auto animan = m_World->AddActor<AAnimatedMesh>("animan", "Assert/Editor/Object/animan/model.dae");
-
-            // animan.GetTransformComponent().SetPosition(glm::vec3 {1.655f, 0.685f, 0.120f});
-            // animan.GetTransformComponent().SetRotation(glm::vec3 {-1.330f, 0.000f, 0.000f});
-            // animan.GetTransformComponent().SetScale(glm::vec3 {0.300f, 0.300f, 0.300f});
 
             m_World->AddActor<AActor>("Actor");
 
@@ -263,7 +248,6 @@ namespace Engine
             Gui::End();
 
             Gui::ShowImNodesDemoWindow();
-            ImGui::ShowDemoWindow();
 
             bool is_color_focused = false;
             Gui::ShowViewport(
@@ -275,12 +259,12 @@ namespace Engine
             Gui::ShowViewport(
                 "ViewPort :: Buffers", m_World->m_FrameRenderBuffer_bufferViewport, true, is_buffers_focused);
 
-            bool is_playground_focused = false;
-            Gui::ShowViewport(
-                "ViewPort :: Playground", m_World->m_FrameRenderBuffer_playground, false, is_playground_focused);
+            // bool is_playground_focused = false;
+            // Gui::ShowViewport(
+            //     "ViewPort :: Playground", m_World->m_FrameRenderBuffer_playground, false, is_playground_focused);
 
             m_World->m_MainCamera->GetCameraComponent().GetCamera().m_IsWindowFocused =
-                is_color_focused | is_buffers_focused | is_playground_focused;
+                is_color_focused | is_buffers_focused;
 
             ImGui::ShowExampleAppLog(NULL);
         }

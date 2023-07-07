@@ -1,12 +1,13 @@
 #version 460 core
 
-layout(location = 0) out vec3 g_Position;
-layout(location = 1) out vec3 g_Normal;
+layout(location = 0) out vec3 g_ViewPosition;
+layout(location = 1) out vec3 g_ViewNormal;
 layout(location = 2) out vec4 g_Albedo;
-layout(location = 3) out float g_Opacity;
-layout(location = 4) out float g_Depth;
-layout(location = 5) out float g_Roughness;
-layout(location = 6) out float g_Metallic;
+layout(location = 3) out float g_Depth;
+layout(location = 4) out float g_Roughness;
+layout(location = 5) out float g_Metallic;
+layout(location = 6) out vec3 g_WorldPosition;
+layout(location = 7) out vec3 g_WorldNormal;
 
 in vec3 v_Position;
 in vec3 v_Normal;
@@ -48,20 +49,22 @@ float LinearizeDepth(float depth)
 
 void main()
 {
-    g_Position = v_Position;
+    g_WorldPosition = (u_MTransform * vec4(v_Position, 1.0)).xyz;
+    g_ViewPosition = (u_MView * vec4(g_WorldPosition, 1.0)).xyz;
 
-    g_Normal = normalize(v_Normal);
+    g_ViewNormal = normalize(v_Normal);
     if (useNormalMap)
     {
         // get normal from normal map
         vec3 normal = texture(normalMap, v_TexCoord).rgb;
         normal      = normalize(normal * 2.0 - 1.0);
         // Tangent space to Model space
-        g_Normal = normalize(inverse(TBN) * normal);
+        g_ViewNormal = normalize(inverse(TBN) * normal);
     }
     // Model space to View space
     mat3 modelView = transpose(inverse(mat3(u_MView * u_MTransform)));
-    g_Normal       = modelView * g_Normal;
+    g_WorldNormal = g_ViewNormal;
+    g_ViewNormal = modelView * g_ViewNormal;
 
     g_Albedo = vec4(1.0);
     if (useAlbedoMap)
@@ -72,8 +75,6 @@ void main()
     {
         g_Albedo = vec4(in_albedo, 1.0);
     }
-
-    g_Opacity = 1.0;
 
     g_Depth = LinearizeDepth(gl_FragCoord.z);
 

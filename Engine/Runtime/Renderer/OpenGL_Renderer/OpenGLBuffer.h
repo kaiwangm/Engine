@@ -74,21 +74,23 @@ namespace Engine
 
         virtual uint32_t GetWidth() const override;
         virtual uint32_t GetHeight() const override;
-        virtual void*    GetPositionTextureID() const override;
-        virtual void*    GetNormalTextureID() const override;
+        virtual void*    GetViewPositionTextureID() const override;
+        virtual void*    GetViewNormalTextureID() const override;
         virtual void*    GetAlbedoTextureID() const override;
-        virtual void*    GetOpacityTextureID() const override;
         virtual void*    GetDepthTextureID() const override;
         virtual void*    GetRoughnessTextureID() const override;
         virtual void*    GetMetallicTextureID() const  override;
+        virtual void*    GetWorldPositionTextureID() const override;
+        virtual void*    GetWorldNormalTextureID() const override;
 
-        virtual void BindPositionTexture(const uint32_t& slot) const override;
-        virtual void BindNormalTexture(const uint32_t& slot) const override;
+        virtual void BindViewPositionTexture(const uint32_t& slot) const override;
+        virtual void BindViewNormalTexture(const uint32_t& slot) const override;
         virtual void BindAlbedoTexture(const uint32_t& slot) const override;
-        virtual void BindOpacityTexture(const uint32_t& slot) const override;
         virtual void BindDepthTexture(const uint32_t& slot) const override;
         virtual void BindRoughnessTexture(const uint32_t& slot) const override;
         virtual void BindMetallicTexture(const uint32_t& slot) const override;
+        virtual void BindWorldPositionTexture(const uint32_t& slot) const override;
+        virtual void BindWorldNormalTexture(const uint32_t& slot) const override;
         virtual void UnBindTexture(const uint32_t& slot) const override;
 
     private:
@@ -98,13 +100,14 @@ namespace Engine
         GLuint m_FrameBuffer_RendererID;
         GLuint m_RenderBuffer_RendererID;
 
-        GLuint m_Position_RendererID;
-        GLuint m_Normal_RendererID;
+        GLuint m_ViewPosition_RendererID;
+        GLuint m_ViewNormal_RendererID;
         GLuint m_Albedo_RendererID;
-        GLuint m_Opacity_RendererID;
         GLuint m_Depth_RendererID;
         GLuint m_Roughness_RendererID;
         GLuint m_Metallic_RendererID;
+        GLuint m_WorldPosition_RendererID;
+        GLuint m_WorldNormal_RendererID;
     };
 
     class OpenGLSSAOBuffer : public SSAOBuffer

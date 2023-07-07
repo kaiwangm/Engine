@@ -205,24 +205,26 @@ namespace Engine
 
         virtual void SetViewPort(uint32_t width, uint32_t height) = 0;
 
-        virtual uint32_t GetWidth() const             = 0;
-        virtual uint32_t GetHeight() const            = 0;
-        virtual void*    GetPositionTextureID() const = 0;
-        virtual void*    GetNormalTextureID() const   = 0;
-        virtual void*    GetAlbedoTextureID() const   = 0;
-        virtual void*    GetOpacityTextureID() const  = 0;
-        virtual void*    GetDepthTextureID() const    = 0;
-        virtual void*    GetRoughnessTextureID() const = 0;
-        virtual void*    GetMetallicTextureID() const  = 0;
+        virtual uint32_t GetWidth() const                  = 0;
+        virtual uint32_t GetHeight() const                 = 0;
+        virtual void*    GetViewPositionTextureID() const  = 0;
+        virtual void*    GetViewNormalTextureID() const    = 0;
+        virtual void*    GetAlbedoTextureID() const        = 0;
+        virtual void*    GetDepthTextureID() const         = 0;
+        virtual void*    GetRoughnessTextureID() const     = 0;
+        virtual void*    GetMetallicTextureID() const      = 0;
+        virtual void*    GetWorldPositionTextureID() const = 0;
+        virtual void*    GetWorldNormalTextureID() const   = 0;
 
-        virtual void BindPositionTexture(const uint32_t& slot) const = 0;
-        virtual void BindNormalTexture(const uint32_t& slot) const   = 0;
-        virtual void BindAlbedoTexture(const uint32_t& slot) const   = 0;
-        virtual void BindOpacityTexture(const uint32_t& slot) const  = 0;
-        virtual void BindDepthTexture(const uint32_t& slot) const    = 0;
-        virtual void BindRoughnessTexture(const uint32_t& slot) const = 0;
-        virtual void BindMetallicTexture(const uint32_t& slot) const  = 0;
-        virtual void UnBindTexture(const uint32_t& slot) const       = 0;
+        virtual void BindViewPositionTexture(const uint32_t& slot) const  = 0;
+        virtual void BindViewNormalTexture(const uint32_t& slot) const    = 0;
+        virtual void BindAlbedoTexture(const uint32_t& slot) const        = 0;
+        virtual void BindDepthTexture(const uint32_t& slot) const         = 0;
+        virtual void BindRoughnessTexture(const uint32_t& slot) const     = 0;
+        virtual void BindMetallicTexture(const uint32_t& slot) const      = 0;
+        virtual void BindWorldPositionTexture(const uint32_t& slot) const = 0;
+        virtual void BindWorldNormalTexture(const uint32_t& slot) const   = 0;
+        virtual void UnBindTexture(const uint32_t& slot) const            = 0;
 
         static Ref<GeometryBuffer> Create();
     };
@@ -238,9 +240,9 @@ namespace Engine
 
         virtual uint32_t GetWidth() const  = 0;
         virtual uint32_t GetHeight() const = 0;
-        virtual float&   GetRadiusRef() = 0;
-        virtual float&   GetBiasRef()   = 0;
-        virtual float&   GetPowerRef()  = 0;
+        virtual float&   GetRadiusRef()    = 0;
+        virtual float&   GetBiasRef()      = 0;
+        virtual float&   GetPowerRef()     = 0;
 
         virtual void* GetSSAOTextureID() const  = 0;
         virtual void* GetNoiseTextureID() const = 0;

@@ -18,9 +18,8 @@ out mat3 TBN;
 
 void main()
 {
-    vec4 vPosition = u_MView * u_MTransform * vec4(a_Position, 1.0);
-    v_Position     = vPosition.xyz;
-    gl_Position    = u_MProjection * vPosition;
+    v_Position     = a_Position;
+    gl_Position    = u_MProjection * u_MView * u_MTransform * vec4(a_Position, 1.0);
 
     v_TexCoord = a_TexCoord;
 
