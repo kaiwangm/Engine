@@ -15,6 +15,7 @@
 #include <Engine/Runtime/GameFramework/Animation/USkeletonComponent.h>
 #include <Engine/Runtime/GameFramework/Skybox/ASkybox.h>
 #include <Engine/Runtime/GameFramework/Camera/ACamera.h>
+#include <Engine/Runtime/GameFramework/Pawn/APawn.h>
 #include <Engine/Runtime/GameFramework/Light/UPointLightComponent.h>
 
 namespace Engine
@@ -110,6 +111,8 @@ namespace Engine
                    "Assert/Editor/Shader/screen_quad_vertex.glsl",
                    "Assert/Editor/Shader/deffered/exposure.glsl",
                    "Path");
+
+        LoadShader("Pawn", "Assert/Editor/Shader/pawn_vertex.glsl", "Assert/Editor/Shader/pawn_fragment.glsl", "Path");
     }
 
     void UWorld::TickLogic(float timeStep, float nowTime, bool isWindowFocused)
@@ -120,6 +123,7 @@ namespace Engine
         float m_CameraRotationSpeed         = 0.15;
 
         auto camrea_view = m_Registry.view<UTagComponent, UTransformComponent, UCameraComponent>();
+        auto pawn_view   = m_Registry.view<UTagComponent, UTransformComponent, UPawnComponent>();
 
         auto [currentX, currentY] = Input::GetMousePostion();
 
@@ -132,7 +136,12 @@ namespace Engine
         // use a range-for
         for (auto [entity, name, trans, camera] : camrea_view.each())
         {
-            AActor* actor = static_cast<AActor*>(camera.GetOwner());
+            if (m_Registry.any_of<UPawnComponent>(entity))
+            {
+                continue;
+            }
+
+            AActor*  actor   = static_cast<AActor*>(camera.GetOwner());
             ACamera* aCamera = static_cast<ACamera*>(actor);
 
             if (isWindowFocused && actor->GetIsControlled() && aCamera->GetIsViewportCamera())
@@ -205,6 +214,53 @@ namespace Engine
             }
         }
 
+        for (auto [entity, name, trans, pawn] : pawn_view.each())
+        {
+            AActor* actor = static_cast<AActor*>(pawn.GetOwner());
+            APawn*  aPawn = static_cast<APawn*>(actor);
+
+            // get forward vector from camera
+            glm::mat4 cameraTransform = m_MainCamera->GetTransform();
+
+            glm::vec3 forward = -glm::normalize(glm::rotate(glm::quat(cameraTransform), glm::vec3(0.0f, 0.0f, 1.0f)));
+            forward.y         = 0.0f;
+            forward           = glm::normalize(forward);
+
+            glm::vec3 right = glm::normalize(glm::rotate(glm::quat(cameraTransform), glm::vec3(1.0f, 0.0f, 0.0f)));
+            right.y         = 0.0f;
+            right           = glm::normalize(right);
+
+            glm::vec3 movement = glm::vec3(0.0f);
+
+            if (actor->GetIsControlled())
+            {
+                if (Input::IsKeyPressed(GLFW_KEY_W))
+                {
+                    movement += forward;
+                }
+                if (Input::IsKeyPressed(GLFW_KEY_S))
+                {
+                    movement -= forward;
+                }
+                if (Input::IsKeyPressed(GLFW_KEY_A))
+                {
+                    movement -= right;
+                }
+                if (Input::IsKeyPressed(GLFW_KEY_D))
+                {
+                    movement += right;
+                }
+
+                if (glm::length(movement) > 0.0f)
+                {
+                    movement = glm::normalize(movement);
+                }
+
+                auto newPosition = trans.GetPosition() + movement * 7.0 * timeStep;
+                trans.SetPosition(newPosition);
+            }
+        }
+
         lastX = currentX;
         lastY = currentY;
 
@@ -219,13 +275,13 @@ namespace Engine
 
     void UWorld::TickRender(float timeStep)
     {
-
         auto camrea_view     = m_Registry.view<UTagComponent, UTransformComponent, UCameraComponent>();
         auto model_view      = m_Registry.view<UTagComponent, UTransformComponent, UStaticMeshComponent>();
         auto pointcloud_view = m_Registry.view<UTagComponent, UTransformComponent, UPointCloudComponent>();
         auto light_view      = m_Registry.view<UTagComponent, UTransformComponent, UPointLightComponent>();
         auto skybox_view     = m_Registry.view<UTagComponent, UTransformComponent, USkyboxComponent>();
         auto skeleton_view   = m_Registry.view<UTagComponent, UTransformComponent, USkeletonComponent>();
+        auto pawn_view       = m_Registry.view<UTagComponent, UTransformComponent, UPawnComponent>();
 
         m_GeometryBuffer->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
         m_SSAOBuffer->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
@@ -237,12 +293,14 @@ namespace Engine
         }
 
         // Render to GeometryBuffer
-        m_MainCamera->GetCameraComponent().GetCamera().SetViewPort(m_FrameRenderBuffer->GetWidth(),
-                                                                   m_FrameRenderBuffer->GetHeight());
-        m_MainCamera->GetCameraComponent().GetCamera().RecalculateProjectionMatrix();
+        m_MainCamera->GetCamera().SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
+        m_MainCamera->GetCamera().RecalculateProjectionMatrix();
 
-        m_VMatrix  = glm::inverse(m_MainCamera->GetTransformComponent().GetTransform());
-        m_PMatrix  = m_MainCamera->GetCameraComponent().GetCamera().GetProjectionMatrix();
+        AActor* actor_mainCamera = static_cast<AActor*>(m_MainCamera->GetOwner());
+
+        m_VMatrix =
+            glm::inverse(actor_mainCamera->GetTransformComponent().GetTransform() * m_MainCamera->GetTransform());
+        m_PMatrix  = m_MainCamera->GetCamera().GetProjectionMatrix();
         m_VPMatrix = m_PMatrix * m_VMatrix;
 
         m_GeometryBuffer->Bind();
@@ -288,12 +346,12 @@ namespace Engine
         m_GeometryBuffer->UnBind();
 
         // Render to SSAOBuffer
-        m_MainCamera->GetCameraComponent().GetCamera().SetViewPort(m_FrameRenderBuffer->GetWidth(),
-                                                                   m_FrameRenderBuffer->GetHeight());
-        m_MainCamera->GetCameraComponent().GetCamera().RecalculateProjectionMatrix();
+        m_MainCamera->GetCamera().SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
+        m_MainCamera->GetCamera().RecalculateProjectionMatrix();
 
-        m_VMatrix  = glm::inverse(m_MainCamera->GetTransformComponent().GetTransform());
-        m_PMatrix  = m_MainCamera->GetCameraComponent().GetCamera().GetProjectionMatrix();
+        m_VMatrix =
+            glm::inverse(actor_mainCamera->GetTransformComponent().GetTransform() * m_MainCamera->GetTransform());
+        m_PMatrix  = m_MainCamera->GetCamera().GetProjectionMatrix();
         m_VPMatrix = m_PMatrix * m_VMatrix;
 
         m_SSAOBuffer->Bind();
@@ -343,12 +401,12 @@ namespace Engine
         m_SSAOBuffer->UnBind();
 
         // Render to FrameRenderBuffer
-        m_MainCamera->GetCameraComponent().GetCamera().SetViewPort(m_FrameRenderBuffer->GetWidth(),
-                                                                   m_FrameRenderBuffer->GetHeight());
-        m_MainCamera->GetCameraComponent().GetCamera().RecalculateProjectionMatrix();
+        m_MainCamera->GetCamera().SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
+        m_MainCamera->GetCamera().RecalculateProjectionMatrix();
 
-        m_VMatrix  = glm::inverse(m_MainCamera->GetTransformComponent().GetTransform());
-        m_PMatrix  = m_MainCamera->GetCameraComponent().GetCamera().GetProjectionMatrix();
+        m_VMatrix =
+            glm::inverse(actor_mainCamera->GetTransformComponent().GetTransform() * m_MainCamera->GetTransform());
+        m_PMatrix  = m_MainCamera->GetCamera().GetProjectionMatrix();
         m_VPMatrix = m_PMatrix * m_VMatrix;
 
         m_FrameRenderBuffer->Bind();
@@ -406,8 +464,9 @@ namespace Engine
             ligth_num++;
         }
         deferred_shader->SetInt("numLights", ligth_num);
-
-        deferred_shader->SetFloat3("camPos", m_MainCamera->GetTransformComponent().GetPosition());
+        
+        glm::vec3 camPos = glm::vec3(glm::inverse(m_VMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+        deferred_shader->SetFloat3("camPos", camPos);
 
         auto sky_cubeMap = m_MainSkybox->GetSkyboxComponent().GetCubeMap();
 
@@ -470,10 +529,19 @@ namespace Engine
             skeleton.Draw(shader,
                           m_VPMatrix,
                           trans.GetTransform(),
-                          m_MainCamera->GetTransformComponent().GetPosition(),
+                          actor_mainCamera->GetTransformComponent().GetPosition(),
                           glm::vec3(0.0f),
                           glm::vec3(1.0f));
         }
+
+        // draw pawn
+        glDisable(GL_DEPTH_TEST);
+        for (auto [entity, name, trans, pawn] : pawn_view.each())
+        {
+            auto shader = m_ShaderLibrary.Get("Pawn");
+            pawn.Draw(shader, m_VPMatrix, trans.GetTransform());
+        }
+        glEnable(GL_DEPTH_TEST);
 
         Renderer::EndScene(m_FrameRenderBuffer);
 
@@ -673,26 +741,29 @@ namespace Engine
                 std::string cameraType = camera.GetCameraType();
                 if (cameraType == "PerspectiveCamera")
                 {
-                    auto&    perspectiveCamera = reinterpret_cast<PerspectiveCamera&>(camera);
-                    ACamera* camera_actor      = static_cast<ACamera*>(cameraComponent.GetOwner());
+                    auto& perspectiveCamera = reinterpret_cast<PerspectiveCamera&>(camera);
 
                     Gui::Text("Camera Type: {}", cameraType);
                     if (ImGui::Button("Set Viewport Camera"))
                     {
                         m_MainCamera->SetIsViewportCamera(false);
-                        m_MainCamera = static_cast<ACamera*>(cameraComponent.GetOwner());
+                        m_MainCamera = &cameraComponent;
                         m_MainCamera->SetIsViewportCamera(true);
                     }
                     Gui::Text("Aspect: {0}", perspectiveCamera.GetAspectRatioRef());
 
                     ImGui::BeginDisabled();
-                    ImGui::Checkbox("Viewport Camera", &camera_actor->GetIsViewportCameraRef());
+                    ImGui::Checkbox("Viewport Camera", &cameraComponent.GetIsViewportCameraRef());
                     ImGui::EndDisabled();
 
                     Gui::SliderFloat("Fov", perspectiveCamera.GetFovRef(), 1.8f, 160.0f);
                     Gui::SliderFloat("Near", perspectiveCamera.GetNearClipRef(), 0.01f, 100.0f);
                     Gui::SliderFloat("Far", perspectiveCamera.GetFarClipRef(), 0.3f, 1000.0f);
                 }
+
+                Gui::DragFloat3("Cam::Position", cameraComponent.GetPositionRef(), 0.005f, -100.0f, 100.0f);
+                Gui::DragFloat3("Cam::Rotation", cameraComponent.GetRotationRef(), 0.005f, -100.0f, 100.0f);
+                Gui::DragFloat3("Cam::Scale", cameraComponent.GetScaleRef(), 0.005f, 0.0f, 100.0f);
             }
 
             if (m_Registry.any_of<UStaticMeshComponent>(entity_selected) == true)

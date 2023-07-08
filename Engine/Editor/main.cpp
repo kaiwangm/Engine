@@ -21,8 +21,8 @@ namespace Engine
             camera_s.SetIsControlled(true);
             camera_s.SetIsViewportCamera(true);
 
-            auto& camera_aa                      = std::make_shared<PerspectiveCamera>(60.0f, 1.778f, 0.1f, 800.0f);
-            auto& camera_a                       = m_World->AddActor<ACamera>("camera_aa", camera_aa);
+            auto& camera_aa = std::make_shared<PerspectiveCamera>(60.0f, 1.778f, 0.1f, 800.0f);
+            auto& camera_a  = m_World->AddActor<ACamera>("camera_aa", camera_aa);
             camera_a.GetTransformComponent().SetPosition(glm::vec3 {3.570f, 2.371f, 2.175f});
             camera_a.GetTransformComponent().SetRotation(glm::vec3 {-0.115f, 2.404f, 0.000f});
             camera_a.GetTransformComponent().SetScale(glm::vec3 {1.000f, 1.000f, 1.000f});
@@ -30,13 +30,16 @@ namespace Engine
             camera_a.SetIsViewportCamera(false);
 
             m_World->m_ControlledActor = static_cast<AActor*>(camera_s.GetCameraComponent().GetOwner());
-            m_World->m_MainCamera      = static_cast<ACamera*>(camera_s.GetCameraComponent().GetOwner());
+            m_World->m_MainCamera      = &camera_s.GetCameraComponent();
             m_Camera                   = camera_viewport;
 
             auto skybox =
                 m_World->AddActor<ASkybox>("skybox", "Assert/Editor/Skybox/TheSkyIsOnFire/the_sky_is_on_fire_8k.hdr");
 
             m_World->AddActor<AActor>("Actor");
+
+            auto apawn = m_World->AddActor<APawn>("pawn");
+            apawn.GetTransformComponent().SetPosition(glm::vec3 {0.0f, 0.0f, 0.0f});
 
             // auto red_triangle = m_World->AddActor<AStaticMesh>("red_triangle", //
             //                                                    "Assert/Editor/Object/triangle/triangle.obj",
@@ -243,11 +246,14 @@ namespace Engine
             viewManipulateRight = ImGui::GetWindowPos().x + windowWidth;
             viewManipulateTop   = ImGui::GetWindowPos().y;
 
-            m_World->m_MainCamera->GetCameraComponent().GetCamera().SetViewPort(windowWidth, windowHeight);
-            m_World->m_MainCamera->GetCameraComponent().GetCamera().RecalculateProjectionMatrix();
+            m_World->m_MainCamera->GetCamera().SetViewPort(windowWidth, windowHeight);
+            m_World->m_MainCamera->GetCamera().RecalculateProjectionMatrix();
 
-            glm::mat4 cameraView       = glm::inverse(m_World->m_MainCamera->GetTransformComponent().GetTransform());
-            glm::mat4 cameraProjection = m_World->m_MainCamera->GetCameraComponent().GetCamera().GetProjectionMatrix();
+            AActor* actor_mainCamera = static_cast<AActor*>(m_World->m_MainCamera->GetOwner());
+
+            glm::mat4 cameraView =
+                glm::inverse(actor_mainCamera->GetTransformComponent().GetTransform() * m_World->m_MainCamera->GetTransform());
+            glm::mat4 cameraProjection = m_World->m_MainCamera->GetCamera().GetProjectionMatrix();
             glm::mat4 identityMatrix   = glm::mat4(1.0f);
 
             ImGuizmo::DrawGrid(

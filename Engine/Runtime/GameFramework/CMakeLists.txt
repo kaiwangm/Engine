@@ -8,21 +8,22 @@ add_library(
     DataUtil/PointCloud.cpp
     Common/UWorld.cpp
     Animation/USkeletonComponent.cpp
+    Pawn/UPawnComponent.cpp
 )
 
 target_link_libraries(
-    GameFramework 
-    PRIVATE 
-    Core 
-    Renderer 
+    GameFramework
+    PRIVATE
+    Core
+    Renderer
     Gui
 )
 
 target_link_libraries(
-    GameFramework 
-    PRIVATE 
-    EnTT::EnTT 
-    assimp::assimp 
+    GameFramework
+    PRIVATE
+    EnTT::EnTT
+    assimp::assimp
     ozz-animation
 )
 

@@ -5,6 +5,7 @@
 #include <vector>
 
 #include <Engine/Runtime/GameFramework/Common/UObject.h>
+#include <Engine/Runtime/GameFramework/Camera/UCameraComponent.h>
 #include <Engine/Runtime/Renderer/Renderer.h>
 
 namespace Engine
@@ -30,7 +31,7 @@ namespace Engine
 
         glm::vec4 m_BackGroundColor {0.7f, 0.7f, 0.7f, 1.0f};
 
-        ACamera* m_MainCamera;
+        UCameraComponent* m_MainCamera;
         AActor*  m_ControlledActor;
         ASkybox* m_MainSkybox;
 

@@ -40,12 +40,12 @@ namespace Engine
 
     public:
         void Update(float ratio);
-        void USkeletonComponent::Draw(Ref<Shader> shader,
-                                      glm::mat4   vpMat,
-                                      glm::mat4   transform,
-                                      glm::vec3   viewPos,
-                                      glm::vec3   color,
-                                      glm::vec3   lightColor);
+        void Draw(Ref<Shader> shader,
+                  glm::mat4   vpMat,
+                  glm::mat4   transform,
+                  glm::vec3   viewPos,
+                  glm::vec3   color,
+                  glm::vec3   lightColor);
 
     public:
         int GetNumJoints();
