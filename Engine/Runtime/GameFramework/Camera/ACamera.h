@@ -17,5 +17,13 @@ namespace Engine
         }
 
         UCameraComponent& GetCameraComponent() { return *m_Camera; }
+
+    public:
+        bool m_IsViewportCamera = false;
+
+    public:
+        bool  GetIsViewportCamera() const { return m_IsViewportCamera; }
+        bool& GetIsViewportCameraRef() { return m_IsViewportCamera; }
+        void  SetIsViewportCamera(bool isViewportCamera) { m_IsViewportCamera = isViewportCamera; }
     };
 }; // namespace Engine

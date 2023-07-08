@@ -29,9 +29,90 @@ namespace Engine
         // GeometryBuffer
         m_GeometryBuffer = GeometryBuffer::Create();
         m_SSAOBuffer     = SSAOBuffer::Create();
+
+        LoadShader("TextureShader", "Assert/Editor/Shader/vertex.glsl", "Assert/Editor/Shader/fragment.glsl", "Path");
+        LoadShader("Animated",
+                   "Assert/Editor/Shader/vertex_animated.glsl",
+                   "Assert/Editor/Shader/fragment_animated.glsl",
+                   "Path");
+        LoadShader(
+            "Skybox", "Assert/Editor/Shader/vertex_skybox.glsl", "Assert/Editor/Shader/fragment_skybox.glsl", "Path");
+        LoadShader("BasicPbr",
+                   "Assert/Editor/Shader/vertex_basicpbr.glsl",
+                   "Assert/Editor/Shader/fragment_basicpbr.glsl",
+                   "Path");
+        LoadShader("OctreeShader",
+                   "Assert/Editor/Shader/octree_vertex.glsl",
+                   "Assert/Editor/Shader/octree_fragment.glsl",
+                   "Path");
+        LoadShader("TriangleShader",
+                   "Assert/Editor/Shader/triangle_vertex.glsl",
+                   "Assert/Editor/Shader/triangle_fragment.glsl",
+                   "Path");
+        LoadShader("Skeleton",
+                   "Assert/Editor/Shader/skeleton_vertex.glsl",
+                   "Assert/Editor/Shader/skeleton_fragment.glsl",
+                   "Path");
+        LoadShader("GBuffer",
+                   "Assert/Editor/Shader/gbuffer_vertex.glsl",
+                   "Assert/Editor/Shader/gbuffer_fragment.glsl",
+                   "Path");
+
+        LoadShader("VisPosition",
+                   "Assert/Editor/Shader/screen_quad_vertex.glsl",
+                   "Assert/Editor/Shader/viewport/position.glsl",
+                   "Path");
+
+        LoadShader("VisNormal",
+                   "Assert/Editor/Shader/screen_quad_vertex.glsl",
+                   "Assert/Editor/Shader/viewport/normal.glsl",
+                   "Path");
+
+        LoadShader("VisAlbedo",
+                   "Assert/Editor/Shader/screen_quad_vertex.glsl",
+                   "Assert/Editor/Shader/viewport/albedo.glsl",
+                   "Path");
+
+        LoadShader("VisOpacity",
+                   "Assert/Editor/Shader/screen_quad_vertex.glsl",
+                   "Assert/Editor/Shader/viewport/opacity.glsl",
+                   "Path");
+
+        LoadShader("VisDepth",
+                   "Assert/Editor/Shader/screen_quad_vertex.glsl",
+                   "Assert/Editor/Shader/viewport/depth.glsl",
+                   "Path");
+
+        LoadShader(
+            "VisAO", "Assert/Editor/Shader/screen_quad_vertex.glsl", "Assert/Editor/Shader/viewport/ao.glsl", "Path");
+
+        LoadShader("ComputeAO",
+                   "Assert/Editor/Shader/screen_quad_vertex.glsl",
+                   "Assert/Editor/Shader/compute_ssao_fragment.glsl",
+                   "Path");
+
+        LoadShader("VisRoughness",
+                   "Assert/Editor/Shader/screen_quad_vertex.glsl",
+                   "Assert/Editor/Shader/viewport/roughness.glsl",
+                   "Path");
+
+        LoadShader("VisMetallic",
+                   "Assert/Editor/Shader/screen_quad_vertex.glsl",
+                   "Assert/Editor/Shader/viewport/metallic.glsl",
+                   "Path");
+
+        LoadShader("Deferred",
+                   "Assert/Editor/Shader/screen_quad_vertex.glsl",
+                   "Assert/Editor/Shader/deffered/fragment.glsl",
+                   "Path");
+
+        LoadShader("Exposure",
+                   "Assert/Editor/Shader/screen_quad_vertex.glsl",
+                   "Assert/Editor/Shader/deffered/exposure.glsl",
+                   "Path");
     }
 
-    void UWorld::TickLogic(float timeStep, float nowTime)
+    void UWorld::TickLogic(float timeStep, float nowTime, bool isWindowFocused)
     {
         // Render
         float m_CameraTranslationSpeed      = 7.0;
@@ -51,8 +132,10 @@ namespace Engine
         // use a range-for
         for (auto [entity, name, trans, camera] : camrea_view.each())
         {
-            // Log::Info("{0}", camera.GetCamera().m_IsWindowFocused);
-            if (camera.GetCamera().m_IsWindowFocused)
+            AActor* actor = static_cast<AActor*>(camera.GetOwner());
+            ACamera* aCamera = static_cast<ACamera*>(actor);
+
+            if (isWindowFocused && actor->GetIsControlled() && aCamera->GetIsViewportCamera())
             {
                 const glm::vec3 front =
                     -glm::normalize(glm::rotate(glm::quat(trans.GetRotation()), glm::vec3(0.0f, 0.0f, 1.0f)));
@@ -549,12 +632,24 @@ namespace Engine
 
         if (entity_selected != entt::null && m_Registry.valid(entity_selected) == true)
         {
+            AActor* actor = static_cast<AActor*>(m_Registry.get<UTagComponent>(entity_selected).GetOwner());
 
             if (m_Registry.any_of<UTagComponent>(entity_selected) == true)
             {
                 auto& tagComponent = m_Registry.get<UTagComponent>(entity_selected);
                 Gui::Text(tagComponent.GetString().c_str());
                 ImGui::Separator();
+
+                if (ImGui::Button("Control the Actor"))
+                {
+                    m_ControlledActor->SetIsControlled(false);
+                    m_ControlledActor = actor;
+                    m_ControlledActor->SetIsControlled(true);
+                }
+
+                ImGui::BeginDisabled();
+                ImGui::Checkbox("Is Controlled", &actor->GetIsControlledRef());
+                ImGui::EndDisabled();
             }
 
             if (m_Registry.any_of<UTransformComponent>(entity_selected) == true)
@@ -578,22 +673,20 @@ namespace Engine
                 std::string cameraType = camera.GetCameraType();
                 if (cameraType == "PerspectiveCamera")
                 {
-                    auto& perspectiveCamera = reinterpret_cast<PerspectiveCamera&>(camera);
+                    auto&    perspectiveCamera = reinterpret_cast<PerspectiveCamera&>(camera);
+                    ACamera* camera_actor      = static_cast<ACamera*>(cameraComponent.GetOwner());
+
                     Gui::Text("Camera Type: {}", cameraType);
-                    if (ImGui::Button("Viewport Camera") == true)
+                    if (ImGui::Button("Set Viewport Camera"))
                     {
-                        m_MainCamera->GetCameraComponent().GetCamera().GetIsViewportCameraRef() = false;
+                        m_MainCamera->SetIsViewportCamera(false);
                         m_MainCamera = static_cast<ACamera*>(cameraComponent.GetOwner());
-                        m_MainCamera->GetCameraComponent().GetCamera().GetIsViewportCameraRef() = true;
+                        m_MainCamera->SetIsViewportCamera(true);
                     }
                     Gui::Text("Aspect: {0}", perspectiveCamera.GetAspectRatioRef());
 
-                    static bool check_disable = false;
-                    ImGui::BeginDisabled(check_disable);
-                    if (ImGui::Checkbox("Viewport Camera", &perspectiveCamera.GetIsViewportCameraRef()))
-                    {
-                        check_disable = true;
-                    }
+                    ImGui::BeginDisabled();
+                    ImGui::Checkbox("Viewport Camera", &camera_actor->GetIsViewportCameraRef());
                     ImGui::EndDisabled();
 
                     Gui::SliderFloat("Fov", perspectiveCamera.GetFovRef(), 1.8f, 160.0f);

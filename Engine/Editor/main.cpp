@@ -13,108 +13,25 @@ namespace Engine
         {
             m_World = std::make_shared<UWorld>();
 
-            m_World->LoadShader(
-                "TextureShader", "Assert/Editor/Shader/vertex.glsl", "Assert/Editor/Shader/fragment.glsl", "Path");
-            m_World->LoadShader("Animated",
-                                "Assert/Editor/Shader/vertex_animated.glsl",
-                                "Assert/Editor/Shader/fragment_animated.glsl",
-                                "Path");
-            m_World->LoadShader("Skybox",
-                                "Assert/Editor/Shader/vertex_skybox.glsl",
-                                "Assert/Editor/Shader/fragment_skybox.glsl",
-                                "Path");
-            m_World->LoadShader("BasicPbr",
-                                "Assert/Editor/Shader/vertex_basicpbr.glsl",
-                                "Assert/Editor/Shader/fragment_basicpbr.glsl",
-                                "Path");
-            m_World->LoadShader("OctreeShader",
-                                "Assert/Editor/Shader/octree_vertex.glsl",
-                                "Assert/Editor/Shader/octree_fragment.glsl",
-                                "Path");
-            m_World->LoadShader("TriangleShader",
-                                "Assert/Editor/Shader/triangle_vertex.glsl",
-                                "Assert/Editor/Shader/triangle_fragment.glsl",
-                                "Path");
-            m_World->LoadShader("Skeleton",
-                                "Assert/Editor/Shader/skeleton_vertex.glsl",
-                                "Assert/Editor/Shader/skeleton_fragment.glsl",
-                                "Path");
-            m_World->LoadShader("GBuffer",
-                                "Assert/Editor/Shader/gbuffer_vertex.glsl",
-                                "Assert/Editor/Shader/gbuffer_fragment.glsl",
-                                "Path");
-
-            m_World->LoadShader("VisPosition",
-                                "Assert/Editor/Shader/screen_quad_vertex.glsl",
-                                "Assert/Editor/Shader/viewport/position.glsl",
-                                "Path");
-
-            m_World->LoadShader("VisNormal",
-                                "Assert/Editor/Shader/screen_quad_vertex.glsl",
-                                "Assert/Editor/Shader/viewport/normal.glsl",
-                                "Path");
-
-            m_World->LoadShader("VisAlbedo",
-                                "Assert/Editor/Shader/screen_quad_vertex.glsl",
-                                "Assert/Editor/Shader/viewport/albedo.glsl",
-                                "Path");
-
-            m_World->LoadShader("VisOpacity",
-                                "Assert/Editor/Shader/screen_quad_vertex.glsl",
-                                "Assert/Editor/Shader/viewport/opacity.glsl",
-                                "Path");
-
-            m_World->LoadShader("VisDepth",
-                                "Assert/Editor/Shader/screen_quad_vertex.glsl",
-                                "Assert/Editor/Shader/viewport/depth.glsl",
-                                "Path");
-
-            m_World->LoadShader("VisAO",
-                                "Assert/Editor/Shader/screen_quad_vertex.glsl",
-                                "Assert/Editor/Shader/viewport/ao.glsl",
-                                "Path");
-
-            m_World->LoadShader("ComputeAO",
-                                "Assert/Editor/Shader/screen_quad_vertex.glsl",
-                                "Assert/Editor/Shader/compute_ssao_fragment.glsl",
-                                "Path");
-
-            m_World->LoadShader("VisRoughness",
-                                "Assert/Editor/Shader/screen_quad_vertex.glsl",
-                                "Assert/Editor/Shader/viewport/roughness.glsl",
-                                "Path");
-
-            m_World->LoadShader("VisMetallic",
-                                "Assert/Editor/Shader/screen_quad_vertex.glsl",
-                                "Assert/Editor/Shader/viewport/metallic.glsl",
-                                "Path");
-
-            m_World->LoadShader("Deferred",
-                                "Assert/Editor/Shader/screen_quad_vertex.glsl",
-                                "Assert/Editor/Shader/deffered/fragment.glsl",
-                                "Path");
-
-            m_World->LoadShader("Exposure",
-                                "Assert/Editor/Shader/screen_quad_vertex.glsl",
-                                "Assert/Editor/Shader/deffered/exposure.glsl",
-                                "Path");
-
-            auto camera_viewport = std::make_shared<PerspectiveCamera>(60.0f, 1.778f, 0.1f, 800.0f);
-            camera_viewport->GetIsViewportCameraRef() = true;
-            auto camera_s                             = m_World->AddActor<ACamera>("viewport camera", camera_viewport);
+            auto& camera_viewport = std::make_shared<PerspectiveCamera>(60.0f, 1.778f, 0.1f, 800.0f);
+            auto& camera_s        = m_World->AddActor<ACamera>("viewport camera", camera_viewport);
             camera_s.GetTransformComponent().SetPosition(glm::vec3 {0.339f, 3.711f, 8.815f});
             camera_s.GetTransformComponent().SetRotation(glm::vec3 {-0.088f, -6.732f, 0.000f});
             camera_s.GetTransformComponent().SetScale(glm::vec3 {1.000f, 1.000f, 1.000f});
+            camera_s.SetIsControlled(true);
+            camera_s.SetIsViewportCamera(true);
 
-            auto camera_aa                      = std::make_shared<PerspectiveCamera>(60.0f, 1.778f, 0.1f, 800.0f);
-            camera_aa->GetIsViewportCameraRef() = false;
-            auto camera_a                       = m_World->AddActor<ACamera>("camera_aa", camera_aa);
+            auto& camera_aa                      = std::make_shared<PerspectiveCamera>(60.0f, 1.778f, 0.1f, 800.0f);
+            auto& camera_a                       = m_World->AddActor<ACamera>("camera_aa", camera_aa);
             camera_a.GetTransformComponent().SetPosition(glm::vec3 {3.570f, 2.371f, 2.175f});
             camera_a.GetTransformComponent().SetRotation(glm::vec3 {-0.115f, 2.404f, 0.000f});
             camera_a.GetTransformComponent().SetScale(glm::vec3 {1.000f, 1.000f, 1.000f});
+            camera_a.SetIsControlled(false);
+            camera_a.SetIsViewportCamera(false);
 
-            m_World->m_MainCamera = static_cast<ACamera*>(camera_s.GetCameraComponent().GetOwner());
-            m_Camera              = camera_viewport;
+            m_World->m_ControlledActor = static_cast<AActor*>(camera_s.GetCameraComponent().GetOwner());
+            m_World->m_MainCamera      = static_cast<ACamera*>(camera_s.GetCameraComponent().GetOwner());
+            m_Camera                   = camera_viewport;
 
             auto skybox =
                 m_World->AddActor<ASkybox>("skybox", "Assert/Editor/Skybox/TheSkyIsOnFire/the_sky_is_on_fire_8k.hdr");
@@ -258,7 +175,10 @@ namespace Engine
 
         void OnEvent(Event& event) override { m_Camera->OnEvent(event); }
 
-        void TickLogic() override { m_World->TickLogic(m_LayerUpdateMeta.m_timeStep, m_LayerUpdateMeta.m_nowTime); }
+        void TickLogic() override
+        {
+            m_World->TickLogic(m_LayerUpdateMeta.m_timeStep, m_LayerUpdateMeta.m_nowTime, m_IsWindowFocused);
+        }
 
         void TickRender() override { m_World->TickRender(m_LayerUpdateMeta.m_timeStep); }
 
@@ -294,8 +214,7 @@ namespace Engine
             // Gui::ShowViewport(
             //     "ViewPort :: Playground", m_World->m_FrameRenderBuffer_playground, false, is_playground_focused);
 
-            m_World->m_MainCamera->GetCameraComponent().GetCamera().m_IsWindowFocused =
-                is_color_focused | is_buffers_focused;
+            m_IsWindowFocused = is_color_focused | is_buffers_focused;
 
             ImGui::ShowExampleAppLog(NULL);
         }
@@ -399,6 +318,9 @@ namespace Engine
         Ref<Camera> m_Camera;
         Ref<UWorld> m_World;
         bool&       m_app_open;
+
+    private:
+        bool m_IsWindowFocused = false;
     };
 
     class EngineEditor : public Application

@@ -10,10 +10,9 @@ namespace Engine
     {
     public:
         Camera();
-        virtual void SetViewPort(uint32_t width, uint32_t height) = 0;
-        virtual const std::string GetCameraType() const = 0;
+        virtual void              SetViewPort(uint32_t width, uint32_t height) = 0;
+        virtual const std::string GetCameraType() const                        = 0;
 
-        bool&      GetIsViewportCameraRef() { return m_IsViewportCamera; }
         glm::mat4& GetProjectionMatrix() { return m_ProjectionMatrix; }
 
         void OnEvent(Event& event);
@@ -21,14 +20,10 @@ namespace Engine
 
         virtual void RecalculateProjectionMatrix() = 0;
 
-        bool m_IsWindowFocused;
-
     public:
         glm::mat4 m_ProjectionMatrix;
         glm::mat4 m_ViewMatrix;
         glm::mat4 m_ViewProjectMatrix;
-
-        bool      m_IsViewportCamera = false;
     };
 
     class OrthographicCamera : public Camera

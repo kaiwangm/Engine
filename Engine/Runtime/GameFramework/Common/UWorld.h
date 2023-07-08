@@ -31,6 +31,7 @@ namespace Engine
         glm::vec4 m_BackGroundColor {0.7f, 0.7f, 0.7f, 1.0f};
 
         ACamera* m_MainCamera;
+        AActor*  m_ControlledActor;
         ASkybox* m_MainSkybox;
 
         glm::mat4 m_VMatrix;
@@ -71,7 +72,7 @@ namespace Engine
             m_ShaderLibrary.Load(name, vertexSrc, fragmentSrc, mode);
         }
 
-        void TickLogic(float timeStep, float nowTime);
+        void TickLogic(float timeStep, float nowTime, bool isWindowFocused);
         void TickRender(float timeStep);
         void TickGui(float timeStep);
 

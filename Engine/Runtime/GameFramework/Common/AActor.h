@@ -30,5 +30,11 @@ namespace Engine
 
         std::string          GetName() const { return m_ActorName->GetString(); }
         UTransformComponent& GetTransformComponent() { return *m_Transform; }
+
+        bool m_IsControlled = false;
+
+        bool  GetIsControlled() const { return m_IsControlled; }
+        bool& GetIsControlledRef() { return m_IsControlled; }
+        void  SetIsControlled(bool isControlled) { m_IsControlled = isControlled; }
     };
 }; // namespace Engine

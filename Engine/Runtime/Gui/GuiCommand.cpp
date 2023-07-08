@@ -24,7 +24,6 @@ namespace Engine
 
         static bool opt_fullscreen = true;
         static bool opt_padding    = false;
-        static bool show_app_about = false;
 
         static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
 
@@ -32,6 +31,9 @@ namespace Engine
         // window not dockable into, because it would be confusing to have two
         // docking targets within each others.
         ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+
+        static bool show_app_about  = false;
+        static bool show_imgui_demo = false;
 
         if (opt_fullscreen)
         {
@@ -65,6 +67,7 @@ namespace Engine
         // windows being stuck in limbo and never being visible.
         if (!opt_padding)
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+
         ImGui::Begin("DockSpace", p_open, window_flags);
         if (!opt_padding)
             ImGui::PopStyleVar();
@@ -81,6 +84,9 @@ namespace Engine
 
             ImGui::End();
         }
+
+        if (show_imgui_demo)
+            ImGui::ShowDemoWindow();
 
         // Submit the DockSpace
         ImGuiIO& io = ImGui::GetIO();
@@ -116,10 +122,7 @@ namespace Engine
                 ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen);
                 ImGui::MenuItem("Padding", NULL, &opt_padding);
 
-                static bool show_imgui_demo = false;
                 ImGui::MenuItem("ImGui Demo", NULL, &show_imgui_demo);
-                if (show_imgui_demo)
-                    ImGui::ShowDemoWindow();
 
                 ImGui::Separator();
 
