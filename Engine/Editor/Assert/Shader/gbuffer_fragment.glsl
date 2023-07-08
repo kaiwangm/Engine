@@ -38,14 +38,14 @@ uniform mat4 u_MProjection;
 uniform mat4 u_MView;
 uniform mat4 u_MTransform;
 
-float near = 0.1;
-float far  = 800.0;
+// float near = 0.1;
+// float far  = 800.0;
 
-float LinearizeDepth(float depth)
-{
-    float z = depth * 2.0 - 1.0; // back to NDC
-    return (2.0 * near * far) / (far + near - z * (far - near));
-}
+// float LinearizeDepth(float depth)
+// {
+//     float z = depth * 2.0 - 1.0; // back to NDC
+//     return (2.0 * near * far) / (far + near - z * (far - near));
+// }
 
 void main()
 {
@@ -66,7 +66,7 @@ void main()
     g_WorldNormal = g_ViewNormal;
     g_ViewNormal = modelView * g_ViewNormal;
 
-    g_Albedo = vec4(1.0);
+    g_Albedo = vec4(0.0, 0.0, 0.0, 1.0);
     if (useAlbedoMap)
     {
         g_Albedo = vec4(texture(albedoMap, v_TexCoord).rgb, 1.0);
@@ -76,7 +76,7 @@ void main()
         g_Albedo = vec4(in_albedo, 1.0);
     }
 
-    g_Depth = LinearizeDepth(gl_FragCoord.z);
+    g_Depth = gl_FragCoord.z;
 
     g_Roughness = in_roughness;
     if (useRoughnessMap)

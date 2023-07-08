@@ -53,6 +53,9 @@ namespace Engine
         virtual uint32_t GetWidth() const override;
         virtual uint32_t GetHeight() const override;
 
+        virtual void BindTexture(const uint32_t& slot) const override;
+        virtual void UnBindTexture(const uint32_t& slot) const override;
+
     private:
         uint32_t m_Width;
         uint32_t m_Height;
@@ -79,7 +82,7 @@ namespace Engine
         virtual void*    GetAlbedoTextureID() const override;
         virtual void*    GetDepthTextureID() const override;
         virtual void*    GetRoughnessTextureID() const override;
-        virtual void*    GetMetallicTextureID() const  override;
+        virtual void*    GetMetallicTextureID() const override;
         virtual void*    GetWorldPositionTextureID() const override;
         virtual void*    GetWorldNormalTextureID() const override;
 

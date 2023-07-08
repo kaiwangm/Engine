@@ -193,6 +193,9 @@ namespace Engine
         virtual uint32_t GetWidth() const  = 0;
         virtual uint32_t GetHeight() const = 0;
 
+        virtual void BindTexture(const uint32_t& slot) const   = 0;
+        virtual void UnBindTexture(const uint32_t& slot) const = 0;
+
         static Ref<FrameRenderBuffer> Create();
     };
 

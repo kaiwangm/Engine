@@ -140,7 +140,6 @@ namespace Engine
         auto camrea_view     = m_Registry.view<UTagComponent, UTransformComponent, UCameraComponent>();
         auto model_view      = m_Registry.view<UTagComponent, UTransformComponent, UStaticMeshComponent>();
         auto pointcloud_view = m_Registry.view<UTagComponent, UTransformComponent, UPointCloudComponent>();
-        auto animated_view   = m_Registry.view<UTagComponent, UTransformComponent, UAnimatedMeshComponent>();
         auto light_view      = m_Registry.view<UTagComponent, UTransformComponent, UPointLightComponent>();
         auto skybox_view     = m_Registry.view<UTagComponent, UTransformComponent, USkyboxComponent>();
         auto skeleton_view   = m_Registry.view<UTagComponent, UTransformComponent, USkeletonComponent>();
@@ -166,7 +165,7 @@ namespace Engine
         m_GeometryBuffer->Bind();
         RenderCommand::SetViewPort(0, 0, m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
 
-        RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+        RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
         RenderCommand::Clear();
 
         // use a range-for
@@ -217,7 +216,7 @@ namespace Engine
         m_SSAOBuffer->Bind();
         RenderCommand::SetViewPort(0, 0, m_GeometryBuffer->GetWidth(), m_GeometryBuffer->GetHeight());
 
-        RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+        RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
         RenderCommand::Clear();
 
         auto computeAO_shader = m_ShaderLibrary.Get("ComputeAO");
@@ -272,8 +271,103 @@ namespace Engine
         m_FrameRenderBuffer->Bind();
         RenderCommand::SetViewPort(0, 0, m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
 
-        RenderCommand::SetClearColor(m_BackGroundColor);
+        RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
         RenderCommand::Clear();
+
+        // draw skybox
+        // use a range-for
+        for (auto [entity, name, trans, skybox] : skybox_view.each())
+        {
+            auto shader = m_ShaderLibrary.Get("Skybox");
+            Renderer::SetShaderUniform(shader, "mipLevel", m_VisPrePrefilterMipLevel);
+
+            auto vpmat = m_PMatrix * glm::mat4(glm::mat3(m_VMatrix));
+            skybox.Tick(timeStep);
+            skybox.Draw(shader, vpmat);
+        }
+
+        // Deferred Shading
+        auto deferred_shader = m_ShaderLibrary.Get("Deferred");
+        deferred_shader->Bind();
+
+        deferred_shader->SetInt("g_ViewPosition", 0);
+        m_GeometryBuffer->BindViewPositionTexture(0);
+        deferred_shader->SetInt("g_ViewNormal", 1);
+        m_GeometryBuffer->BindViewNormalTexture(1);
+        deferred_shader->SetInt("g_Albedo", 2);
+        m_GeometryBuffer->BindAlbedoTexture(2);
+        deferred_shader->SetInt("g_Depth", 3);
+        m_GeometryBuffer->BindDepthTexture(3);
+        deferred_shader->SetInt("g_Roughness", 4);
+        m_GeometryBuffer->BindRoughnessTexture(4);
+        deferred_shader->SetInt("g_Metallic", 5);
+        m_GeometryBuffer->BindMetallicTexture(5);
+        deferred_shader->SetInt("g_WorldPosition", 6);
+        m_GeometryBuffer->BindWorldPositionTexture(6);
+        deferred_shader->SetInt("g_WorldNormal", 7);
+        m_GeometryBuffer->BindWorldNormalTexture(7);
+        deferred_shader->SetInt("g_AO", 8);
+        m_SSAOBuffer->BindSSAOTexture(8);
+
+        int ligth_num = 0;
+        for (auto [entity, name, trans, light] : light_view.each())
+        {
+            if (ligth_num >= 4)
+            {
+                break;
+            }
+
+            deferred_shader->SetFloat3("lightPositions[" + std::to_string(ligth_num) + "]", trans.GetPosition());
+            deferred_shader->SetFloat3("lightColors[" + std::to_string(ligth_num) + "]", light.GetColorRef());
+
+            ligth_num++;
+        }
+        deferred_shader->SetInt("numLights", ligth_num);
+
+        deferred_shader->SetFloat3("camPos", m_MainCamera->GetTransformComponent().GetPosition());
+
+        auto sky_cubeMap = m_MainSkybox->GetSkyboxComponent().GetCubeMap();
+
+        deferred_shader->SetInt("irradianceMap", 15);
+        sky_cubeMap->BindIrradianceTexture(15);
+        deferred_shader->SetInt("prefilterMap", 16);
+        sky_cubeMap->BindPrefilterTexture(16);
+        deferred_shader->SetInt("brdfLUT", 17);
+        sky_cubeMap->BindBrdfLutTexture(17);
+
+        RenderCommand::RenderToQuad();
+
+        sky_cubeMap->UnBind(17);
+        sky_cubeMap->UnBind(16);
+        sky_cubeMap->UnBind(15);
+
+        m_SSAOBuffer->UnBindTexture(8);
+        m_GeometryBuffer->UnBindTexture(7);
+        m_GeometryBuffer->UnBindTexture(6);
+        m_GeometryBuffer->UnBindTexture(5);
+        m_GeometryBuffer->UnBindTexture(4);
+        m_GeometryBuffer->UnBindTexture(3);
+        m_GeometryBuffer->UnBindTexture(2);
+        m_GeometryBuffer->UnBindTexture(1);
+        m_GeometryBuffer->UnBindTexture(0);
+
+        deferred_shader->UnBind();
+
+        // exposure
+        glDepthMask(GL_FALSE);
+        auto exposure_shader = m_ShaderLibrary.Get("Exposure");
+        exposure_shader->Bind();
+
+        exposure_shader->SetInt("g_Color", 0);
+        m_FrameRenderBuffer->BindTexture(0);
+        exposure_shader->SetFloat("exposure", m_Exposure);
+
+        RenderCommand::RenderToQuad();
+
+        m_FrameRenderBuffer->UnBindTexture(0);
+
+        exposure_shader->UnBind();
+        glDepthMask(GL_TRUE);
 
         // Point Cloud
         for (auto [entity, name, trans, pointcloud] : pointcloud_view.each())
@@ -284,83 +378,6 @@ namespace Engine
             Renderer::DrawArray(pointcloud.GetPointCloud().m_VertexArray, shader, m_VPMatrix, trans.GetTransform());
 
             shader->UnBind();
-        }
-
-        // use a range-for
-        for (auto [entity, name, trans, model] : model_view.each())
-        {
-            AStaticMesh* staticMesh_actor = static_cast<AStaticMesh*>(model.GetOwner());
-            MMaterial*   material         = static_cast<MMaterial*>(staticMesh_actor->GetMaterial());
-
-            std::string materialType = material->GetMaterialType();
-
-            if (materialType == "BasicPbr")
-            {
-                auto shader = m_ShaderLibrary.Get("BasicPbr");
-
-                shader->Bind();
-
-                int ligth_num = 0;
-                // use a range-for
-                for (auto [entity, name, trans, light] : light_view.each())
-                {
-                    if (ligth_num >= 4)
-                    {
-                        break;
-                    }
-
-                    Renderer::SetShaderUniform(
-                        shader, "lightPositions[" + std::to_string(ligth_num) + "]", trans.GetPosition());
-                    Renderer::SetShaderUniform(
-                        shader, "lightColors[" + std::to_string(ligth_num) + "]", light.GetColorRef());
-
-                    ligth_num++;
-                }
-
-                Renderer::SetShaderUniform(shader, "camPos", m_MainCamera->GetTransformComponent().GetPosition());
-
-                const auto meshes = model.GetStaticMesh().m_Meshes;
-
-                for (const auto& mesh : meshes)
-                {
-                    material->Bind(shader);
-
-                    auto sky_cubeMap = m_MainSkybox->GetSkyboxComponent().GetCubeMap();
-
-                    sky_cubeMap->BindIrradianceTexture(5);
-                    sky_cubeMap->BindPrefilterTexture(6);
-                    sky_cubeMap->BindBrdfLutTexture(7);
-
-                    Renderer::Submit(mesh.m_VertexArray, shader, m_VPMatrix, trans.GetTransform());
-
-                    sky_cubeMap->UnBind(7);
-                    sky_cubeMap->UnBind(6);
-                    sky_cubeMap->UnBind(5);
-
-                    material->UnBind(shader);
-                }
-
-                shader->UnBind();
-            }
-            else if (materialType == "TriangleShader")
-            {
-                auto shader = m_ShaderLibrary.Get("TriangleShader");
-
-                shader->Bind();
-
-                const auto meshes = model.GetStaticMesh().m_Meshes;
-
-                for (const auto& mesh : meshes)
-                {
-                    material->Bind(shader);
-
-                    Renderer::Submit(mesh.m_VertexArray, shader, m_VPMatrix, trans.GetTransform());
-
-                    material->UnBind(shader);
-                }
-
-                shader->UnBind();
-            }
         }
 
         // draw skeleton
@@ -375,46 +392,7 @@ namespace Engine
                           glm::vec3(1.0f));
         }
 
-        // use a range-for
-        for (auto [entity, name, trans, model] : animated_view.each())
-        {
-            auto shader = m_ShaderLibrary.Get("Animated");
-            // Renderer::SetShaderUniform(shader, "u_Texture", 0);
-
-            model.GetModel().Update(timeStep);
-            model.GetModel().Draw(shader, m_VPMatrix, trans.GetTransform());
-        }
-
-        // draw skybox
-        // use a range-for
-        for (auto [entity, name, trans, skybox] : skybox_view.each())
-        {
-            auto shader = m_ShaderLibrary.Get("Skybox");
-            Renderer::SetShaderUniform(shader, "exposure", m_Exposure);
-            Renderer::SetShaderUniform(shader, "mipLevel", m_VisPrePrefilterMipLevel);
-
-            auto vpmat = m_PMatrix * glm::mat4(glm::mat3(m_VMatrix));
-            skybox.Tick(timeStep);
-            skybox.Draw(shader, vpmat);
-        }
-
         Renderer::EndScene(m_FrameRenderBuffer);
-
-        // Render Playground
-        m_MainCamera->GetCameraComponent().GetCamera().SetViewPort(m_FrameRenderBuffer_playground->GetWidth(),
-                                                                   m_FrameRenderBuffer_playground->GetHeight());
-        m_MainCamera->GetCameraComponent().GetCamera().RecalculateProjectionMatrix();
-        m_VPMatrix = m_MainCamera->GetCameraComponent().GetCamera().GetProjectionMatrix() *
-                     glm::inverse(m_MainCamera->GetTransformComponent().GetTransform());
-
-        m_FrameRenderBuffer_playground->Bind();
-        RenderCommand::SetViewPort(
-            0, 0, m_FrameRenderBuffer_playground->GetWidth(), m_FrameRenderBuffer_playground->GetHeight());
-
-        RenderCommand::SetClearColor(m_BackGroundColor);
-        RenderCommand::Clear();
-
-        Renderer::EndScene(m_FrameRenderBuffer_playground);
 
         // Render GBuffer Viewport
         m_FrameRenderBuffer_bufferViewport->Bind();
@@ -425,15 +403,15 @@ namespace Engine
         RenderCommand::Clear();
 
         std::string gbuffer_shader_name[] = {
-            "ViewGBufferPosition",
-            "ViewGBufferNormal",
-            "ViewGBufferAlbedo",
-            "ViewGBufferDepth",
-            "ViewAO",
-            "ViewGBufferRoughness",
-            "ViewGBufferMetallic",
-            "ViewGBufferPosition",
-            "ViewGBufferNormal",
+            "VisPosition",
+            "VisNormal",
+            "VisAlbedo",
+            "VisDepth",
+            "VisAO",
+            "VisRoughness",
+            "VisMetallic",
+            "VisPosition",
+            "VisNormal",
         };
         auto gbuffer_viewport_shader = m_ShaderLibrary.Get(gbuffer_shader_name[m_ViewportGBufferMap]);
 
@@ -534,7 +512,6 @@ namespace Engine
         auto camrea_view      = m_Registry.view<UTagComponent, UTransformComponent, UCameraComponent>();
         auto staticmodel_view = m_Registry.view<UTagComponent, UTransformComponent, UStaticMeshComponent>();
         auto pointcloud_view  = m_Registry.view<UTagComponent, UTransformComponent, UPointCloudComponent>();
-        auto animated_view    = m_Registry.view<UTagComponent, UTransformComponent, UAnimatedMeshComponent>();
         auto light_view       = m_Registry.view<UTagComponent, UTransformComponent, UPointLightComponent>();
         auto skybox_view      = m_Registry.view<UTagComponent, UTransformComponent, USkyboxComponent>();
         auto skeleton_view    = m_Registry.view<UTagComponent, UTransformComponent, USkeletonComponent>();
@@ -542,21 +519,19 @@ namespace Engine
         static ImGuiTreeNodeFlags base_flags =
             ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
 
-        int        index          = 0;
-        static int selection_mask = (1 << 2);
-        int        node_clicked   = -1;
+        int index = 0;
 
         for (auto [entity, name, trans] : object_view.each())
         {
-            ImGuiTreeNodeFlags node_flags  = base_flags;
-            const bool         is_selected = (selection_mask & (1 << index)) != 0;
+            ImGuiTreeNodeFlags node_flags = base_flags;
+
+            const bool is_selected = entity == entity_selected;
             if (is_selected)
                 node_flags |= ImGuiTreeNodeFlags_Selected;
 
             bool node_open = ImGui::TreeNodeEx((void*)(intptr_t)index, node_flags, name.GetString().c_str());
             if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
             {
-                node_clicked    = index;
                 entity_selected = entity;
             }
 
@@ -621,7 +596,7 @@ namespace Engine
                     }
                     ImGui::EndDisabled();
 
-                    Gui::SliderFloat("Fov", perspectiveCamera.GetFovRef(), 15.0f, 160.0f);
+                    Gui::SliderFloat("Fov", perspectiveCamera.GetFovRef(), 1.8f, 160.0f);
                     Gui::SliderFloat("Near", perspectiveCamera.GetNearClipRef(), 0.01f, 100.0f);
                     Gui::SliderFloat("Far", perspectiveCamera.GetFarClipRef(), 0.3f, 1000.0f);
                 }

@@ -13,68 +13,95 @@ namespace Engine
         {
             m_World = std::make_shared<UWorld>();
 
-            m_World->LoadShader("TextureShader", "Assert/Editor/Shader/vertex.glsl", "Assert/Editor/Shader/fragment.glsl", "Path");
             m_World->LoadShader(
-                "Animated", "Assert/Editor/Shader/vertex_animated.glsl", "Assert/Editor/Shader/fragment_animated.glsl", "Path");
-            m_World->LoadShader(
-                "Skybox", "Assert/Editor/Shader/vertex_skybox.glsl", "Assert/Editor/Shader/fragment_skybox.glsl", "Path");
-            m_World->LoadShader(
-                "BasicPbr", "Assert/Editor/Shader/vertex_basicpbr.glsl", "Assert/Editor/Shader/fragment_basicpbr.glsl", "Path");
-            m_World->LoadShader(
-                "OctreeShader", "Assert/Editor/Shader/octree_vertex.glsl", "Assert/Editor/Shader/octree_fragment.glsl", "Path");
-            m_World->LoadShader(
-                "TriangleShader", "Assert/Editor/Shader/triangle_vertex.glsl", "Assert/Editor/Shader/triangle_fragment.glsl", "Path");
-            m_World->LoadShader(
-                "Skeleton", "Assert/Editor/Shader/skeleton_vertex.glsl", "Assert/Editor/Shader/skeleton_fragment.glsl", "Path");
-            m_World->LoadShader(
-                "GBuffer", "Assert/Editor/Shader/gbuffer_vertex.glsl", "Assert/Editor/Shader/gbuffer_fragment.glsl", "Path");
+                "TextureShader", "Assert/Editor/Shader/vertex.glsl", "Assert/Editor/Shader/fragment.glsl", "Path");
+            m_World->LoadShader("Animated",
+                                "Assert/Editor/Shader/vertex_animated.glsl",
+                                "Assert/Editor/Shader/fragment_animated.glsl",
+                                "Path");
+            m_World->LoadShader("Skybox",
+                                "Assert/Editor/Shader/vertex_skybox.glsl",
+                                "Assert/Editor/Shader/fragment_skybox.glsl",
+                                "Path");
+            m_World->LoadShader("BasicPbr",
+                                "Assert/Editor/Shader/vertex_basicpbr.glsl",
+                                "Assert/Editor/Shader/fragment_basicpbr.glsl",
+                                "Path");
+            m_World->LoadShader("OctreeShader",
+                                "Assert/Editor/Shader/octree_vertex.glsl",
+                                "Assert/Editor/Shader/octree_fragment.glsl",
+                                "Path");
+            m_World->LoadShader("TriangleShader",
+                                "Assert/Editor/Shader/triangle_vertex.glsl",
+                                "Assert/Editor/Shader/triangle_fragment.glsl",
+                                "Path");
+            m_World->LoadShader("Skeleton",
+                                "Assert/Editor/Shader/skeleton_vertex.glsl",
+                                "Assert/Editor/Shader/skeleton_fragment.glsl",
+                                "Path");
+            m_World->LoadShader("GBuffer",
+                                "Assert/Editor/Shader/gbuffer_vertex.glsl",
+                                "Assert/Editor/Shader/gbuffer_fragment.glsl",
+                                "Path");
 
-            m_World->LoadShader("ViewGBufferPosition",
+            m_World->LoadShader("VisPosition",
                                 "Assert/Editor/Shader/screen_quad_vertex.glsl",
                                 "Assert/Editor/Shader/viewport/position.glsl",
                                 "Path");
 
-            m_World->LoadShader("ViewGBufferNormal",
+            m_World->LoadShader("VisNormal",
                                 "Assert/Editor/Shader/screen_quad_vertex.glsl",
                                 "Assert/Editor/Shader/viewport/normal.glsl",
                                 "Path");
 
-            m_World->LoadShader("ViewGBufferAlbedo",
+            m_World->LoadShader("VisAlbedo",
                                 "Assert/Editor/Shader/screen_quad_vertex.glsl",
                                 "Assert/Editor/Shader/viewport/albedo.glsl",
                                 "Path");
 
-            m_World->LoadShader("ViewGBufferOpacity",
+            m_World->LoadShader("VisOpacity",
                                 "Assert/Editor/Shader/screen_quad_vertex.glsl",
                                 "Assert/Editor/Shader/viewport/opacity.glsl",
                                 "Path");
 
-            m_World->LoadShader("ViewGBufferDepth",
+            m_World->LoadShader("VisDepth",
                                 "Assert/Editor/Shader/screen_quad_vertex.glsl",
                                 "Assert/Editor/Shader/viewport/depth.glsl",
                                 "Path");
 
-            m_World->LoadShader(
-                "ViewAO", "Assert/Editor/Shader/screen_quad_vertex.glsl", "Assert/Editor/Shader/viewport/ao.glsl", "Path");
+            m_World->LoadShader("VisAO",
+                                "Assert/Editor/Shader/screen_quad_vertex.glsl",
+                                "Assert/Editor/Shader/viewport/ao.glsl",
+                                "Path");
 
             m_World->LoadShader("ComputeAO",
                                 "Assert/Editor/Shader/screen_quad_vertex.glsl",
                                 "Assert/Editor/Shader/compute_ssao_fragment.glsl",
                                 "Path");
 
-            m_World->LoadShader("ViewGBufferRoughness",
+            m_World->LoadShader("VisRoughness",
                                 "Assert/Editor/Shader/screen_quad_vertex.glsl",
                                 "Assert/Editor/Shader/viewport/roughness.glsl",
                                 "Path");
 
-            m_World->LoadShader("ViewGBufferMetallic",
+            m_World->LoadShader("VisMetallic",
                                 "Assert/Editor/Shader/screen_quad_vertex.glsl",
                                 "Assert/Editor/Shader/viewport/metallic.glsl",
                                 "Path");
 
-            auto camera_viewport                      = std::make_shared<PerspectiveCamera>(60.0f, 1.778f, 0.1f, 800.0f);
+            m_World->LoadShader("Deferred",
+                                "Assert/Editor/Shader/screen_quad_vertex.glsl",
+                                "Assert/Editor/Shader/deffered/fragment.glsl",
+                                "Path");
+
+            m_World->LoadShader("Exposure",
+                                "Assert/Editor/Shader/screen_quad_vertex.glsl",
+                                "Assert/Editor/Shader/deffered/exposure.glsl",
+                                "Path");
+
+            auto camera_viewport = std::make_shared<PerspectiveCamera>(60.0f, 1.778f, 0.1f, 800.0f);
             camera_viewport->GetIsViewportCameraRef() = true;
-            auto camera_s                       = m_World->AddActor<ACamera>("viewport camera", camera_viewport);
+            auto camera_s                             = m_World->AddActor<ACamera>("viewport camera", camera_viewport);
             camera_s.GetTransformComponent().SetPosition(glm::vec3 {0.339f, 3.711f, 8.815f});
             camera_s.GetTransformComponent().SetRotation(glm::vec3 {-0.088f, -6.732f, 0.000f});
             camera_s.GetTransformComponent().SetScale(glm::vec3 {1.000f, 1.000f, 1.000f});
@@ -94,12 +121,12 @@ namespace Engine
 
             m_World->AddActor<AActor>("Actor");
 
-            auto red_triangle = m_World->AddActor<AStaticMesh>("red_triangle", //
-                                                               "Assert/Editor/Object/triangle/triangle.obj",
-                                                               "TriangleShader",
-                                                               "basic_red_triangle",
-                                                               "basic_red_triangle");
-            red_triangle.GetTransformComponent().SetPosition(glm::vec3 {1.0f, 5.5f, 0.0f});
+            // auto red_triangle = m_World->AddActor<AStaticMesh>("red_triangle", //
+            //                                                    "Assert/Editor/Object/triangle/triangle.obj",
+            //                                                    "TriangleShader",
+            //                                                    "basic_red_triangle",
+            //                                                    "basic_red_triangle");
+            // red_triangle.GetTransformComponent().SetPosition(glm::vec3 {1.0f, 5.5f, 0.0f});
 
             auto red_sphere = m_World->AddActor<AStaticMesh>("red_sphere", //
                                                              "Assert/Editor/Object/sphere/sphere.obj",
@@ -169,8 +196,11 @@ namespace Engine
                                                                    "metal_panel");
             blacktile_sphere.GetTransformComponent().SetPosition(glm::vec3 {5.0f, 5.5f, 0.0f});
 
-            auto wood_monkey = m_World->AddActor<AStaticMesh>(
-                "wood_mmonkey", "Assert/Editor/Object/monkey/monkey.obj", "Texture", "monkey_wood", "bamboo-wood-semigloss");
+            auto wood_monkey = m_World->AddActor<AStaticMesh>("wood_mmonkey",
+                                                              "Assert/Editor/Object/monkey/monkey.obj",
+                                                              "Texture",
+                                                              "monkey_wood",
+                                                              "bamboo-wood-semigloss");
             wood_monkey.GetTransformComponent().SetPosition(glm::vec3 {5.0f, 1.5f, 3.0f});
 
             auto ground = m_World->AddActor<AStaticMesh>("ground", //
@@ -204,7 +234,8 @@ namespace Engine
             light3.GetTransformComponent().SetPosition(glm::vec3 {1.0f, 2.5f, 1.5f});
 
             // auto pointcloud =
-            //     m_World->AddActor<APointCloud>("pointcloud", "Assert/Editor/Object/longdress/longdress_vox10_1300.ply");
+            //     m_World->AddActor<APointCloud>("pointcloud",
+            //     "Assert/Editor/Object/longdress/longdress_vox10_1300.ply");
             // pointcloud.GetTransformComponent().SetPosition(glm::vec3 {0.0f, 0.0f, 0.0f});
             // pointcloud.GetTransformComponent().SetScale(glm::vec3 {0.01f, 0.01f, 0.01f});
 

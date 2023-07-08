@@ -138,6 +138,13 @@ namespace Engine
 
     uint32_t OpenGLFrameRenderBuffer::GetHeight() const { return m_Height; }
 
+    void OpenGLFrameRenderBuffer::BindTexture(const uint32_t& slot) const
+    {
+        glBindTextureUnit(slot, m_Texture_RendererID);
+    }
+
+    void OpenGLFrameRenderBuffer::UnBindTexture(const uint32_t& slot) const { glBindTextureUnit(slot, 0); }
+
     OpenGLGeometryBuffer::OpenGLGeometryBuffer() : m_Width(0), m_Height(0)
     {
         glGenFramebuffers(1, &m_FrameBuffer_RendererID);
@@ -327,7 +334,7 @@ namespace Engine
 
     void OpenGLGeometryBuffer::UnBindTexture(const uint32_t& slot) const { glBindTextureUnit(slot, 0); }
 
-    OpenGLSSAOBuffer::OpenGLSSAOBuffer() : m_Width(0), m_Height(0), m_Radius(1.0f), m_Bias(0.002f), m_Power(1.0f)
+    OpenGLSSAOBuffer::OpenGLSSAOBuffer() : m_Width(0), m_Height(0), m_Radius(1.0f), m_Bias(0.002f), m_Power(1.8f)
     {
         glGenFramebuffers(1, &m_FrameBuffer_RendererID);
         glGenRenderbuffers(1, &m_RenderBuffer_RendererID);

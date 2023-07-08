@@ -22,6 +22,7 @@
 - 2023-07-02 ✨ SSAO Buffer Viewport
 - 2023-07-02 ✨ Render Settings Gui
 - 2023-07-07 ✨ Add Gizmo
+- 2023-07-08 ✨ Add Deferred Rendering
 - ......
 
 <!--

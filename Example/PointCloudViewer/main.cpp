@@ -44,32 +44,32 @@ namespace Engine
                                 "Assert/Editor/Shader/gbuffer_fragment.glsl",
                                 "Path");
 
-            m_World->LoadShader("ViewGBufferPosition",
+            m_World->LoadShader("VisPosition",
                                 "Assert/Editor/Shader/screen_quad_vertex.glsl",
                                 "Assert/Editor/Shader/viewport/position.glsl",
                                 "Path");
 
-            m_World->LoadShader("ViewGBufferNormal",
+            m_World->LoadShader("VisNormal",
                                 "Assert/Editor/Shader/screen_quad_vertex.glsl",
                                 "Assert/Editor/Shader/viewport/normal.glsl",
                                 "Path");
 
-            m_World->LoadShader("ViewGBufferAlbedo",
+            m_World->LoadShader("VisAlbedo",
                                 "Assert/Editor/Shader/screen_quad_vertex.glsl",
                                 "Assert/Editor/Shader/viewport/albedo.glsl",
                                 "Path");
 
-            m_World->LoadShader("ViewGBufferOpacity",
+            m_World->LoadShader("VisOpacity",
                                 "Assert/Editor/Shader/screen_quad_vertex.glsl",
                                 "Assert/Editor/Shader/viewport/opacity.glsl",
                                 "Path");
 
-            m_World->LoadShader("ViewGBufferDepth",
+            m_World->LoadShader("VisDepth",
                                 "Assert/Editor/Shader/screen_quad_vertex.glsl",
                                 "Assert/Editor/Shader/viewport/depth.glsl",
                                 "Path");
 
-            m_World->LoadShader("ViewAO",
+            m_World->LoadShader("VisAO",
                                 "Assert/Editor/Shader/screen_quad_vertex.glsl",
                                 "Assert/Editor/Shader/viewport/ao.glsl",
                                 "Path");
@@ -79,12 +79,12 @@ namespace Engine
                                 "Assert/Editor/Shader/compute_ssao_fragment.glsl",
                                 "Path");
 
-            m_World->LoadShader("ViewGBufferRoughness",
+            m_World->LoadShader("VisRoughness",
                                 "Assert/Editor/Shader/screen_quad_vertex.glsl",
                                 "Assert/Editor/Shader/viewport/roughness.glsl",
                                 "Path");
 
-            m_World->LoadShader("ViewGBufferMetallic",
+            m_World->LoadShader("VisMetallic",
                                 "Assert/Editor/Shader/screen_quad_vertex.glsl",
                                 "Assert/Editor/Shader/viewport/metallic.glsl",
                                 "Path");
