@@ -113,6 +113,11 @@ namespace Engine
                    "Path");
 
         LoadShader("Pawn", "Assert/Editor/Shader/pawn_vertex.glsl", "Assert/Editor/Shader/pawn_fragment.glsl", "Path");
+
+        LoadShader("Trajectory",
+                   "Assert/Editor/Shader/trajectory_vertex.glsl",
+                   "Assert/Editor/Shader/trajectory_fragment.glsl",
+                   "Path");
     }
 
     void UWorld::TickLogic(float timeStep, float nowTime, bool isWindowFocused)
@@ -122,8 +127,11 @@ namespace Engine
         float m_CameraTranslationSpeedMouse = 0.5;
         float m_CameraRotationSpeed         = 0.15;
 
-        auto camrea_view = m_Registry.view<UTagComponent, UTransformComponent, UCameraComponent>();
-        auto pawn_view   = m_Registry.view<UTagComponent, UTransformComponent, UPawnComponent>();
+        auto camrea_view     = m_Registry.view<UTagComponent, UTransformComponent, UCameraComponent>();
+        auto pawn_view       = m_Registry.view<UTagComponent, UTransformComponent, UPawnComponent>();
+        auto skeleton_view   = m_Registry.view<UTagComponent, UTransformComponent, USkeletonComponent>();
+        auto trajectory_view = m_Registry.view<UTagComponent, UTransformComponent, UTrajectoryComponent>();
+        auto light_view      = m_Registry.view<UTagComponent, UTransformComponent, UPointLightComponent>();
 
         auto [currentX, currentY] = Input::GetMousePostion();
 
@@ -132,6 +140,9 @@ namespace Engine
 
         float deltaX = currentX - lastX;
         float deltaY = currentY - lastY;
+
+        lastX = currentX;
+        lastY = currentY;
 
         // use a range-for
         for (auto [entity, name, trans, camera] : camrea_view.each())
@@ -214,62 +225,28 @@ namespace Engine
             }
         }
 
+        AActor*  actor_mainCamera = static_cast<AActor*>(m_MainCamera->GetOwner());
+        glm::mat4 cameraTransform = actor_mainCamera->GetTransformComponent().GetTransform() * m_MainCamera->GetTransform();
+
+        // Update Pawn
+
         for (auto [entity, name, trans, pawn] : pawn_view.each())
         {
-            AActor* actor = static_cast<AActor*>(pawn.GetOwner());
-            APawn*  aPawn = static_cast<APawn*>(actor);
-
-            // get forward vector from camera
-            glm::mat4 cameraTransform = m_MainCamera->GetTransform();
-
-            glm::vec3 forward = -glm::normalize(glm::rotate(glm::quat(cameraTransform), glm::vec3(0.0f, 0.0f, 1.0f)));
-            forward.y         = 0.0f;
-            forward           = glm::normalize(forward);
-
-            glm::vec3 right = glm::normalize(glm::rotate(glm::quat(cameraTransform), glm::vec3(1.0f, 0.0f, 0.0f)));
-            right.y         = 0.0f;
-            right           = glm::normalize(right);
-
-            glm::vec3 movement = glm::vec3(0.0f);
-
-            if (actor->GetIsControlled())
-            {
-                if (Input::IsKeyPressed(GLFW_KEY_W))
-                {
-                    movement += forward;
-                }
-                if (Input::IsKeyPressed(GLFW_KEY_S))
-                {
-                    movement -= forward;
-                }
-                if (Input::IsKeyPressed(GLFW_KEY_A))
-                {
-                    movement -= right;
-                }
-                if (Input::IsKeyPressed(GLFW_KEY_D))
-                {
-                    movement += right;
-                }
-
-                if (glm::length(movement) > 0.0f)
-                {
-                    movement = glm::normalize(movement);
-                }
-
-                auto newPosition = trans.GetPosition() + movement * 7.0 * timeStep;
-                trans.SetPosition(newPosition);
-            }
+            pawn.TickLogic(timeStep);
         }
 
-        lastX = currentX;
-        lastY = currentY;
-
         // Update Skeleton
-        auto skeleton_view = m_Registry.view<UTagComponent, UTransformComponent, USkeletonComponent>();
 
         for (auto [entity, name, trans, skeleton] : skeleton_view.each())
         {
             skeleton.Update(fmod(0.06 * nowTime, 1.0f));
+        }
+
+        // Update Trajectory
+
+        for (auto [entity, name, trans, trajectory] : trajectory_view.each())
+        {
+            trajectory.TickLogic(timeStep, cameraTransform);
         }
     }
 
@@ -282,6 +259,7 @@ namespace Engine
         auto skybox_view     = m_Registry.view<UTagComponent, UTransformComponent, USkyboxComponent>();
         auto skeleton_view   = m_Registry.view<UTagComponent, UTransformComponent, USkeletonComponent>();
         auto pawn_view       = m_Registry.view<UTagComponent, UTransformComponent, UPawnComponent>();
+        auto trajectory_view = m_Registry.view<UTagComponent, UTransformComponent, UTrajectoryComponent>();
 
         m_GeometryBuffer->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
         m_SSAOBuffer->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
@@ -464,7 +442,7 @@ namespace Engine
             ligth_num++;
         }
         deferred_shader->SetInt("numLights", ligth_num);
-        
+
         glm::vec3 camPos = glm::vec3(glm::inverse(m_VMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
         deferred_shader->SetFloat3("camPos", camPos);
 
@@ -534,13 +512,21 @@ namespace Engine
                           glm::vec3(1.0f));
         }
 
-        // draw pawn
         glDisable(GL_DEPTH_TEST);
+        // draw pawn
         for (auto [entity, name, trans, pawn] : pawn_view.each())
         {
             auto shader = m_ShaderLibrary.Get("Pawn");
             pawn.Draw(shader, m_VPMatrix, trans.GetTransform());
         }
+
+        // draw trajectory
+        for (auto [entity, name, trans, trajectory] : trajectory_view.each())
+        {
+            auto shader = m_ShaderLibrary.Get("Trajectory");
+            trajectory.Draw(shader, m_VPMatrix, trans.GetTransform());
+        }
+
         glEnable(GL_DEPTH_TEST);
 
         Renderer::EndScene(m_FrameRenderBuffer);
@@ -838,6 +824,23 @@ namespace Engine
                 ImGui::Separator();
 
                 Gui::Text("Joints Num: {0}", skeletonComponent.GetNumJoints());
+            }
+
+            if (m_Registry.any_of<UPawnComponent>(entity_selected) == true)
+            {
+                auto& pawnComponent = m_Registry.get<UPawnComponent>(entity_selected);
+                Gui::Text("Pawn");
+                ImGui::Separator();
+
+                Gui::SliderFloat("CameraDistance", pawnComponent.GetCameraDistanceRef(), 0.0f, 10.0f);
+                Gui::SliderFloat("CameraLongitude", pawnComponent.GetCameraLongitudeRef(), -3.0f, 3.0f);
+                Gui::SliderFloat("CameraLatitude", pawnComponent.GetCameraLatitudeRef(), -3.0f, 3.0f);
+
+                Gui::SliderFloat3("CameraLookAt", pawnComponent.GetCameraLookAtRef(), -10.0f, 10.0f);
+
+                Gui::SliderFloat("PawnMoveSpeed", pawnComponent.GetPawnMoveSpeedRef(), 0.0f, 10.0f);
+                Gui::SliderFloat("MouseSensitivityX", pawnComponent.GetMouseSensitivityXRef(), 0.0f, 0.1f);
+                Gui::SliderFloat("MouseSensitivityY", pawnComponent.GetMouseSensitivityYRef(), 0.0f, 0.1f);
             }
         }
 

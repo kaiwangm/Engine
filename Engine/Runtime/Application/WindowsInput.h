@@ -11,5 +11,6 @@ namespace Engine
         virtual std::pair<float, float> GetMousePostionImpl() override;
         virtual float                   GetMouseXImpl() override;
         virtual float                   GetMouseYImpl() override;
+        virtual void                    HideCursorImpl() override;
     };
 } // namespace Engine

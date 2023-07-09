@@ -8,8 +8,9 @@ namespace Engine
     class APawn final : public AActor
     {
     private:
-        UPawnComponent*   m_Pawn;
-        UCameraComponent* m_Camera;
+        UPawnComponent*       m_Pawn;
+        UCameraComponent*     m_Camera;
+        UTrajectoryComponent* m_Trajectory;
 
     public:
         APawn(UWorld* world, entt::entity handle, const std::string& name) : AActor(world, handle, name)
@@ -24,6 +25,15 @@ namespace Engine
 
             m_Camera->SetPosition(glm::vec3 {0.0f, 3.0f, 5.0f});
             m_Camera->SetRotation(glm::vec3 {-0.35f, 0.0f, 0.0f});
+
+            m_Trajectory = m_World->RegisterComponents<UTrajectoryComponent>(m_EntityHandle);
+            m_Trajectory->SetOwner(this);
         }
+
+        UPawnComponent& GetPawnComponentRef() { return *m_Pawn; }
+
+        UCameraComponent& GetCameraComponentRef() { return *m_Camera; }
+
+        UTrajectoryComponent& GetTrajectoryComponentRef() { return *m_Trajectory; }
     };
 } // namespace Engine

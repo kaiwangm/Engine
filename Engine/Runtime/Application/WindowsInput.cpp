@@ -1,5 +1,6 @@
 #include <Engine/Runtime/Application/WindowsInput.h>
 #include <Engine/Runtime/Application/Application.h>
+#include <imgui.h>
 
 namespace Engine
 {
@@ -40,5 +41,10 @@ namespace Engine
         auto [x, y] = GetMousePostionImpl();
 
         return y;
+    }
+
+    void WindowsInput::HideCursorImpl()
+    {
+        ImGui::SetMouseCursor(ImGuiMouseCursor_None);
     }
 } // namespace Engine
