@@ -1,6 +1,6 @@
 #include <Engine/Runtime/GameFramework/DataUtil/PointCloud.h>
-
-#include "happly.h"
+#include <pcl/io/ply_io.h>
+#include <pcl/point_types.h>
 
 namespace Engine
 {
@@ -8,28 +8,27 @@ namespace Engine
 
     PointCloud::PointCloud(const std::string& filepath) : m_FilePath(filepath)
     {
-        happly::PLYData plyIn(m_FilePath);
-        // plyIn.write(name, happly::DataFormat::Binary);
-        auto x = plyIn.getElement("vertex").getProperty<float>("x");
-        auto y = plyIn.getElement("vertex").getProperty<float>("y");
-        auto z = plyIn.getElement("vertex").getProperty<float>("z");
-        auto r = plyIn.getElement("vertex").getProperty<unsigned char>("red");
-        auto g = plyIn.getElement("vertex").getProperty<unsigned char>("green");
-        auto b = plyIn.getElement("vertex").getProperty<unsigned char>("blue");
+        pcl::PointCloud<pcl::PointXYZRGB>::Ptr pointcloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 
-        m_NumPoints = x.size();
-
-        m_vertices = std::vector<std::array<float, 3>>(m_NumPoints);
-        m_colors   = std::vector<std::array<uint8_t, 3>>(m_NumPoints);
-
-        for (int i = 0; i < m_NumPoints; ++i)
+        if (pcl::io::loadPLYFile<pcl::PointXYZRGB>(m_FilePath, *pointcloud) == -1)
         {
-            m_vertices[i][0] = x[i];
-            m_vertices[i][1] = y[i];
-            m_vertices[i][2] = z[i];
-            m_colors[i][0]   = r[i];
-            m_colors[i][1]   = g[i];
-            m_colors[i][2]   = b[i];
+            Log::Error("Couldn't read point cloud file: {0}", m_FilePath);
+            return;
+        }
+
+        int numPoints = pointcloud->points.size();
+
+        m_vertices = std::vector<std::array<float, 3>>(numPoints);
+        m_colors   = std::vector<std::array<uint8_t, 3>>(numPoints);
+
+        for (int i = 0; i < numPoints; ++i)
+        {
+            m_vertices[i][0] = pointcloud->points[i].x;
+            m_vertices[i][1] = pointcloud->points[i].y;
+            m_vertices[i][2] = pointcloud->points[i].z;
+            m_colors[i][0]   = pointcloud->points[i].r;
+            m_colors[i][1]   = pointcloud->points[i].g;
+            m_colors[i][2]   = pointcloud->points[i].b;
         }
 
         float box_vertices[36 * 5] = {
@@ -86,7 +85,7 @@ namespace Engine
         m_VertexArray->AddVertexBuffer(box_VertexBuffer, false);
 
         std::vector<float> points;
-        for (int idx = 0; idx < x.size(); ++idx)
+        for (int idx = 0; idx < numPoints; ++idx)
         {
             points.push_back(float(m_vertices[idx][0]));
             points.push_back(float(m_vertices[idx][1]));

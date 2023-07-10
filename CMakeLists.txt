@@ -7,6 +7,7 @@ project(EngineProject
 
 set(CMAKE_CXX_STANDARD 17)
 set(ENGINE_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+set(Boost_NO_WARN_NEW_VERSIONS 1)
 
 IF(WIN32)
     MESSAGE(STATUS "Now is windows.")
@@ -30,6 +31,7 @@ find_package(TBB CONFIG REQUIRED)
 find_package(freetype CONFIG REQUIRED)
 find_package(EnTT CONFIG REQUIRED)
 find_package(sol2 CONFIG REQUIRED)
+find_package(PCL CONFIG REQUIRED)
 find_package(unofficial-nativefiledialog CONFIG REQUIRED)
 find_package(GTest CONFIG REQUIRED)
 
