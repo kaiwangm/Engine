@@ -23,11 +23,19 @@ git clone https://github.com/microsoft/vcpkg
 .\vcpkg\bootstrap-vcpkg.bat
 ```
 
+
+
+
 3. Build.
 
 ```
-./Script/build_windows.bat
+cd Engine
+cmake -S . -B build -G Ninja
+cmake --build build --parallel --config Release --target all
 ```
+
+
+
 
 ## Reference
 
