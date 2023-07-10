@@ -11,6 +11,7 @@
 #include <Engine/Runtime/GameFramework/Camera/UCameraComponent.h>
 #include <Engine/Runtime/GameFramework/StaticMesh/AStaticMesh.h>
 #include <Engine/Runtime/GameFramework/StaticMesh/APointCloud.h>
+#include <Engine/Runtime/GameFramework/Animation/ASkeleton.h>
 #include <Engine/Runtime/GameFramework/Animation/UAnimatedMeshComponent.h>
 #include <Engine/Runtime/GameFramework/Animation/USkeletonComponent.h>
 #include <Engine/Runtime/GameFramework/Skybox/ASkybox.h>
@@ -225,8 +226,9 @@ namespace Engine
             }
         }
 
-        AActor*  actor_mainCamera = static_cast<AActor*>(m_MainCamera->GetOwner());
-        glm::mat4 cameraTransform = actor_mainCamera->GetTransformComponent().GetTransform() * m_MainCamera->GetTransform();
+        AActor*   actor_mainCamera = static_cast<AActor*>(m_MainCamera->GetOwner());
+        glm::mat4 cameraTransform =
+            actor_mainCamera->GetTransformComponent().GetTransform() * m_MainCamera->GetTransform();
 
         // Update Pawn
 
@@ -293,6 +295,11 @@ namespace Engine
             AStaticMesh* staticMesh_actor = static_cast<AStaticMesh*>(model.GetOwner());
             MMaterial*   material         = static_cast<MMaterial*>(staticMesh_actor->GetMaterial());
             std::string  materialType     = material->GetMaterialType();
+
+            if (staticMesh_actor->GetVisible() == false)
+            {
+                continue;
+            }
 
             auto shader = m_ShaderLibrary.Get("GBuffer");
 
@@ -393,16 +400,19 @@ namespace Engine
         RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
         RenderCommand::Clear();
 
-        // draw skybox
-        // use a range-for
-        for (auto [entity, name, trans, skybox] : skybox_view.each())
+        if (m_RenderSkybox)
         {
-            auto shader = m_ShaderLibrary.Get("Skybox");
-            Renderer::SetShaderUniform(shader, "mipLevel", m_VisPrePrefilterMipLevel);
+            // draw skybox
+            // use a range-for
+            for (auto [entity, name, trans, skybox] : skybox_view.each())
+            {
+                auto shader = m_ShaderLibrary.Get("Skybox");
+                Renderer::SetShaderUniform(shader, "mipLevel", m_VisPrePrefilterMipLevel);
 
-            auto vpmat = m_PMatrix * glm::mat4(glm::mat3(m_VMatrix));
-            skybox.Tick(timeStep);
-            skybox.Draw(shader, vpmat);
+                auto vpmat = m_PMatrix * glm::mat4(glm::mat3(m_VMatrix));
+                skybox.Tick(timeStep);
+                skybox.Draw(shader, vpmat);
+            }
         }
 
         // Deferred Shading
@@ -492,9 +502,17 @@ namespace Engine
         // Point Cloud
         for (auto [entity, name, trans, pointcloud] : pointcloud_view.each())
         {
+            APointCloud* pointcloud_actor = static_cast<APointCloud*>(pointcloud.GetOwner());
+
+            if (pointcloud_actor->GetVisible() == false)
+            {
+                continue;
+            }
+
             auto shader = m_ShaderLibrary.Get("OctreeShader");
             shader->Bind();
 
+            shader->SetFloat("u_PointRenderSize", pointcloud.GetPointRenderSize());
             Renderer::DrawArray(pointcloud.GetPointCloud().m_VertexArray, shader, m_VPMatrix, trans.GetTransform());
 
             shader->UnBind();
@@ -503,6 +521,13 @@ namespace Engine
         // draw skeleton
         for (auto [entity, name, trans, skeleton] : skeleton_view.each())
         {
+            ASkeleton* skeleton_actor = static_cast<ASkeleton*>(skeleton.GetOwner());
+
+            if (skeleton_actor->GetVisible() == false)
+            {
+                continue;
+            }
+
             auto shader = m_ShaderLibrary.Get("Skeleton");
             skeleton.Draw(shader,
                           m_VPMatrix,
@@ -616,6 +641,9 @@ namespace Engine
         Gui::Text("General");
         Gui::SliderFloat("Exposure", m_Exposure, 0.0f, 3.0f);
         Gui::ColorEdit4("Background Color", m_BackGroundColor);
+        ImGui::Checkbox("Render Skybox", &m_RenderSkybox);
+        ImGui::Checkbox("Render Grid", &m_RenderGrid);
+        ImGui::Checkbox("Render Gizmo", &m_RenderGizmo);
 
         ImGui::Separator();
 
@@ -704,6 +732,8 @@ namespace Engine
                 ImGui::BeginDisabled();
                 ImGui::Checkbox("Is Controlled", &actor->GetIsControlledRef());
                 ImGui::EndDisabled();
+
+                ImGui::Checkbox("Visible", &actor->GetVisibleRef());
             }
 
             if (m_Registry.any_of<UTransformComponent>(entity_selected) == true)
@@ -744,7 +774,7 @@ namespace Engine
 
                     Gui::SliderFloat("Fov", perspectiveCamera.GetFovRef(), 1.8f, 160.0f);
                     Gui::SliderFloat("Near", perspectiveCamera.GetNearClipRef(), 0.01f, 100.0f);
-                    Gui::SliderFloat("Far", perspectiveCamera.GetFarClipRef(), 0.3f, 1000.0f);
+                    Gui::SliderFloat("Far", perspectiveCamera.GetFarClipRef(), 0.3f, 10000.0f);
                 }
 
                 Gui::DragFloat3("Cam::Position", cameraComponent.GetPositionRef(), 0.005f, -100.0f, 100.0f);
@@ -790,6 +820,7 @@ namespace Engine
                 ImGui::TextWrapped("%s", pointCloudComponent.GetFilePath().c_str());
 
                 Gui::Text("Num Points: {}", pointCloudComponent.GetNumPoints());
+                Gui::SliderFloat("PointRenderSize", pointCloudComponent.GetPointRenderSizeRef(), 0.0f, 100.0f);
             }
 
             if (m_Registry.any_of<UPointLightComponent>(entity_selected) == true)

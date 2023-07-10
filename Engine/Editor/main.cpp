@@ -251,8 +251,8 @@ namespace Engine
 
             AActor* actor_mainCamera = static_cast<AActor*>(m_World->m_MainCamera->GetOwner());
 
-            glm::mat4 cameraView =
-                glm::inverse(actor_mainCamera->GetTransformComponent().GetTransform() * m_World->m_MainCamera->GetTransform());
+            glm::mat4 cameraView       = glm::inverse(actor_mainCamera->GetTransformComponent().GetTransform() *
+                                                m_World->m_MainCamera->GetTransform());
             glm::mat4 cameraProjection = m_World->m_MainCamera->GetCamera().GetProjectionMatrix();
             glm::mat4 identityMatrix   = glm::mat4(1.0f);
 

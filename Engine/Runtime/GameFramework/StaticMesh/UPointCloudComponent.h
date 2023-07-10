@@ -8,6 +8,7 @@ namespace Engine
     {
     private:
         PointCloud m_PointCloud;
+        float      m_PointRenderSize = 1.0f;
 
     public:
         UPointCloudComponent() : m_PointCloud() {}
@@ -15,6 +16,10 @@ namespace Engine
 
         PointCloud& GetPointCloud() { return m_PointCloud; }
         std::string GetFilePath() { return m_PointCloud.m_FilePath; }
-        int GetNumPoints() { return m_PointCloud.m_NumPoints; }
+        int         GetNumPoints() { return m_PointCloud.m_NumPoints; }
+
+        float  GetPointRenderSize() { return m_PointRenderSize; }
+        float& GetPointRenderSizeRef() { return m_PointRenderSize; }
+        void   SetPointRenderSize(float size) { m_PointRenderSize = size; }
     };
 }; // namespace Engine

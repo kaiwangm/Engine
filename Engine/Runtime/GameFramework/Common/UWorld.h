@@ -29,11 +29,11 @@ namespace Engine
         Ref<GeometryBuffer> m_GeometryBuffer;
         Ref<SSAOBuffer>     m_SSAOBuffer;
 
-        glm::vec4 m_BackGroundColor {0.7f, 0.7f, 0.7f, 1.0f};
+        glm::vec4 m_BackGroundColor {0.0f, 0.0f, 0.0f, 1.0f};
 
         UCameraComponent* m_MainCamera;
-        AActor*  m_ControlledActor;
-        ASkybox* m_MainSkybox;
+        AActor*           m_ControlledActor;
+        ASkybox*          m_MainSkybox;
 
         glm::mat4 m_VMatrix;
         glm::mat4 m_PMatrix;
@@ -44,6 +44,11 @@ namespace Engine
         int   m_ViewportGBufferMap      = 0;
 
         entt::entity entity_selected = entt::null;
+
+    public:
+        bool m_RenderSkybox = true;
+        bool m_RenderGrid   = true;
+        bool m_RenderGizmo  = true;
 
     public:
         UWorld();

@@ -32,9 +32,14 @@ namespace Engine
         UTransformComponent& GetTransformComponent() { return *m_Transform; }
 
         bool m_IsControlled = false;
+        bool m_Visible     = true;
 
         bool  GetIsControlled() const { return m_IsControlled; }
         bool& GetIsControlledRef() { return m_IsControlled; }
         void  SetIsControlled(bool isControlled) { m_IsControlled = isControlled; }
+
+        bool  GetVisible() const { return m_Visible; }
+        bool& GetVisibleRef() { return m_Visible; }
+        void  SetVisible(bool visible) { m_Visible = visible; }
     };
 }; // namespace Engine

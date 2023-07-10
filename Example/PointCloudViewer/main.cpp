@@ -115,45 +115,51 @@ namespace Engine
             glm::mat4 cameraProjection = m_World->m_MainCamera->GetCamera().GetProjectionMatrix();
             glm::mat4 identityMatrix   = glm::mat4(1.0f);
 
-            ImGuizmo::DrawGrid(
-                glm::value_ptr(cameraView), glm::value_ptr(cameraProjection), glm::value_ptr(identityMatrix), 8.0f);
-
-            if (m_World->entity_selected != entt::null &&
-                m_World->GetRegistry().valid(m_World->entity_selected) == true &&
-                m_World->GetRegistry().any_of<UTransformComponent>(m_World->entity_selected) == true)
+            if (m_World->m_RenderGrid)
             {
-                auto&     tansformComponent = m_World->GetRegistry().get<UTransformComponent>(m_World->entity_selected);
-                glm::mat4 transform         = tansformComponent.GetTransform();
-
-                ImGuizmo::Manipulate(glm::value_ptr(cameraView),
-                                     glm::value_ptr(cameraProjection),
-                                     mCurrentGizmoOperation,
-                                     mCurrentGizmoMode,
-                                     glm::value_ptr(transform),
-                                     NULL,
-                                     useSnap ? &snap[0] : NULL,
-                                     boundSizing ? bounds : NULL,
-                                     boundSizingSnap ? boundsSnap : NULL);
-
-                if (ImGuizmo::IsUsing())
-                {
-                    float matrixTranslation[3], matrixRotation[3], matrixScale[3];
-                    ImGuizmo::DecomposeMatrixToComponents(
-                        glm::value_ptr(transform), matrixTranslation, matrixRotation, matrixScale);
-
-                    tansformComponent.SetPosition(
-                        glm::vec3 {matrixTranslation[0], matrixTranslation[1], matrixTranslation[2]});
-
-                    ImGuizmo::RecomposeMatrixFromComponents(
-                        matrixTranslation, matrixRotation, matrixScale, glm::value_ptr(transform));
-                }
+                ImGuizmo::DrawGrid(
+                    glm::value_ptr(cameraView), glm::value_ptr(cameraProjection), glm::value_ptr(identityMatrix), 8.0f);
             }
 
-            ImGuizmo::ViewManipulate(glm::value_ptr(cameraView),
-                                     camDistance,
-                                     ImVec2(viewManipulateRight - 128, viewManipulateTop),
-                                     ImVec2(128, 128),
-                                     0x10101010);
+            if (m_World->m_RenderGizmo)
+            {
+                if (m_World->entity_selected != entt::null &&
+                    m_World->GetRegistry().valid(m_World->entity_selected) == true &&
+                    m_World->GetRegistry().any_of<UTransformComponent>(m_World->entity_selected) == true)
+                {
+                    auto& tansformComponent = m_World->GetRegistry().get<UTransformComponent>(m_World->entity_selected);
+                    glm::mat4 transform     = tansformComponent.GetTransform();
+
+                    ImGuizmo::Manipulate(glm::value_ptr(cameraView),
+                                         glm::value_ptr(cameraProjection),
+                                         mCurrentGizmoOperation,
+                                         mCurrentGizmoMode,
+                                         glm::value_ptr(transform),
+                                         NULL,
+                                         useSnap ? &snap[0] : NULL,
+                                         boundSizing ? bounds : NULL,
+                                         boundSizingSnap ? boundsSnap : NULL);
+
+                    if (ImGuizmo::IsUsing())
+                    {
+                        float matrixTranslation[3], matrixRotation[3], matrixScale[3];
+                        ImGuizmo::DecomposeMatrixToComponents(
+                            glm::value_ptr(transform), matrixTranslation, matrixRotation, matrixScale);
+
+                        tansformComponent.SetPosition(
+                            glm::vec3 {matrixTranslation[0], matrixTranslation[1], matrixTranslation[2]});
+
+                        ImGuizmo::RecomposeMatrixFromComponents(
+                            matrixTranslation, matrixRotation, matrixScale, glm::value_ptr(transform));
+                    }
+                }
+
+                ImGuizmo::ViewManipulate(glm::value_ptr(cameraView),
+                                         camDistance,
+                                         ImVec2(viewManipulateRight - 128, viewManipulateTop),
+                                         ImVec2(128, 128),
+                                         0x10101010);
+            }
         }
 
         std::string OpenFile()
