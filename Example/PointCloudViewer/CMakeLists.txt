@@ -15,13 +15,13 @@ target_link_libraries(PointCloudViewer PRIVATE Engine)
 add_custom_command(
     TARGET PointCloudViewer POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-    ${ENGINE_ROOT_DIR}/Engine/Editor/Assert
-    $<TARGET_FILE_DIR:PointCloudViewer>/Assert/Editor
+    ${ENGINE_ROOT_DIR}/Engine/Editor/Assets
+    $<TARGET_FILE_DIR:PointCloudViewer>/Assets/Editor
 )
 
 add_custom_command(
     TARGET PointCloudViewer POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-    ${CMAKE_CURRENT_SOURCE_DIR}/Assert
-    $<TARGET_FILE_DIR:PointCloudViewer>/Assert/PointCloudViewer
+    ${CMAKE_CURRENT_SOURCE_DIR}/Assets
+    $<TARGET_FILE_DIR:PointCloudViewer>/Assets/PointCloudViewer
 )

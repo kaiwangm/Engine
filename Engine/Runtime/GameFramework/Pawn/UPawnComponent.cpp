@@ -4,7 +4,7 @@
 
 namespace Engine
 {
-    UTrajectoryComponent::UTrajectoryComponent() : m_TrajectoryStaticMesh("Assert/Editor/Object/apawn/trajectory.obj")
+    UTrajectoryComponent::UTrajectoryComponent() : m_TrajectoryStaticMesh("Assets/Editor/Object/apawn/trajectory.obj")
     {}
 
     UTrajectoryComponent::~UTrajectoryComponent() {}
@@ -259,7 +259,7 @@ namespace Engine
         shader->UnBind();
     }
 
-    UPawnComponent::UPawnComponent() : m_PawnStaticMesh("Assert/Editor/Object/apawn/apawn.obj") {}
+    UPawnComponent::UPawnComponent() : m_PawnStaticMesh("Assets/Editor/Object/apawn/apawn.obj") {}
 
     UPawnComponent::~UPawnComponent() {}
 

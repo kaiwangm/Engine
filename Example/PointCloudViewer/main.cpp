@@ -34,7 +34,7 @@ namespace Engine
             m_Camera                   = camera_viewport;
 
             auto skybox =
-                m_World->AddActor<ASkybox>("skybox", "Assert/Editor/Skybox/TheSkyIsOnFire/the_sky_is_on_fire_8k.hdr");
+                m_World->AddActor<ASkybox>("skybox", "Assets/Editor/Skybox/TheSkyIsOnFire/the_sky_is_on_fire_8k.hdr");
 
             m_World->AddActor<AActor>("EmptyActor");
             m_World->AddActor<AActor>("EmptyActor00");

@@ -46,10 +46,10 @@ namespace Engine
     }
 
     USkeletonComponent::USkeletonComponent() :
-        m_Joints("Assert/Editor/Object/bone/joint.obj"), m_Bones("Assert/Editor/Object/bone/bone.obj")
+        m_Joints("Assets/Editor/Object/bone/joint.obj"), m_Bones("Assets/Editor/Object/bone/bone.obj")
     {
-        loadSkeleton("Assert/Editor/Animation/skeleton.ozz", &skeleton);
-        loadAnimation("Assert/Editor/Animation/animation.ozz", &animation);
+        loadSkeleton("Assets/Editor/Animation/skeleton.ozz", &skeleton);
+        loadAnimation("Assets/Editor/Animation/animation.ozz", &animation);
 
         num_soa_joints = skeleton.num_soa_joints();
         num_joints     = skeleton.num_joints();

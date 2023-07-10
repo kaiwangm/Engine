@@ -15,12 +15,12 @@ namespace Engine
         ExampleLayer() : Layer("Example")
         {
             // std::string ply_name = "soldier_vox10_0835";
-            // std::string ply_path = "Assert/" + ply_name + ".ply";
+            // std::string ply_path = "Assets/" + ply_name + ".ply";
 
             /*
             for (int i = 0; i <= 330; ++i) {
                 std::string ply_name = fmt::format("{:06d}", i);
-                std::string ply_path = "Assert/Kitti/" + ply_name + ".ply";
+                std::string ply_path = "Assets/Kitti/" + ply_name + ".ply";
                 auto [coords, feats] = load_ply(ply_path);
 
                 auto hashOctree =
@@ -32,13 +32,13 @@ namespace Engine
             */
 
             m_Octrees.resize(1);
-            m_Octrees[0] = std::make_shared<OctreeObject>("Assert/longdress_vox10_1300.ply", 10);
+            m_Octrees[0] = std::make_shared<OctreeObject>("Assets/longdress_vox10_1300.ply", 10);
             m_Octrees[0]->CacheGL();
 
             /*
             for (int i = 0; i < m_Octrees.size(); ++i) {
                 std::string ply_name = fmt::format("{:06d}", i);
-                std::string ply_path = "Assert/Kitti/" + ply_name + ".ply";
+                std::string ply_path = "Assets/Kitti/" + ply_name + ".ply";
 
                 m_Octrees[i] = std::make_shared<OctreeObject>(ply_path, 12);
                 m_Octrees[i]->CacheGL();
@@ -51,7 +51,7 @@ namespace Engine
 
                 std::cout << i << std::endl;
                 m_Octrees[i] = std::make_shared<OctreeObject>(
-                    "Assert/redandblack/Ply/redandblack_vox10_" +
+                    "Assets/redandblack/Ply/redandblack_vox10_" +
                         std::to_string(idx) + ".ply",
                     10);
                 std::cout << i << std::endl;
@@ -64,7 +64,7 @@ namespace Engine
                 std::cout << i << std::endl;
 
                 m_Octrees[i] = std::make_shared<OctreeObject>(
-                    "Assert/redandblack/Ply/redandblack_vox10_" +
+                    "Assets/redandblack/Ply/redandblack_vox10_" +
                         std::to_string(idx) + ".ply",
                     10);
                 m_Octrees[i]->CacheGL();
@@ -82,7 +82,7 @@ namespace Engine
             m_Camera->SetCameraRotationSpeed(10.0f);
 
             // ---------------Shader--------------- //
-            m_ShaderLibrary.Load("OctreeShader", "Assert/octree_vertex.glsl", "Assert/octree_fragment.glsl", "Path");
+            m_ShaderLibrary.Load("OctreeShader", "Assets/octree_vertex.glsl", "Assets/octree_fragment.glsl", "Path");
 
             // Set FrameRenderBuffer
             m_FrameRenderBuffer = FrameRenderBuffer::Create();

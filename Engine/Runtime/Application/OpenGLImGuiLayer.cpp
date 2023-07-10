@@ -153,7 +153,7 @@ namespace Engine
         colors[ImGuiCol_ModalWindowDimBg]      = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
 
         ImGuiIO& io = ImGui::GetIO();
-        m_FontPath  = std::string(m_Basedir + "\\Assert\\Editor\\Font\\pinghei.ttf");
+        m_FontPath  = std::string(m_Basedir + "\\Assets\\Editor\\Font\\pinghei.ttf");
         Log::Info("Fonts: {0}", m_FontPath);
         io.Fonts->AddFontFromFileTTF(
             m_FontPath.c_str(), 18.0f, NULL, io.Fonts->GetGlyphRangesChineseSimplifiedCommon());

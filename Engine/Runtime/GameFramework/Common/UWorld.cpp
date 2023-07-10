@@ -32,92 +32,92 @@ namespace Engine
         m_GeometryBuffer = GeometryBuffer::Create();
         m_SSAOBuffer     = SSAOBuffer::Create();
 
-        LoadShader("TextureShader", "Assert/Editor/Shader/vertex.glsl", "Assert/Editor/Shader/fragment.glsl", "Path");
+        LoadShader("TextureShader", "Assets/Editor/Shader/vertex.glsl", "Assets/Editor/Shader/fragment.glsl", "Path");
         LoadShader("Animated",
-                   "Assert/Editor/Shader/vertex_animated.glsl",
-                   "Assert/Editor/Shader/fragment_animated.glsl",
+                   "Assets/Editor/Shader/vertex_animated.glsl",
+                   "Assets/Editor/Shader/fragment_animated.glsl",
                    "Path");
         LoadShader(
-            "Skybox", "Assert/Editor/Shader/vertex_skybox.glsl", "Assert/Editor/Shader/fragment_skybox.glsl", "Path");
+            "Skybox", "Assets/Editor/Shader/vertex_skybox.glsl", "Assets/Editor/Shader/fragment_skybox.glsl", "Path");
         LoadShader("BasicPbr",
-                   "Assert/Editor/Shader/vertex_basicpbr.glsl",
-                   "Assert/Editor/Shader/fragment_basicpbr.glsl",
+                   "Assets/Editor/Shader/vertex_basicpbr.glsl",
+                   "Assets/Editor/Shader/fragment_basicpbr.glsl",
                    "Path");
         LoadShader("OctreeShader",
-                   "Assert/Editor/Shader/octree_vertex.glsl",
-                   "Assert/Editor/Shader/octree_fragment.glsl",
+                   "Assets/Editor/Shader/octree_vertex.glsl",
+                   "Assets/Editor/Shader/octree_fragment.glsl",
                    "Path");
         LoadShader("TriangleShader",
-                   "Assert/Editor/Shader/triangle_vertex.glsl",
-                   "Assert/Editor/Shader/triangle_fragment.glsl",
+                   "Assets/Editor/Shader/triangle_vertex.glsl",
+                   "Assets/Editor/Shader/triangle_fragment.glsl",
                    "Path");
         LoadShader("Skeleton",
-                   "Assert/Editor/Shader/skeleton_vertex.glsl",
-                   "Assert/Editor/Shader/skeleton_fragment.glsl",
+                   "Assets/Editor/Shader/skeleton_vertex.glsl",
+                   "Assets/Editor/Shader/skeleton_fragment.glsl",
                    "Path");
         LoadShader("GBuffer",
-                   "Assert/Editor/Shader/gbuffer_vertex.glsl",
-                   "Assert/Editor/Shader/gbuffer_fragment.glsl",
+                   "Assets/Editor/Shader/gbuffer_vertex.glsl",
+                   "Assets/Editor/Shader/gbuffer_fragment.glsl",
                    "Path");
 
         LoadShader("VisPosition",
-                   "Assert/Editor/Shader/screen_quad_vertex.glsl",
-                   "Assert/Editor/Shader/viewport/position.glsl",
+                   "Assets/Editor/Shader/screen_quad_vertex.glsl",
+                   "Assets/Editor/Shader/viewport/position.glsl",
                    "Path");
 
         LoadShader("VisNormal",
-                   "Assert/Editor/Shader/screen_quad_vertex.glsl",
-                   "Assert/Editor/Shader/viewport/normal.glsl",
+                   "Assets/Editor/Shader/screen_quad_vertex.glsl",
+                   "Assets/Editor/Shader/viewport/normal.glsl",
                    "Path");
 
         LoadShader("VisAlbedo",
-                   "Assert/Editor/Shader/screen_quad_vertex.glsl",
-                   "Assert/Editor/Shader/viewport/albedo.glsl",
+                   "Assets/Editor/Shader/screen_quad_vertex.glsl",
+                   "Assets/Editor/Shader/viewport/albedo.glsl",
                    "Path");
 
         LoadShader("VisOpacity",
-                   "Assert/Editor/Shader/screen_quad_vertex.glsl",
-                   "Assert/Editor/Shader/viewport/opacity.glsl",
+                   "Assets/Editor/Shader/screen_quad_vertex.glsl",
+                   "Assets/Editor/Shader/viewport/opacity.glsl",
                    "Path");
 
         LoadShader("VisDepth",
-                   "Assert/Editor/Shader/screen_quad_vertex.glsl",
-                   "Assert/Editor/Shader/viewport/depth.glsl",
+                   "Assets/Editor/Shader/screen_quad_vertex.glsl",
+                   "Assets/Editor/Shader/viewport/depth.glsl",
                    "Path");
 
         LoadShader(
-            "VisAO", "Assert/Editor/Shader/screen_quad_vertex.glsl", "Assert/Editor/Shader/viewport/ao.glsl", "Path");
+            "VisAO", "Assets/Editor/Shader/screen_quad_vertex.glsl", "Assets/Editor/Shader/viewport/ao.glsl", "Path");
 
         LoadShader("ComputeAO",
-                   "Assert/Editor/Shader/screen_quad_vertex.glsl",
-                   "Assert/Editor/Shader/compute_ssao_fragment.glsl",
+                   "Assets/Editor/Shader/screen_quad_vertex.glsl",
+                   "Assets/Editor/Shader/compute_ssao_fragment.glsl",
                    "Path");
 
         LoadShader("VisRoughness",
-                   "Assert/Editor/Shader/screen_quad_vertex.glsl",
-                   "Assert/Editor/Shader/viewport/roughness.glsl",
+                   "Assets/Editor/Shader/screen_quad_vertex.glsl",
+                   "Assets/Editor/Shader/viewport/roughness.glsl",
                    "Path");
 
         LoadShader("VisMetallic",
-                   "Assert/Editor/Shader/screen_quad_vertex.glsl",
-                   "Assert/Editor/Shader/viewport/metallic.glsl",
+                   "Assets/Editor/Shader/screen_quad_vertex.glsl",
+                   "Assets/Editor/Shader/viewport/metallic.glsl",
                    "Path");
 
         LoadShader("Deferred",
-                   "Assert/Editor/Shader/screen_quad_vertex.glsl",
-                   "Assert/Editor/Shader/deffered/fragment.glsl",
+                   "Assets/Editor/Shader/screen_quad_vertex.glsl",
+                   "Assets/Editor/Shader/deffered/fragment.glsl",
                    "Path");
 
         LoadShader("Exposure",
-                   "Assert/Editor/Shader/screen_quad_vertex.glsl",
-                   "Assert/Editor/Shader/deffered/exposure.glsl",
+                   "Assets/Editor/Shader/screen_quad_vertex.glsl",
+                   "Assets/Editor/Shader/deffered/exposure.glsl",
                    "Path");
 
-        LoadShader("Pawn", "Assert/Editor/Shader/pawn_vertex.glsl", "Assert/Editor/Shader/pawn_fragment.glsl", "Path");
+        LoadShader("Pawn", "Assets/Editor/Shader/pawn_vertex.glsl", "Assets/Editor/Shader/pawn_fragment.glsl", "Path");
 
         LoadShader("Trajectory",
-                   "Assert/Editor/Shader/trajectory_vertex.glsl",
-                   "Assert/Editor/Shader/trajectory_fragment.glsl",
+                   "Assets/Editor/Shader/trajectory_vertex.glsl",
+                   "Assets/Editor/Shader/trajectory_fragment.glsl",
                    "Path");
     }
 

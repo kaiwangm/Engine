@@ -250,8 +250,8 @@ namespace Engine
             glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
             Ref<Shader> hdrtocubemap = Shader::Create("hdrtocubemap",
-                                                      "Assert/Editor/Shader/vertex_hdrtocubemap.glsl",
-                                                      "Assert/Editor/Shader/fragment_hdrtocubemap.glsl",
+                                                      "Assets/Editor/Shader/vertex_hdrtocubemap.glsl",
+                                                      "Assets/Editor/Shader/fragment_hdrtocubemap.glsl",
                                                       "Path");
             // convert HDR equirectangular environment map to cubemap equivalent
             hdrtocubemap->Bind();
@@ -302,8 +302,8 @@ namespace Engine
             glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 32, 32);
 
             Ref<Shader> irradiance_convolution = Shader::Create("irradiance_convolution",
-                                                                "Assert/Editor/Shader/vertex_hdrtocubemap.glsl",
-                                                                "Assert/Editor/Shader/fragment_irradiance_convolution.glsl",
+                                                                "Assets/Editor/Shader/vertex_hdrtocubemap.glsl",
+                                                                "Assets/Editor/Shader/fragment_irradiance_convolution.glsl",
                                                                 "Path");
             // convert HDR equirectangular environment map to cubemap equivalent
             irradiance_convolution->Bind();
@@ -350,7 +350,7 @@ namespace Engine
             glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 
             Ref<Shader> prefilter = Shader::Create(
-                "prefilter", "Assert/Editor/Shader/vertex_hdrtocubemap.glsl", "Assert/Editor/Shader/fragment_prefilter.glsl", "Path");
+                "prefilter", "Assets/Editor/Shader/vertex_hdrtocubemap.glsl", "Assets/Editor/Shader/fragment_prefilter.glsl", "Path");
             // convert HDR equirectangular environment map to cubemap equivalent
             prefilter->Bind();
             prefilter->SetInt("environmentMap", 0);
@@ -397,7 +397,7 @@ namespace Engine
             // load texture data from file
             int      lut_width, lut_height, lut_nrComponents;
             stbi_uc* lut_data =
-                stbi_load("Assert/Editor/Texture/ibl_brdf_lut.png", &lut_width, &lut_height, &lut_nrComponents, STBI_default);
+                stbi_load("Assets/Editor/Texture/ibl_brdf_lut.png", &lut_width, &lut_height, &lut_nrComponents, STBI_default);
 
             glGenTextures(1, &m_BrdfLut);
             glBindTexture(GL_TEXTURE_2D, m_BrdfLut);

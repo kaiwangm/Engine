@@ -6,7 +6,7 @@
 
 My toy modern OpenGL game engine.
 
-![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/Deferred_Rendering.png)
+![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assets/Deferred_Rendering.png)
 
 ## Getting Started
 

@@ -34,7 +34,7 @@ namespace Engine
             m_Camera                   = camera_viewport;
 
             auto skybox =
-                m_World->AddActor<ASkybox>("skybox", "Assert/Editor/Skybox/TheSkyIsOnFire/the_sky_is_on_fire_8k.hdr");
+                m_World->AddActor<ASkybox>("skybox", "Assets/Editor/Skybox/TheSkyIsOnFire/the_sky_is_on_fire_8k.hdr");
 
             m_World->AddActor<AActor>("Actor");
 
@@ -42,14 +42,14 @@ namespace Engine
             apawn.GetTransformComponent().SetPosition(glm::vec3 {0.0f, 0.0f, 0.0f});
 
             // auto red_triangle = m_World->AddActor<AStaticMesh>("red_triangle", //
-            //                                                    "Assert/Editor/Object/triangle/triangle.obj",
+            //                                                    "Assets/Editor/Object/triangle/triangle.obj",
             //                                                    "TriangleShader",
             //                                                    "basic_red_triangle",
             //                                                    "basic_red_triangle");
             // red_triangle.GetTransformComponent().SetPosition(glm::vec3 {1.0f, 5.5f, 0.0f});
 
             auto red_sphere = m_World->AddActor<AStaticMesh>("red_sphere", //
-                                                             "Assert/Editor/Object/sphere/sphere.obj",
+                                                             "Assets/Editor/Object/sphere/sphere.obj",
                                                              "BasicPbr",
                                                              "basic_red_sphere",
                                                              "basic_red_sphere");
@@ -60,7 +60,7 @@ namespace Engine
             red_sphere_material->SetRoughness(0.5f);
 
             auto brown_sphere = m_World->AddActor<AStaticMesh>("brown_sphere", //
-                                                               "Assert/Editor/Object/sphere/sphere.obj",
+                                                               "Assets/Editor/Object/sphere/sphere.obj",
                                                                "BasicPbr",
                                                                "basic_brown_sphere",
                                                                "basic_brown_sphere");
@@ -71,7 +71,7 @@ namespace Engine
             brown_sphere_material->SetRoughness(0.8f);
 
             auto aqua_shpere = m_World->AddActor<AStaticMesh>("aqua_sphere", //
-                                                              "Assert/Editor/Object/sphere/sphere.obj",
+                                                              "Assets/Editor/Object/sphere/sphere.obj",
                                                               "BasicPbr",
                                                               "basic_aqua_sphere",
                                                               "basic_aqua_sphere");
@@ -82,56 +82,56 @@ namespace Engine
             aqua_shpere_material->SetRoughness(0.3f);
 
             auto wood_sphere = m_World->AddActor<AStaticMesh>("wood_sphere", //
-                                                              "Assert/Editor/Object/sphere/sphere.obj",
+                                                              "Assets/Editor/Object/sphere/sphere.obj",
                                                               "Texture",
                                                               "bamboo-wood-semigloss_sphere",
                                                               "bamboo-wood-semigloss");
             wood_sphere.GetTransformComponent().SetPosition(glm::vec3 {1.0f, 3.5f, 0.0f});
 
             auto metal_sphere = m_World->AddActor<AStaticMesh>("metal_sphere", //
-                                                               "Assert/Editor/Object/sphere/sphere.obj",
+                                                               "Assets/Editor/Object/sphere/sphere.obj",
                                                                "Texture",
                                                                "streaky-metal1_sphere",
                                                                "streaky-metal1");
             metal_sphere.GetTransformComponent().SetPosition(glm::vec3 {3.0f, 3.5f, 0.0f});
 
             auto plastic_sphere = m_World->AddActor<AStaticMesh>("plastic_sphere", //
-                                                                 "Assert/Editor/Object/sphere/sphere.obj",
+                                                                 "Assets/Editor/Object/sphere/sphere.obj",
                                                                  "Texture",
                                                                  "scuffed-plastic_sphere",
                                                                  "scuffed-plastic");
             plastic_sphere.GetTransformComponent().SetPosition(glm::vec3 {5.0f, 3.5f, 0.0f});
 
             auto basetile_sphere = m_World->AddActor<AStaticMesh>("basetile_sphere", //
-                                                                  "Assert/Editor/Object/sphere/sphere.obj",
+                                                                  "Assets/Editor/Object/sphere/sphere.obj",
                                                                   "Texture",
                                                                   "base-white-tile_sphere",
                                                                   "base-white-tile");
             basetile_sphere.GetTransformComponent().SetPosition(glm::vec3 {3.0f, 5.5f, 0.0f});
 
             auto blacktile_sphere = m_World->AddActor<AStaticMesh>("blacktile_sphere", //
-                                                                   "Assert/Editor/Object/sphere/sphere.obj",
+                                                                   "Assets/Editor/Object/sphere/sphere.obj",
                                                                    "Texture",
                                                                    "metal_panel_sphere",
                                                                    "metal_panel");
             blacktile_sphere.GetTransformComponent().SetPosition(glm::vec3 {5.0f, 5.5f, 0.0f});
 
             auto wood_monkey = m_World->AddActor<AStaticMesh>("wood_mmonkey",
-                                                              "Assert/Editor/Object/monkey/monkey.obj",
+                                                              "Assets/Editor/Object/monkey/monkey.obj",
                                                               "Texture",
                                                               "monkey_wood",
                                                               "bamboo-wood-semigloss");
             wood_monkey.GetTransformComponent().SetPosition(glm::vec3 {5.0f, 1.5f, 3.0f});
 
             auto ground = m_World->AddActor<AStaticMesh>("ground", //
-                                                         "Assert/Editor/Object/ground/ground.obj",
+                                                         "Assets/Editor/Object/ground/ground.obj",
                                                          "Texture",
                                                          "black-white-tile_sphere",
                                                          "black-white-tile");
             ground.GetTransformComponent().SetPosition(glm::vec3 {0.0f, 0.0f, 0.0f});
 
             auto teapot = m_World->AddActor<AStaticMesh>("teapot", //
-                                                         "Assert/Editor/Object/teapot/teapot.obj",
+                                                         "Assets/Editor/Object/teapot/teapot.obj",
                                                          "Texture",
                                                          "streaky-metal1_teapot",
                                                          "streaky-metal1");
@@ -155,7 +155,7 @@ namespace Engine
 
             // auto pointcloud =
             //     m_World->AddActor<APointCloud>("pointcloud",
-            //     "Assert/Editor/Object/longdress/longdress_vox10_1300.ply");
+            //     "Assets/Editor/Object/longdress/longdress_vox10_1300.ply");
             // pointcloud.GetTransformComponent().SetPosition(glm::vec3 {0.0f, 0.0f, 0.0f});
             // pointcloud.GetTransformComponent().SetScale(glm::vec3 {0.01f, 0.01f, 0.01f});
 

@@ -30,5 +30,5 @@
 
 <!--
 ## Framework Architecture:
-![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assert/engine.png)
+![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Assets/engine.png)
 -->

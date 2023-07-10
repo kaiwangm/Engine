@@ -38,11 +38,11 @@ namespace Engine
         MBasicPbr(const std::string& name, const std::string& folderName) :
             MMaterial(name, "BasicPbr"), m_Albedo(1.0f), m_Metallic(0.0f), m_Roughness(0.0f), m_AO(1.0f)
         {
-            m_AlbedoMap    = Texture2D::Create("Assert/Editor/Material/" + folderName + "/" + folderName + "_albedo.png");
-            m_NormalMap    = Texture2D::Create("Assert/Editor/Material/" + folderName + "/" + folderName + "_normal.png");
-            m_MetallicMap  = Texture2D::Create("Assert/Editor/Material/" + folderName + "/" + folderName + "_metallic.png");
-            m_RoughnessMap = Texture2D::Create("Assert/Editor/Material/" + folderName + "/" + folderName + "_roughness.png");
-            m_AOMap        = Texture2D::Create("Assert/Editor/Material/" + folderName + "/" + folderName + "_ao.png");
+            m_AlbedoMap    = Texture2D::Create("Assets/Editor/Material/" + folderName + "/" + folderName + "_albedo.png");
+            m_NormalMap    = Texture2D::Create("Assets/Editor/Material/" + folderName + "/" + folderName + "_normal.png");
+            m_MetallicMap  = Texture2D::Create("Assets/Editor/Material/" + folderName + "/" + folderName + "_metallic.png");
+            m_RoughnessMap = Texture2D::Create("Assets/Editor/Material/" + folderName + "/" + folderName + "_roughness.png");
+            m_AOMap        = Texture2D::Create("Assets/Editor/Material/" + folderName + "/" + folderName + "_ao.png");
 
             m_UseAlbedoMap    = true;
             m_UseNormalMap    = true;
