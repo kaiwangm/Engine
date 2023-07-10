@@ -23,10 +23,16 @@ namespace Engine
         glm::vec3 m_nowPosition = glm::vec3(0.0f, 0.0f, 0.0f);
 
         glm::quat m_nowPawnFoward = glm::quat(0.0f, 0.0f, 0.0f, 1.0f);
-        glm::quat m_nowPawnRight = glm::quat(0.0f, 0.0f, 0.0f, 1.0f);
+        glm::quat m_nowPawnRight =
+            glm::rotate(glm::quat(0.0f, 0.0f, 0.0f, 1.0f), glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 
         glm::quat m_nowCameraFoward = glm::quat(0.0f, 0.0f, 0.0f, 1.0f);
-        glm::quat m_nowCameraRight = glm::quat(0.0f, 0.0f, 0.0f, 1.0f);
+        glm::quat m_nowCameraRight =
+            glm::rotate(glm::quat(0.0f, 0.0f, 0.0f, 1.0f), glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+
+        glm::quat m_nowDesiredFoward = glm::quat(0.0f, 0.0f, 0.0f, 1.0f);
+        glm::quat m_nowDesiredRight =
+            glm::rotate(glm::quat(0.0f, 0.0f, 0.0f, 1.0f), glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 
         float m_SampleStep = 0.1f;
         int   m_SampleNum  = 10;
@@ -45,12 +51,16 @@ namespace Engine
         glm::quat& GetNowPawnRightRef() { return m_nowPawnRight; }
         glm::quat& GetNowCameraFowardRef() { return m_nowCameraFoward; }
         glm::quat& GetNowCameraRightRef() { return m_nowCameraRight; }
+        glm::quat& GetNowDesiredFowardRef() { return m_nowDesiredFoward; }
+        glm::quat& GetNowDesiredRightRef() { return m_nowDesiredRight; }
 
         void SetNowPosition(const glm::vec3& position) { m_nowPosition = position; }
         void SetNowPawnFoward(const glm::quat& foward) { m_nowPawnFoward = foward; }
         void SetNowPawnRight(const glm::quat& right) { m_nowPawnRight = right; }
         void SetNowCameraFoward(const glm::quat& foward) { m_nowCameraFoward = foward; }
         void SetNowCameraRight(const glm::quat& right) { m_nowCameraRight = right; }
+        void SetNowDesiredFoward(const glm::quat& foward) { m_nowDesiredFoward = foward; }
+        void SetNowDesiredRight(const glm::quat& right) { m_nowDesiredRight = right; }
     };
 
     class UPawnComponent : public UComponent

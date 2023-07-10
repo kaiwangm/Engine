@@ -11,17 +11,6 @@ namespace Engine
 
     void UTrajectoryComponent::TickLogic(float deltaTime, const glm::mat4& cameraTransform)
     {
-        AActor*              actor              = static_cast<AActor*>(this->GetOwner());
-        UTransformComponent& transformComponent = static_cast<AActor*>(m_Owner)->GetTransformComponent();
-
-        glm::vec3 worldPosition    = transformComponent.GetPosition();
-        glm::vec3 worldOrientation = transformComponent.GetRotation();
-
-        m_nowPosition   = glm::mix(m_nowPosition, worldPosition, 3.0f * deltaTime);
-        m_nowPawnFoward = glm::slerp(m_nowPawnFoward, m_nowCameraFoward, 3.0f * deltaTime);
-
-        m_nowPawnRight = glm::rotate(m_nowPawnFoward, glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
-
         m_TrajecotryPoints.push_front({m_nowPosition, m_nowPawnFoward, deltaTime});
 
         if (m_TrajecotryPoints.size() > 100)
@@ -48,10 +37,23 @@ namespace Engine
             }
         }
 
+        static bool initlized = false;
+
         m_nowCameraFoward =
             glm::quat(glm::rotate(glm::mat4(1.0f), rotateAngleY + glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
 
         m_nowCameraRight = glm::rotate(m_nowCameraFoward, glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+
+        if (initlized == false)
+        {
+            m_nowDesiredFoward = m_nowCameraFoward;
+            m_nowDesiredRight  = m_nowCameraRight;
+
+            m_nowPawnFoward = m_nowCameraFoward;
+            m_nowPawnRight  = m_nowCameraRight;
+
+            initlized = true;
+        }
     }
 
     TrajectoryPoint UTrajectoryComponent::GetTrajectoryPoint(float time)
@@ -177,6 +179,36 @@ namespace Engine
             vertexArray->UnBind();
         }
 
+        // draw nowCameraFoward
+        {
+            glm::mat4 translation = glm::translate(glm::mat4(1.0f), m_nowPosition);
+            glm::mat4 rotation    = glm::toMat4(glm::quat(m_nowCameraFoward));
+            glm::mat4 scale       = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+
+            shader->SetMat4("u_ViewProjection", vpMat);
+            shader->SetMat4("u_Transform", translation * rotation * scale);
+            shader->SetFloat3("u_Color", glm::vec3(0.0f, 0.0f, 0.9f));
+
+            vertexArray->Bind();
+            RenderCommand::DrawIndexed(vertexArray);
+            vertexArray->UnBind();
+        }
+
+        // draw nowDesiredFoward
+        {
+            glm::mat4 translation = glm::translate(glm::mat4(1.0f), m_nowPosition);
+            glm::mat4 rotation    = glm::toMat4(glm::quat(m_nowDesiredFoward));
+            glm::mat4 scale       = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+
+            shader->SetMat4("u_ViewProjection", vpMat);
+            shader->SetMat4("u_Transform", translation * rotation * scale);
+            shader->SetFloat3("u_Color", glm::vec3(0.9f, 0.9f, 0.9f));
+
+            vertexArray->Bind();
+            RenderCommand::DrawIndexed(vertexArray);
+            vertexArray->UnBind();
+        }
+
         // draw trajectory
         for (int i = 0; i < m_SampleNum; ++i)
         {
@@ -197,51 +229,6 @@ namespace Engine
             shader->SetMat4("u_ViewProjection", vpMat);
             shader->SetMat4("u_Transform", translation * rotation * scale);
             shader->SetFloat3("u_Color", glm::vec3(0.9f, 0.9f, 0.9f));
-
-            vertexArray->Bind();
-            RenderCommand::DrawIndexed(vertexArray);
-            vertexArray->UnBind();
-        }
-
-        // draw nowPawnRight
-        {
-            glm::mat4 translation = glm::translate(glm::mat4(1.0f), m_nowPosition);
-            glm::mat4 rotation    = glm::toMat4(glm::quat(m_nowPawnRight));
-            glm::mat4 scale       = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-
-            shader->SetMat4("u_ViewProjection", vpMat);
-            shader->SetMat4("u_Transform", translation * rotation * scale);
-            shader->SetFloat3("u_Color", glm::vec3(0.9f, 0.9f, 0.0f));
-
-            vertexArray->Bind();
-            RenderCommand::DrawIndexed(vertexArray);
-            vertexArray->UnBind();
-        }
-
-        // draw nowCameraFoward
-        {
-            glm::mat4 translation = glm::translate(glm::mat4(1.0f), m_nowPosition);
-            glm::mat4 rotation    = glm::toMat4(glm::quat(m_nowCameraFoward));
-            glm::mat4 scale       = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-
-            shader->SetMat4("u_ViewProjection", vpMat);
-            shader->SetMat4("u_Transform", translation * rotation * scale);
-            shader->SetFloat3("u_Color", glm::vec3(0.0f, 0.0f, 0.9f));
-
-            vertexArray->Bind();
-            RenderCommand::DrawIndexed(vertexArray);
-            vertexArray->UnBind();
-        }
-
-        // draw nowCameraRight
-        {
-            glm::mat4 translation = glm::translate(glm::mat4(1.0f), m_nowPosition);
-            glm::mat4 rotation    = glm::toMat4(glm::quat(m_nowCameraRight));
-            glm::mat4 scale       = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-
-            shader->SetMat4("u_ViewProjection", vpMat);
-            shader->SetMat4("u_Transform", translation * rotation * scale);
-            shader->SetFloat3("u_Color", glm::vec3(0.0f, 0.9f, 0.9f));
 
             vertexArray->Bind();
             RenderCommand::DrawIndexed(vertexArray);
@@ -292,36 +279,63 @@ namespace Engine
         AActor* actor = static_cast<AActor*>(m_Owner);
         APawn*  aPawn = static_cast<APawn*>(actor);
 
-        UTransformComponent& trans = actor->GetTransformComponent();
+        UTransformComponent&  transformComponent  = actor->GetTransformComponent();
+        UTrajectoryComponent& trajectoryComponent = aPawn->GetTrajectoryComponentRef();
 
-        const glm::quat& nowPawnFoward = aPawn->GetTrajectoryComponentRef().GetNowPawnFowardRef();
-        const glm::quat& nowPawnRight  = aPawn->GetTrajectoryComponentRef().GetNowPawnRightRef();
+        glm::vec3 worldPosition = transformComponent.GetPosition();
+
+        glm::vec3& pawnPosition = trajectoryComponent.GetNowPositionRef();
+        glm::quat& pawnFoward   = trajectoryComponent.GetNowPawnFowardRef();
+        glm::quat& pawnRight    = trajectoryComponent.GetNowPawnRightRef();
+
+        glm::quat& cameraFoward = trajectoryComponent.GetNowCameraFowardRef();
+        glm::quat& cameraRight  = trajectoryComponent.GetNowCameraRightRef();
+
+        glm::quat& desiredFoward = trajectoryComponent.GetNowDesiredFowardRef();
+        glm::quat& desiredRight  = trajectoryComponent.GetNowDesiredRightRef();
+
+        const glm::quat& nowPawnFoward = trajectoryComponent.GetNowPawnFowardRef();
+        const glm::quat& nowPawnRight  = trajectoryComponent.GetNowPawnRightRef();
 
         glm::vec3 movement = glm::vec3(0.0f);
         glm::vec3 forward  = glm::vec3(glm::mat4(nowPawnFoward) * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f));
         glm::vec3 right    = glm::vec3(glm::mat4(nowPawnRight) * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f));
 
+        bool isMoved = false;
         if (actor->GetIsControlled())
         {
             if (Input::IsKeyPressed(GLFW_KEY_W))
             {
-                movement += forward;
+                const glm::quat direction = glm::rotate(cameraFoward, glm::radians(0.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+
+                desiredFoward = glm::slerp(desiredFoward, direction, 7.0f * deltaTime);
+                isMoved       = true;
             }
             if (Input::IsKeyPressed(GLFW_KEY_S))
             {
-                movement -= forward;
+                const glm::quat direction = glm::rotate(cameraFoward, glm::radians(180.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+
+                desiredFoward = glm::slerp(desiredFoward, direction, 7.0f * deltaTime);
+                isMoved       = true;
             }
             if (Input::IsKeyPressed(GLFW_KEY_A))
             {
-                movement -= right;
+                const glm::quat direction = glm::rotate(cameraFoward, glm::radians(270.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+
+                desiredFoward = glm::slerp(desiredFoward, direction, 7.0f * deltaTime);
+                isMoved       = true;
             }
             if (Input::IsKeyPressed(GLFW_KEY_D))
             {
-                movement += right;
+                const glm::quat direction = glm::rotate(cameraFoward, glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+
+                desiredFoward = glm::slerp(desiredFoward, direction, 7.0f * deltaTime);
+                isMoved       = true;
             }
 
-            if (glm::length(movement) > 0.0f)
+            if (isMoved == true)
             {
+                movement += forward;
                 movement = glm::normalize(movement);
             }
 
@@ -332,12 +346,24 @@ namespace Engine
                 m_CameraLatitude -= deltaY * m_MouseSensitivityY * deltaTime;
             }
 
-            auto newPosition = trans.GetPosition() + movement * m_PawnMoveSpeed * deltaTime;
-            trans.SetPosition(newPosition);
+            auto newPosition = transformComponent.GetPosition() + movement * m_PawnMoveSpeed * deltaTime;
+            transformComponent.SetPosition(newPosition);
         }
 
+        // Update trajectory
+        if (isMoved == false)
+        {
+            desiredFoward = glm::slerp(desiredFoward, pawnFoward, 7.0f * deltaTime);
+        }
+        desiredRight  = glm::rotate(desiredFoward, glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+
+        pawnPosition = glm::mix(pawnPosition, worldPosition, 7.0f * deltaTime);
+
+        pawnFoward = glm::slerp(pawnFoward, desiredFoward, 7.0f * deltaTime);
+        pawnRight  = glm::rotate(pawnFoward, glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+
         // Update camera
-        UCameraComponent& transformComponent = static_cast<APawn*>(m_Owner)->GetCameraComponentRef();
+        UCameraComponent& cameraComponent = static_cast<APawn*>(m_Owner)->GetCameraComponentRef();
 
         glm::vec3 position;
 
@@ -350,8 +376,8 @@ namespace Engine
         glm::vec3 orientation = glm::eulerAngles(
             glm::quat(glm::inverse(glm::lookAt(position, m_CameraLookAt, glm::vec3(0.0f, 1.0f, 0.0f)))));
 
-        transformComponent.SetPosition(position);
-        transformComponent.SetRotation(orientation);
+        cameraComponent.SetPosition(position);
+        cameraComponent.SetRotation(orientation);
     }
 
     void UPawnComponent::Draw(Ref<Shader> shader, glm::mat4 vpMat, glm::mat4 transform)
