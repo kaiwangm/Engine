@@ -26,6 +26,7 @@
 - 2023-07-09 ✨ Trajectory Capture
 - 2023-07-09 ✨ Pawn Control
 - 2023-07-09 ✨ LookAt Camera
+- 2023-07-11 ✨ Skinned Mesh Rendering
 - ......
 
 <!--

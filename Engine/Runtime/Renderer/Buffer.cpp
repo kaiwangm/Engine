@@ -7,6 +7,26 @@
 
 namespace Engine
 {
+    Ref<VertexBuffer> VertexBuffer::Create()
+    {
+        switch (Renderer::GetAPI())
+        {
+            case RendererAPI::API::None:
+                Log::Core_Error("RendererAPI::None is currently not supported.");
+                break;
+
+            case RendererAPI::API::OpenGL:
+                return std::make_shared<OpenGLVertexBuffer>();
+                break;
+
+            default:
+                Log::Core_Error("RendererAPI::Unknow API.");
+                break;
+        }
+
+        return nullptr;
+    }
+
     Ref<VertexBuffer> VertexBuffer::Create(const void* vertices, uint32_t size, uint32_t count)
     {
         switch (Renderer::GetAPI())
@@ -17,6 +37,26 @@ namespace Engine
 
             case RendererAPI::API::OpenGL:
                 return std::make_shared<OpenGLVertexBuffer>(vertices, size, count);
+                break;
+
+            default:
+                Log::Core_Error("RendererAPI::Unknow API.");
+                break;
+        }
+
+        return nullptr;
+    }
+
+    Ref<IndexBuffer> IndexBuffer::Create()
+    {
+        switch (Renderer::GetAPI())
+        {
+            case RendererAPI::API::None:
+                Log::Core_Error("RendererAPI::None is currently not supported.");
+                break;
+
+            case RendererAPI::API::OpenGL:
+                return std::make_shared<OpenGLIndexBuffer>();
                 break;
 
             default:

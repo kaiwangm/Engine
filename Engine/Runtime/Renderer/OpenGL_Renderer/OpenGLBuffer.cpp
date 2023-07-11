@@ -38,11 +38,14 @@ namespace Engine
     }
 
     // VertexBuffer
+    OpenGLVertexBuffer::OpenGLVertexBuffer() { glCreateBuffers(1, &m_RendererID); }
+
+    // VertexBuffer
     OpenGLVertexBuffer::OpenGLVertexBuffer(const void* vertices, uint32_t size, uint32_t count) : VertexBuffer(count)
     {
         glCreateBuffers(1, &m_RendererID);
         glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
-        glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_DYNAMIC_DRAW);
     }
 
     OpenGLVertexBuffer::~OpenGLVertexBuffer() { glDeleteBuffers(1, &m_RendererID); }
@@ -56,12 +59,13 @@ namespace Engine
     const BufferLayout& OpenGLVertexBuffer::GetLayout() const { return layout; }
 
     // IndexBuffer
+    OpenGLIndexBuffer::OpenGLIndexBuffer() { glCreateBuffers(1, &m_RendererID); }
 
     OpenGLIndexBuffer::OpenGLIndexBuffer(const uint32_t* indices, uint32_t count) : m_Count(count)
     {
         glCreateBuffers(1, &m_RendererID);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_RendererID);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(uint32_t), indices, GL_STATIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(uint32_t), indices, GL_DYNAMIC_DRAW);
     }
 
     OpenGLIndexBuffer::~OpenGLIndexBuffer() { glDeleteBuffers(1, &m_RendererID); }
@@ -71,6 +75,8 @@ namespace Engine
     void OpenGLIndexBuffer::UnBind() const { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); }
 
     uint32_t OpenGLIndexBuffer::GetCount() const { return m_Count; };
+
+    void OpenGLIndexBuffer::SetCount(uint32_t count) { m_Count = count; }
 
     OpenGLFrameRenderBuffer::OpenGLFrameRenderBuffer() : m_Width(0), m_Height(0)
     {
@@ -334,7 +340,7 @@ namespace Engine
 
     void OpenGLGeometryBuffer::UnBindTexture(const uint32_t& slot) const { glBindTextureUnit(slot, 0); }
 
-    OpenGLSSAOBuffer::OpenGLSSAOBuffer() : m_Width(0), m_Height(0), m_Radius(1.0f), m_Bias(0.002f), m_Power(1.8f)
+    OpenGLSSAOBuffer::OpenGLSSAOBuffer() : m_Width(0), m_Height(0), m_Radius(1.0f), m_Bias(0.002f), m_Power(1.0f)
     {
         glGenFramebuffers(1, &m_FrameBuffer_RendererID);
         glGenRenderbuffers(1, &m_RenderBuffer_RendererID);

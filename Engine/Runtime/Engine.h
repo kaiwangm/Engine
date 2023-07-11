@@ -15,6 +15,7 @@
 
 #include <Engine/Runtime/GameFramework/Animation/AAnimatedMesh.h>
 #include <Engine/Runtime/GameFramework/Animation/ASkeleton.h>
+#include <Engine/Runtime/GameFramework/Animation/ASkinnedMesh.h>
 
 #include <Engine/Runtime/GameFramework/StaticMesh/AStaticMesh.h>
 #include <Engine/Runtime/GameFramework/StaticMesh/APointCloud.h>
@@ -29,6 +30,7 @@
 #ifdef ENGINE_PLATFORM_WINDOWS
 
 #ifdef ENGINE_USE_ENTRYPOINT
+#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 namespace Engine {
 extern Scope<Application> CreateApplication(int argc, char** argv);
 }
@@ -42,6 +44,23 @@ int main(int argc, char **argv) {
 #endif
 
 #endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

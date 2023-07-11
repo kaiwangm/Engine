@@ -31,10 +31,10 @@ namespace Engine
     {
         // glDrawArrays(GL_TRIANGLES, 0,
         // vertexArray->GetVertexBuffers()[0]->GetCount());
-        glDrawArraysInstanced(GL_TRIANGLES,
-                              0,
-                              vertexArray->GetVertexBuffers()[0]->GetCount(),
-                              vertexArray->GetVertexBuffers()[1]->GetCount());
+        // glDrawArraysInstanced(GL_TRIANGLES,
+        //                       0,
+        //                       vertexArray->GetVertexBuffers()[0]->GetCount(),
+        //                       vertexArray->GetVertexBuffers()[1]->GetCount());
     }
 
     void OpenGLRendererAPI::DrawSkybox(const Ref<VertexArray>& vertexArray)

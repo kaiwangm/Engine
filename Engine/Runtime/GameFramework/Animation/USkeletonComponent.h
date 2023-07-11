@@ -7,7 +7,7 @@
 #include <ozz/animation/runtime/animation.h>
 #include <ozz/base/containers/vector.h>
 #include <ozz/base/maths/simd_math.h>
-#include "ozz/base/maths/vec_float.h"
+#include <ozz/base/maths/vec_float.h>
 
 #include <Engine/Runtime/GameFramework/StaticMesh/UStaticMeshComponent.h>
 #include <vector>
@@ -33,9 +33,11 @@ namespace Engine
     private:
         static bool loadSkeleton(const std::string filename, ozz::animation::Skeleton* skeleton);
         static bool loadAnimation(const std::string filename, ozz::animation::Animation* animation);
+        void        InitSkeleton(const std::string& skeletonPath, const std::string& animationPath);
 
     public:
         USkeletonComponent();
+        USkeletonComponent(const std::string& skeletonPath, const std::string& animationPath);
         ~USkeletonComponent();
 
     public:
@@ -49,5 +51,14 @@ namespace Engine
 
     public:
         int GetNumJoints();
+        ozz::vector<ozz::math::Float4x4>& GetModelsRef() { return models; }
+
+    public:
+        bool m_ShowSkeleton = true;
+
+    public:
+        bool  GetShowSkeleton() const { return m_ShowSkeleton; }
+        bool& GetShowSkeletonRef() { return m_ShowSkeleton; }
+        void  SetShowSkeleton(bool showSkeleton) { m_ShowSkeleton = showSkeleton; }
     };
 } // namespace Engine

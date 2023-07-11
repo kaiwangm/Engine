@@ -139,7 +139,13 @@ namespace Engine
             teapot.GetTransformComponent().SetScale(glm::vec3 {0.6f, 0.6f, 0.6f});
 
             auto skeleton = m_World->AddActor<ASkeleton>("Skeleton");
-            skeleton.GetTransformComponent().SetPosition(glm::vec3 {1.0f, 0.8f, 3.0f});
+            skeleton.GetTransformComponent().SetPosition(glm::vec3 {3.0f, 0.8f, 3.3f});
+
+            auto skinned_mesh = m_World->AddActor<ASkinnedMesh>("SkinnedMesh",
+                                                                "Assets/Editor/Animation/ruby_skeleton.ozz",
+                                                                "Assets/Editor/Animation/ruby_animation.ozz",
+                                                                "Assets/Editor/Animation/ruby_mesh.ozz");
+            skinned_mesh.GetTransformComponent().SetPosition(glm::vec3 {1.0f, 0.8f, 3.3f});
 
             auto light0 = m_World->AddActor<APointLight>("point light_0");
             light0.GetTransformComponent().SetPosition(glm::vec3 {0.0f, 1.5f, 1.5f});

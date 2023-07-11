@@ -149,7 +149,8 @@ namespace Engine
     class VertexBuffer
     {
     public:
-        VertexBuffer(uint32_t count) : m_Count(count) {}
+        VertexBuffer() {}
+        VertexBuffer(uint32_t count) {}
         virtual ~VertexBuffer() = default;
 
         virtual void Bind() const   = 0;
@@ -158,12 +159,11 @@ namespace Engine
         virtual void                SetLayout(const BufferLayout& layout) = 0;
         virtual const BufferLayout& GetLayout() const                     = 0;
 
+        static Ref<VertexBuffer> Create();
         static Ref<VertexBuffer> Create(const void* vertices, uint32_t size, uint32_t count);
 
-        uint32_t GetCount() { return m_Count; }
 
     protected:
-        uint32_t     m_Count;
         BufferLayout layout;
     };
 
@@ -176,7 +176,9 @@ namespace Engine
         virtual void UnBind() const = 0;
 
         virtual uint32_t GetCount() const = 0;
+        virtual void     SetCount(uint32_t count) = 0;
 
+        static Ref<IndexBuffer> Create();
         static Ref<IndexBuffer> Create(const uint32_t* indices, uint32_t count);
     };
 

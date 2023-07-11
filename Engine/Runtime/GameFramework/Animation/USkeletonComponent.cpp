@@ -17,6 +17,7 @@ namespace Engine
             return false;
         }
         ozz::io::IArchive archive(&file);
+
         if (!archive.TestTag<ozz::animation::Skeleton>())
         {
             return false;
@@ -35,6 +36,7 @@ namespace Engine
             return false;
         }
         ozz::io::IArchive archive(&file);
+
         if (!archive.TestTag<ozz::animation::Animation>())
         {
             return false;
@@ -45,11 +47,10 @@ namespace Engine
         return true;
     }
 
-    USkeletonComponent::USkeletonComponent() :
-        m_Joints("Assets/Editor/Object/bone/joint.obj"), m_Bones("Assets/Editor/Object/bone/bone.obj")
+    void USkeletonComponent::InitSkeleton(const std::string& skeletonPath, const std::string& animationPath)
     {
-        loadSkeleton("Assets/Editor/Animation/skeleton.ozz", &skeleton);
-        loadAnimation("Assets/Editor/Animation/animation.ozz", &animation);
+        loadSkeleton(skeletonPath, &skeleton);
+        loadAnimation(animationPath, &animation);
 
         num_soa_joints = skeleton.num_soa_joints();
         num_joints     = skeleton.num_joints();
@@ -64,6 +65,18 @@ namespace Engine
         {
             parents[i] = joint_parents[i];
         }
+    }
+
+    USkeletonComponent::USkeletonComponent() :
+        m_Joints("Assets/Editor/Object/bone/joint.obj"), m_Bones("Assets/Editor/Object/bone/bone.obj")
+    {
+        InitSkeleton("Assets/Editor/Animation/skeleton.ozz", "Assets/Editor/Animation/animation.ozz");
+    }
+
+    USkeletonComponent::USkeletonComponent(const std::string& skeletonPath, const std::string& animationPath) :
+        m_Joints("Assets/Editor/Object/bone/joint.obj"), m_Bones("Assets/Editor/Object/bone/bone.obj")
+    {
+        InitSkeleton(skeletonPath, animationPath);
     }
 
     USkeletonComponent::~USkeletonComponent() {}

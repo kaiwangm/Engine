@@ -9,6 +9,8 @@ add_library(
     Common/UWorld.cpp
     Animation/USkeletonComponent.cpp
     Pawn/UPawnComponent.cpp
+    Animation/USkinnedMeshComponent.cpp
+    Animation/ozz/mesh.cc
 )
 
 target_link_libraries(

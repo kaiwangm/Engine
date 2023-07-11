@@ -9,6 +9,7 @@ namespace Engine
     class OpenGLVertexBuffer : public VertexBuffer
     {
     public:
+        OpenGLVertexBuffer();
         OpenGLVertexBuffer(const void* vertices, uint32_t size, uint32_t count);
         virtual ~OpenGLVertexBuffer();
 
@@ -25,6 +26,7 @@ namespace Engine
     class OpenGLIndexBuffer : public IndexBuffer
     {
     public:
+        OpenGLIndexBuffer();
         OpenGLIndexBuffer(const uint32_t* indices, uint32_t count);
         virtual ~OpenGLIndexBuffer();
 
@@ -32,6 +34,7 @@ namespace Engine
         virtual void UnBind() const override;
 
         virtual uint32_t GetCount() const override;
+        virtual void     SetCount(uint32_t count) override;
 
     private:
         GLuint   m_RendererID;
