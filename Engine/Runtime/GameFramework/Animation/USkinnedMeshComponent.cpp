@@ -274,6 +274,14 @@ namespace Engine
         loadMesh("Assets/Editor/Animation/ruby_mesh.ozz", &meshes);
         prepareMesh();
         m_Skeleton.SetShowSkeleton(false);
+
+        m_Material = new MBasicPbr("BasicPbr");
+
+        MBasicPbr* material = static_cast<MBasicPbr*>(m_Material);
+
+        material->SetAlbedo(glm::vec3(0.9f, 0.9f, 0.9f));
+        material->SetMetallic(0.03f);
+        material->SetRoughness(0.96f);
     }
 
     USkinnedMeshComponent::USkinnedMeshComponent(const std::string& skeletonPath,
@@ -284,6 +292,14 @@ namespace Engine
         loadMesh(meshPath, &meshes);
         prepareMesh();
         m_Skeleton.SetShowSkeleton(false);
+
+        m_Material = new MBasicPbr("BasicPbr");
+
+        MBasicPbr* material = static_cast<MBasicPbr*>(m_Material);
+
+        material->SetAlbedo(glm::vec3(0.9f, 0.9f, 0.9f));
+        material->SetMetallic(0.03f);
+        material->SetRoughness(0.96f);
     }
 
     void USkinnedMeshComponent::Update(float ratio) { m_Skeleton.Update(ratio); }

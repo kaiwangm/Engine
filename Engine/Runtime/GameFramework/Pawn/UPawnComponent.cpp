@@ -46,11 +46,17 @@ namespace Engine
 
         if (initlized == false)
         {
+            m_nowPosition = glm::vec3(0.0f, 0.0f, 0.0f);
+            m_nowMeshPosition = glm::vec3(0.0f, 0.0f, 0.0f);
+
             m_nowDesiredFoward = m_nowCameraFoward;
             m_nowDesiredRight  = m_nowCameraRight;
 
             m_nowPawnFoward = m_nowCameraFoward;
             m_nowPawnRight  = m_nowCameraRight;
+
+            m_nowMeshFoward = m_nowCameraFoward;
+            m_nowMeshRight  = m_nowCameraRight;
 
             initlized = true;
         }
@@ -256,6 +262,42 @@ namespace Engine
             pawnStaticMeshvertexArray->UnBind();
         }
 
+        // draw nowMeshFoward
+        {
+            glm::mat4 translation = glm::translate(glm::mat4(1.0f), m_nowMeshPosition);
+            glm::mat4 rotation    = glm::toMat4(glm::quat(m_nowMeshFoward));
+            glm::mat4 scale       = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+
+            shader->SetMat4("u_ViewProjection", vpMat);
+            shader->SetMat4("u_Transform", translation * rotation * scale);
+            shader->SetFloat3("u_Color", glm::vec3(0.9f, 0.3f, 0.6f));
+
+            vertexArray->Bind();
+            RenderCommand::DrawIndexed(vertexArray);
+            vertexArray->UnBind();
+        }
+
+        // draw nowMeshPosition
+        {
+            glm::mat4 translation = glm::translate(glm::mat4(1.0f), m_nowMeshPosition);
+            glm::mat4 scale       = glm::scale(glm::mat4(1.0f), glm::vec3(0.3f, 0.3f, 0.3f));
+
+            shader->SetMat4("u_ViewProjection", vpMat);
+            shader->SetMat4("u_Transform", translation * scale);
+            shader->SetFloat3("u_Color", glm::vec3(0.9f, 0.3f, 0.9f));
+
+            auto& pawnStaticMeshvertexArray = static_cast<APawn*>(m_Owner)
+                                                  ->GetPawnComponentRef()
+                                                  .GetPawnStaticMeshRef()
+                                                  .GetStaticMesh()
+                                                  .m_Meshes[0]
+                                                  .m_VertexArray;
+            pawnStaticMeshvertexArray->Bind();
+            RenderCommand::DrawIndexed(pawnStaticMeshvertexArray);
+
+            pawnStaticMeshvertexArray->UnBind();
+        }
+
         shader->UnBind();
     }
 
@@ -308,28 +350,31 @@ namespace Engine
             {
                 const glm::quat direction = glm::rotate(cameraFoward, glm::radians(0.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 
-                desiredFoward = glm::slerp(desiredFoward, direction, 7.0f * deltaTime);
+                desiredFoward = glm::slerp(desiredFoward, direction, glm::min(7.0f * deltaTime, 1.0f));
                 isMoved       = true;
             }
             if (Input::IsKeyPressed(GLFW_KEY_S))
             {
-                const glm::quat direction = glm::rotate(cameraFoward, glm::radians(180.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+                const glm::quat direction =
+                    glm::rotate(cameraFoward, glm::radians(180.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 
-                desiredFoward = glm::slerp(desiredFoward, direction, 7.0f * deltaTime);
+                desiredFoward = glm::slerp(desiredFoward, direction, glm::min(7.0f * deltaTime, 1.0f));
                 isMoved       = true;
             }
             if (Input::IsKeyPressed(GLFW_KEY_A))
             {
-                const glm::quat direction = glm::rotate(cameraFoward, glm::radians(270.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+                const glm::quat direction =
+                    glm::rotate(cameraFoward, glm::radians(270.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 
-                desiredFoward = glm::slerp(desiredFoward, direction, 7.0f * deltaTime);
+                desiredFoward = glm::slerp(desiredFoward, direction, glm::min(7.0f * deltaTime, 1.0f));
                 isMoved       = true;
             }
             if (Input::IsKeyPressed(GLFW_KEY_D))
             {
-                const glm::quat direction = glm::rotate(cameraFoward, glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+                const glm::quat direction =
+                    glm::rotate(cameraFoward, glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 
-                desiredFoward = glm::slerp(desiredFoward, direction, 7.0f * deltaTime);
+                desiredFoward = glm::slerp(desiredFoward, direction, glm::min(7.0f * deltaTime, 1.0f));
                 isMoved       = true;
             }
 
@@ -353,14 +398,28 @@ namespace Engine
         // Update trajectory
         if (isMoved == false)
         {
-            desiredFoward = glm::slerp(desiredFoward, pawnFoward, 7.0f * deltaTime);
+            desiredFoward = glm::slerp(desiredFoward, pawnFoward, glm::min(7.0f * deltaTime, 1.0f));
         }
-        desiredRight  = glm::rotate(desiredFoward, glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+        desiredRight = glm::rotate(desiredFoward, glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 
-        pawnPosition = glm::mix(pawnPosition, worldPosition, 7.0f * deltaTime);
+        pawnPosition = glm::mix(pawnPosition, worldPosition, glm::min(10.0f * deltaTime, 1.0f));
 
-        pawnFoward = glm::slerp(pawnFoward, desiredFoward, 7.0f * deltaTime);
+        pawnFoward = glm::slerp(pawnFoward, desiredFoward, glm::min(10.0f * deltaTime, 1.0f));
         pawnRight  = glm::rotate(pawnFoward, glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+
+        // update SkinnedMesh
+        glm::vec3& meshPosition = trajectoryComponent.GetNowMeshPositionRef();
+        glm::quat& meshFoward   = trajectoryComponent.GetNowMeshFowardRef();
+        glm::quat& meshRight    = trajectoryComponent.GetNowMeshRightRef();
+
+        meshPosition = glm::mix(meshPosition, worldPosition, glm::min(7.0f * deltaTime, 1.0f));
+        meshFoward   = glm::slerp(meshFoward, desiredFoward, glm::min(7.0f * deltaTime, 1.0f));
+        meshRight    = glm::rotate(meshFoward, glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+
+        USkinnedMeshComponent& skinnedMeshComponent = aPawn->GetSkinnedMeshComponentRef();
+
+        skinnedMeshComponent.GetTransformComponentRef().SetPosition(meshPosition);
+        skinnedMeshComponent.GetTransformComponentRef().SetRotation(glm::eulerAngles(meshFoward));
 
         // Update camera
         UCameraComponent& cameraComponent = static_cast<APawn*>(m_Owner)->GetCameraComponentRef();

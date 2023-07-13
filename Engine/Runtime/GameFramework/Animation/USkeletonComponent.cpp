@@ -4,7 +4,9 @@
 #include <ozz/animation/runtime/sampling_job.h>
 #include <ozz/animation/runtime/local_to_model_job.h>
 #include <ozz/base/maths/vec_float.h>
+#include <ozz/base/maths/quaternion.h>
 #include <ozz/base/maths/soa_transform.h>
+#include <ozz/base/maths/simd_math.h>
 #include <ozz/base/span.h>
 
 namespace Engine
@@ -94,6 +96,23 @@ namespace Engine
         if (!sampling_job.Run())
         {
             Log::Error("SamplingJob Run Failed.");
+        }
+
+        static bool                     initlized = false;
+        static ozz::math::SoaFloat3     initlized_translations;
+        static ozz::math::SoaQuaternion initlized_rotations;
+        if (!initlized)
+        {
+            ozz::span<const ozz::math::SoaTransform> restpsed = skeleton.joint_rest_poses();
+
+            initlized_translations = restpsed[0].translation;
+            initlized_rotations    = restpsed[0].rotation;
+            initlized              = true;
+        }
+        else
+        {
+            locals[0].translation = initlized_translations;
+            // locals[0].rotation    = initlized_rotations;
         }
 
         // Converts from local space to model space matrices.

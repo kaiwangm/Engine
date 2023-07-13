@@ -3,6 +3,8 @@
 #include <Engine/Runtime/GameFramework/Animation/USkeletonComponent.h>
 #include <Engine/Runtime/Renderer/VertexArray.h>
 
+#include <Engine/Runtime/GameFramework/Material/MBasicPbr.h>
+
 #include <Engine/Runtime/GameFramework/Animation/ozz/mesh.h>
 #include <ozz/base/containers/vector.h>
 #include <ozz/base/maths/math_ex.h>
@@ -26,8 +28,10 @@ namespace Engine
     class USkinnedMeshComponent : public UComponent
     {
     private:
-        USkeletonComponent m_Skeleton;
+        UTransformComponent m_Transform;
+        USkeletonComponent  m_Skeleton;
 
+    private:
         ozz::vector<ozz::sample::Mesh>   meshes;
         size_t                           num_skinning_matrices = 0;
         ozz::vector<ozz::math::Float4x4> skinning_matrices;
@@ -36,6 +40,8 @@ namespace Engine
         std::vector<Ref<VertexBuffer>> m_VertexBuffers;
         std::vector<Ref<IndexBuffer>>  m_IndexBuffers;
         std::vector<Ref<VertexArray>>  m_VertexArrays;
+
+        MMaterial* m_Material;
 
     private:
         static bool loadMesh(const std::string filename, ozz::vector<ozz::sample::Mesh>* _meshes);
@@ -62,7 +68,9 @@ namespace Engine
         void DrawSkinnedMesh(Ref<Shader> skinnedMeshShader, glm::mat4 transform, glm::mat4 projection, glm::mat4 view);
 
     public:
-        USkeletonComponent& GetSkeletonComponentRef() { return m_Skeleton; }
+        USkeletonComponent&  GetSkeletonComponentRef() { return m_Skeleton; }
+        MMaterial*           GetMaterial() { return m_Material; }
+        UTransformComponent& GetTransformComponentRef() { return m_Transform; }
 
     public:
         bool m_ShowSkinnedMesh = true;

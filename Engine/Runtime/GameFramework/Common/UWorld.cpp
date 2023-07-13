@@ -238,6 +238,13 @@ namespace Engine
         glm::mat4 cameraTransform =
             actor_mainCamera->GetTransformComponent().GetTransform() * m_MainCamera->GetTransform();
 
+        // Update Trajectory
+
+        for (auto [entity, name, trans, trajectory] : trajectory_view.each())
+        {
+            trajectory.TickLogic(timeStep, cameraTransform);
+        }
+
         // Update Pawn
 
         for (auto [entity, name, trans, pawn] : pawn_view.each())
@@ -256,14 +263,7 @@ namespace Engine
 
         for (auto [entity, name, trans, skinnedmesh] : skinnedmesh_view.each())
         {
-            skinnedmesh.Update(fmod(0.06 * nowTime, 1.0f));
-        }
-
-        // Update Trajectory
-
-        for (auto [entity, name, trans, trajectory] : trajectory_view.each())
-        {
-            trajectory.TickLogic(timeStep, cameraTransform);
+            skinnedmesh.Update(fmod(0.0015 * nowTime, 1.0f));
         }
     }
 
@@ -347,7 +347,7 @@ namespace Engine
         for (auto [entity, name, trans, skinnedmesh] : skinnedmesh_view.each())
         {
             ASkinnedMesh& skinnedmesh_actor = *static_cast<ASkinnedMesh*>(skinnedmesh.GetOwner());
-            MMaterial*    material          = static_cast<MMaterial*>(skinnedmesh_actor.GetMaterial());
+            MMaterial*    material          = static_cast<MMaterial*>(skinnedmesh.GetMaterial());
             std::string   materialType      = material->GetMaterialType();
 
             if (skinnedmesh_actor.GetVisible() == false)
@@ -363,7 +363,8 @@ namespace Engine
                 MBasicPbr* material_basicPbr = static_cast<MBasicPbr*>(material);
                 material_basicPbr->BindAllMap(skinnedMeshShader);
 
-                skinnedmesh.DrawSkinnedMesh(skinnedMeshShader, trans.GetTransform(), m_PMatrix, m_VMatrix);
+                glm::mat4 transform = skinnedmesh.GetTransformComponentRef().GetTransform();
+                skinnedmesh.DrawSkinnedMesh(skinnedMeshShader, transform, m_PMatrix, m_VMatrix);
 
                 material_basicPbr->UnBindAllMap(skinnedMeshShader);
 
@@ -585,7 +586,7 @@ namespace Engine
                           glm::vec3(1.0f));
         }
 
-        // draw skinned mesh
+        // draw skeleton
         for (auto [entity, name, trans, skinnedmesh] : skinnedmesh_view.each())
         {
             ASkinnedMesh& skinnedmesh_actor = *static_cast<ASkinnedMesh*>(skinnedmesh.GetOwner());
@@ -944,7 +945,7 @@ namespace Engine
                 ImGui::Checkbox("Render Skinned Mesh", &skinnedMeshComponent.GetShowSkinnedMeshRef());
 
                 ASkinnedMesh& skinnedmesh_actor = *static_cast<ASkinnedMesh*>(skinnedMeshComponent.GetOwner());
-                MMaterial*    material          = static_cast<MMaterial*>(skinnedmesh_actor.GetMaterial());
+                MMaterial*    material          = static_cast<MMaterial*>(skinnedMeshComponent.GetMaterial());
 
                 // Material
                 std::string materialType = material->GetMaterialType();
