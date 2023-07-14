@@ -30,6 +30,6 @@ target_link_libraries(
     ozz-animation
 )
 
-target_link_libraries(GameFramework PRIVATE ${PCL_LIBRARIES} OpenVDB::openvdb)
+target_link_libraries(GameFramework PRIVATE ${PCL_LIBRARIES} OpenVDB::openvdb hnswlib::hnswlib)
 
 target_include_directories(GameFramework INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})

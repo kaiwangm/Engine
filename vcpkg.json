@@ -24,6 +24,7 @@
     "sol2",
     "pcl",
     "openvdb",
+    "hnswlib",
     "nativefiledialog",
     "gtest"
   ]
