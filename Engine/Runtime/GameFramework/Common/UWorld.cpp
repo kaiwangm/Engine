@@ -16,6 +16,7 @@
 #include <Engine/Runtime/GameFramework/Animation/UAnimatedMeshComponent.h>
 #include <Engine/Runtime/GameFramework/Animation/USkeletonComponent.h>
 #include <Engine/Runtime/GameFramework/Animation/USkinnedMeshComponent.h>
+#include <Engine/Runtime/GameFramework/Animation/UMotionMatchingComponent.h>
 #include <Engine/Runtime/GameFramework/Skybox/ASkybox.h>
 #include <Engine/Runtime/GameFramework/Camera/ACamera.h>
 #include <Engine/Runtime/GameFramework/Pawn/APawn.h>
@@ -135,12 +136,13 @@ namespace Engine
         float m_CameraTranslationSpeedMouse = 0.5;
         float m_CameraRotationSpeed         = 0.15;
 
-        auto camrea_view      = m_Registry.view<UTagComponent, UTransformComponent, UCameraComponent>();
-        auto pawn_view        = m_Registry.view<UTagComponent, UTransformComponent, UPawnComponent>();
-        auto skeleton_view    = m_Registry.view<UTagComponent, UTransformComponent, USkeletonComponent>();
-        auto trajectory_view  = m_Registry.view<UTagComponent, UTransformComponent, UTrajectoryComponent>();
-        auto light_view       = m_Registry.view<UTagComponent, UTransformComponent, UPointLightComponent>();
-        auto skinnedmesh_view = m_Registry.view<UTagComponent, UTransformComponent, USkinnedMeshComponent>();
+        auto camrea_view         = m_Registry.view<UTagComponent, UTransformComponent, UCameraComponent>();
+        auto pawn_view           = m_Registry.view<UTagComponent, UTransformComponent, UPawnComponent>();
+        auto skeleton_view       = m_Registry.view<UTagComponent, UTransformComponent, USkeletonComponent>();
+        auto trajectory_view     = m_Registry.view<UTagComponent, UTransformComponent, UTrajectoryComponent>();
+        auto light_view          = m_Registry.view<UTagComponent, UTransformComponent, UPointLightComponent>();
+        auto skinnedmesh_view    = m_Registry.view<UTagComponent, UTransformComponent, USkinnedMeshComponent>();
+        auto motionmatching_view = m_Registry.view<UTagComponent, UTransformComponent, UMotionMatchingComponent>();
 
         auto [currentX, currentY] = Input::GetMousePostion();
 
@@ -265,19 +267,27 @@ namespace Engine
         {
             skinnedmesh.Update(fmod(0.0015 * nowTime, 1.0f));
         }
+
+        // Update MotionMatching
+
+        for (auto [entity, name, trans, motionmatching] : motionmatching_view.each())
+        {
+            motionmatching.Update(nowTime, timeStep);
+        }
     }
 
     void UWorld::TickRender(float timeStep)
     {
-        auto camrea_view      = m_Registry.view<UTagComponent, UTransformComponent, UCameraComponent>();
-        auto model_view       = m_Registry.view<UTagComponent, UTransformComponent, UStaticMeshComponent>();
-        auto pointcloud_view  = m_Registry.view<UTagComponent, UTransformComponent, UPointCloudComponent>();
-        auto light_view       = m_Registry.view<UTagComponent, UTransformComponent, UPointLightComponent>();
-        auto skybox_view      = m_Registry.view<UTagComponent, UTransformComponent, USkyboxComponent>();
-        auto skeleton_view    = m_Registry.view<UTagComponent, UTransformComponent, USkeletonComponent>();
-        auto pawn_view        = m_Registry.view<UTagComponent, UTransformComponent, UPawnComponent>();
-        auto trajectory_view  = m_Registry.view<UTagComponent, UTransformComponent, UTrajectoryComponent>();
-        auto skinnedmesh_view = m_Registry.view<UTagComponent, UTransformComponent, USkinnedMeshComponent>();
+        auto camrea_view         = m_Registry.view<UTagComponent, UTransformComponent, UCameraComponent>();
+        auto model_view          = m_Registry.view<UTagComponent, UTransformComponent, UStaticMeshComponent>();
+        auto pointcloud_view     = m_Registry.view<UTagComponent, UTransformComponent, UPointCloudComponent>();
+        auto light_view          = m_Registry.view<UTagComponent, UTransformComponent, UPointLightComponent>();
+        auto skybox_view         = m_Registry.view<UTagComponent, UTransformComponent, USkyboxComponent>();
+        auto skeleton_view       = m_Registry.view<UTagComponent, UTransformComponent, USkeletonComponent>();
+        auto pawn_view           = m_Registry.view<UTagComponent, UTransformComponent, UPawnComponent>();
+        auto trajectory_view     = m_Registry.view<UTagComponent, UTransformComponent, UTrajectoryComponent>();
+        auto skinnedmesh_view    = m_Registry.view<UTagComponent, UTransformComponent, USkinnedMeshComponent>();
+        auto motionmatching_view = m_Registry.view<UTagComponent, UTransformComponent, UMotionMatchingComponent>();
 
         m_GeometryBuffer->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
         m_SSAOBuffer->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
@@ -346,9 +356,41 @@ namespace Engine
         // draw skinned mesh
         for (auto [entity, name, trans, skinnedmesh] : skinnedmesh_view.each())
         {
-            ASkinnedMesh& skinnedmesh_actor = *static_cast<ASkinnedMesh*>(skinnedmesh.GetOwner());
-            MMaterial*    material          = static_cast<MMaterial*>(skinnedmesh.GetMaterial());
-            std::string   materialType      = material->GetMaterialType();
+            APawn&      skinnedmesh_actor = *static_cast<APawn*>(skinnedmesh.GetOwner());
+            MMaterial*  material          = static_cast<MMaterial*>(skinnedmesh.GetMaterial());
+            std::string materialType      = material->GetMaterialType();
+
+            if (skinnedmesh_actor.GetVisible() == false)
+            {
+                continue;
+            }
+
+            if (materialType == "BasicPbr")
+            {
+                auto skinnedMeshShader = m_ShaderLibrary.Get("Skinned");
+                skinnedMeshShader->Bind();
+
+                MBasicPbr* material_basicPbr = static_cast<MBasicPbr*>(material);
+                material_basicPbr->BindAllMap(skinnedMeshShader);
+
+                glm::mat4 transform = skinnedmesh.GetTransformComponentRef().GetTransform();
+                skinnedmesh.DrawSkinnedMesh(skinnedMeshShader, transform, m_PMatrix, m_VMatrix);
+
+                material_basicPbr->UnBindAllMap(skinnedMeshShader);
+
+                skinnedMeshShader->UnBind();
+            }
+        }
+
+        // draw MotionMatching
+
+        for (auto [entity, name, trans, motionmatching] : motionmatching_view.each())
+        {
+            USkinnedMeshComponent& skinnedmesh = motionmatching.GetSkinnedMeshComponentRef();
+
+            APawn&      skinnedmesh_actor = *static_cast<APawn*>(motionmatching.GetOwner());
+            MMaterial*  material          = static_cast<MMaterial*>(skinnedmesh.GetMaterial());
+            std::string materialType      = material->GetMaterialType();
 
             if (skinnedmesh_actor.GetVisible() == false)
             {
@@ -622,6 +664,13 @@ namespace Engine
         {
             auto shader = m_ShaderLibrary.Get("Trajectory");
             trajectory.Draw(shader, m_VPMatrix, trans.GetTransform());
+        }
+
+        // draw motionmatching
+        for (auto [entity, name, trans, motionmatching] : motionmatching_view.each())
+        {
+            auto shader = m_ShaderLibrary.Get("Trajectory");
+            motionmatching.DrawTrajectory(shader, m_VPMatrix, trans.GetTransform());
         }
 
         glEnable(GL_DEPTH_TEST);

@@ -41,6 +41,8 @@ namespace Engine
         std::vector<Ref<IndexBuffer>>  m_IndexBuffers;
         std::vector<Ref<VertexArray>>  m_VertexArrays;
 
+        float m_FrameTime;
+
         MMaterial* m_Material;
 
     private:
@@ -71,6 +73,8 @@ namespace Engine
         USkeletonComponent&  GetSkeletonComponentRef() { return m_Skeleton; }
         MMaterial*           GetMaterial() { return m_Material; }
         UTransformComponent& GetTransformComponentRef() { return m_Transform; }
+        size_t               GetNumSkinningMatrices() const { return num_skinning_matrices; }
+        float                GetFrameTime() const { return m_Skeleton.GetFrameTime(); }
 
     public:
         bool m_ShowSkinnedMesh = true;
@@ -79,5 +83,12 @@ namespace Engine
         bool  GetShowSkinnedMesh() const { return m_ShowSkinnedMesh; }
         bool& GetShowSkinnedMeshRef() { return m_ShowSkinnedMesh; }
         void  SetShowSkinnedMesh(bool showSkinnedMesh) { m_ShowSkinnedMesh = showSkinnedMesh; }
+        bool  GetUseRootMotion() const { return m_Skeleton.GetUseRootMotion(); }
+        bool& GetUseRootMotionRef() { return m_Skeleton.GetUseRootMotionRef(); }
+        void  SetUseRootMotion(bool useRootMotion) { m_Skeleton.SetUseRootMotion(useRootMotion); }
+
+    public:
+        glm::vec3 GetNowRootPosition() const { return m_Skeleton.GetNowRootPosition(); }
+        glm::quat GetNowRootOrientation() const { return m_Skeleton.GetNowRootOrientation(); }
     };
 } // namespace Engine

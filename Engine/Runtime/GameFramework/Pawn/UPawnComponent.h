@@ -11,13 +11,128 @@ namespace Engine
         glm::vec3 m_Position;
         glm::quat m_Orientation;
         float     m_Time;
+
+        static TrajectoryPoint mix(const TrajectoryPoint& a, const TrajectoryPoint& b, float mixFactor)
+        {
+            TrajectoryPoint result;
+
+            result.m_Position    = glm::mix(a.m_Position, b.m_Position, mixFactor);
+            result.m_Orientation = glm::slerp(a.m_Orientation, b.m_Orientation, mixFactor);
+            result.m_Time        = 0.0f;
+
+            return result;
+        }
+    };
+
+    struct TrajectoryPointArray
+    {
+        float                       m_SumTime;
+        std::deque<TrajectoryPoint> m_TrajectoryPoints;
+        std::deque<float>           m_TrajectoryPointsTime;
+
+        TrajectoryPointArray() : m_SumTime(0.0f) {}
+
+        void push_back(TrajectoryPoint point)
+        {
+            m_TrajectoryPoints.push_back(point);
+            m_SumTime += point.m_Time;
+            m_TrajectoryPointsTime.push_back(m_SumTime);
+        }
+
+        void push_front(TrajectoryPoint point)
+        {
+            m_TrajectoryPoints.push_front(point);
+            m_SumTime = 0.0f;
+            m_TrajectoryPointsTime.clear();
+            for (auto& point : m_TrajectoryPoints)
+            {
+                m_SumTime += point.m_Time;
+                m_TrajectoryPointsTime.push_back(m_SumTime);
+            }
+        }
+
+        TrajectoryPoint getTrajectoryPoint(float time)
+        {
+            if (time < 0.0f)
+            {
+                return m_TrajectoryPoints.front();
+            }
+
+            if (time > m_SumTime)
+            {
+                return m_TrajectoryPoints.back();
+            }
+
+            auto it    = std::lower_bound(m_TrajectoryPointsTime.begin(), m_TrajectoryPointsTime.end(), time);
+            int  index = it - m_TrajectoryPointsTime.begin();
+
+            if (index >= m_TrajectoryPoints.size() - 1)
+            {
+                return m_TrajectoryPoints.back();
+            }
+
+            float mixFactor = 1.0 - (m_TrajectoryPointsTime[index] - time) / m_TrajectoryPoints[index].m_Time;
+
+            TrajectoryPoint result = TrajectoryPoint::mix(
+                m_TrajectoryPoints[index], m_TrajectoryPoints[index + 1], glm::min(mixFactor, 1.0f));
+
+            return result;
+        }
+
+        size_t size() { return m_TrajectoryPoints.size(); }
+
+        void clear()
+        {
+            m_SumTime = 0.0f;
+            m_TrajectoryPoints.clear();
+            m_TrajectoryPointsTime.clear();
+        }
+
+        void pop_back()
+        {
+            if (m_TrajectoryPoints.size() == 0)
+            {
+                return;
+            }
+
+            m_TrajectoryPoints.pop_back();
+            m_TrajectoryPointsTime.clear();
+
+            m_SumTime = 0.0f;
+            for (auto& point : m_TrajectoryPoints)
+            {
+                m_SumTime += point.m_Time;
+                m_TrajectoryPointsTime.push_back(m_SumTime);
+            }
+        }
+
+        void pop_front()
+        {
+            if (m_TrajectoryPoints.size() == 0)
+            {
+                return;
+            }
+
+            m_TrajectoryPoints.pop_front();
+            m_TrajectoryPointsTime.clear();
+
+            m_SumTime = 0.0f;
+            for (auto& point : m_TrajectoryPoints)
+            {
+                m_SumTime += point.m_Time;
+                m_TrajectoryPointsTime.push_back(m_SumTime);
+            }
+        }
     };
 
     class UTrajectoryComponent : public UComponent
     {
     private:
-        UStaticMeshComponent        m_TrajectoryStaticMesh;
-        std::deque<TrajectoryPoint> m_TrajecotryPoints;
+        UStaticMeshComponent m_TrajectoryStaticMesh;
+
+    private:
+        TrajectoryPointArray m_TrajectoryPointArray_Back;
+        TrajectoryPointArray m_TrajectoryPointArray_Forward;
 
     public:
         glm::vec3 m_nowPosition = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -36,21 +151,21 @@ namespace Engine
 
         // SkinnedMesh
         glm::vec3 m_nowMeshPosition = glm::vec3(0.0f, 0.0f, 0.0f);
-        glm::quat m_nowMeshFoward = glm::quat(0.0f, 0.0f, 0.0f, 1.0f);
+        glm::quat m_nowMeshFoward   = glm::quat(0.0f, 0.0f, 0.0f, 1.0f);
         glm::quat m_nowMeshRight =
             glm::rotate(glm::quat(0.0f, 0.0f, 0.0f, 1.0f), glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 
-        float m_SampleStep = 0.1f;
-        int   m_SampleNum  = 10;
+        int   m_TrajectorySampleNum  = 15;
+        float m_TrajectorySampleStep = 0.15f;
+        float m_DesiredMoveSpeed     = 0.0f;
 
     public:
         UTrajectoryComponent();
         ~UTrajectoryComponent();
 
     public:
-        TrajectoryPoint GetTrajectoryPoint(float time);
-        void            TickLogic(float deltaTime, const glm::mat4& cameraTransform);
-        void            Draw(Ref<Shader> shader, glm::mat4 vpMat, glm::mat4 transform);
+        void TickLogic(float deltaTime, const glm::mat4& cameraTransform);
+        void Draw(Ref<Shader> shader, glm::mat4 vpMat, glm::mat4 transform);
 
         glm::vec3& GetNowPositionRef() { return m_nowPosition; }
         glm::quat& GetNowPawnFowardRef() { return m_nowPawnFoward; }
@@ -73,6 +188,10 @@ namespace Engine
         void SetNowMeshPosition(const glm::vec3& position) { m_nowMeshPosition = position; }
         void SetNowMeshFoward(const glm::quat& foward) { m_nowMeshFoward = foward; }
         void SetNowMeshRight(const glm::quat& right) { m_nowMeshRight = right; }
+
+        void SetTrajectorySampleNum(int num) { m_TrajectorySampleNum = num; }
+        void SetTrajectorySampleStep(float step) { m_TrajectorySampleStep = step; }
+        void SetDesiredMoveSpeed(float speed) { m_DesiredMoveSpeed = speed; }
     };
 
     class UPawnComponent : public UComponent
@@ -81,13 +200,13 @@ namespace Engine
         UStaticMeshComponent m_PawnStaticMesh;
 
     public:
-        float m_CameraDistance  = 7.0f;
+        float m_CameraDistance  = 8.0f;
         float m_CameraLongitude = glm::radians(90.0f);
         float m_CameraLatitude  = glm::radians(60.0f);
 
         glm::vec3 m_CameraLookAt = glm::vec3(0.0f, 0.8f, 0.0f);
 
-        float m_PawnMoveSpeed     = 7.0f;
+        float m_PawnMoveSpeed     = 1.0f;
         float m_MouseSensitivityX = 0.09f;
         float m_MouseSensitivityY = 0.09f;
 

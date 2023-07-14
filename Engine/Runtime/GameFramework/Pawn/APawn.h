@@ -4,6 +4,7 @@
 #include <Engine/Runtime/GameFramework/Camera/UCameraComponent.h>
 
 #include <Engine/Runtime/GameFramework/Animation/USkinnedMeshComponent.h>
+#include <Engine/Runtime/GameFramework/Animation/UMotionMatchingComponent.h>
 
 namespace Engine
 {
@@ -14,7 +15,8 @@ namespace Engine
         UCameraComponent*     m_Camera;
         UTrajectoryComponent* m_Trajectory;
 
-        USkinnedMeshComponent* m_PawnSkinnedMesh;
+        USkinnedMeshComponent*   m_PawnSkinnedMesh;
+        UMotionMatchingComponent* m_MotionMaching;
 
     public:
         APawn(UWorld* world, entt::entity handle, const std::string& name) : AActor(world, handle, name)
@@ -59,12 +61,17 @@ namespace Engine
             m_PawnSkinnedMesh = m_World->RegisterComponents<USkinnedMeshComponent>(
                 m_EntityHandle, skeletonPath, animationPath, meshPath);
             m_PawnSkinnedMesh->SetOwner(this);
+            m_PawnSkinnedMesh->SetUseRootMotion(false);
+
+            m_MotionMaching = m_World->RegisterComponents<UMotionMatchingComponent>(
+                m_EntityHandle, skeletonPath, animationPath, meshPath);
+            m_MotionMaching->SetOwner(this);
         }
 
         UPawnComponent& GetPawnComponentRef() { return *m_Pawn; }
 
-        UCameraComponent& GetCameraComponentRef() { return *m_Camera; }
-        UTrajectoryComponent& GetTrajectoryComponentRef() { return *m_Trajectory; }
+        UCameraComponent&      GetCameraComponentRef() { return *m_Camera; }
+        UTrajectoryComponent&  GetTrajectoryComponentRef() { return *m_Trajectory; }
         USkinnedMeshComponent& GetSkinnedMeshComponentRef() { return *m_PawnSkinnedMesh; }
     };
 } // namespace Engine

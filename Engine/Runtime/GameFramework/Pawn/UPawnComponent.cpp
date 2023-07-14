@@ -11,11 +11,11 @@ namespace Engine
 
     void UTrajectoryComponent::TickLogic(float deltaTime, const glm::mat4& cameraTransform)
     {
-        m_TrajecotryPoints.push_front({m_nowPosition, m_nowPawnFoward, deltaTime});
+        m_TrajectoryPointArray_Back.push_front({m_nowPosition, m_nowPawnFoward, deltaTime});
 
-        if (m_TrajecotryPoints.size() > 100)
+        if (m_TrajectoryPointArray_Back.size() > 300)
         {
-            m_TrajecotryPoints.pop_back();
+            m_TrajectoryPointArray_Back.pop_back();
         }
 
         glm::vec3 target       = cameraTransform * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
@@ -40,13 +40,13 @@ namespace Engine
         static bool initlized = false;
 
         m_nowCameraFoward =
-            glm::quat(glm::rotate(glm::mat4(1.0f), rotateAngleY + glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
+            glm::quat(glm::rotate(glm::mat4(1.0f), rotateAngleY + glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
 
         m_nowCameraRight = glm::rotate(m_nowCameraFoward, glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 
         if (initlized == false)
         {
-            m_nowPosition = glm::vec3(0.0f, 0.0f, 0.0f);
+            m_nowPosition     = glm::vec3(0.0f, 0.0f, 0.0f);
             m_nowMeshPosition = glm::vec3(0.0f, 0.0f, 0.0f);
 
             m_nowDesiredFoward = m_nowCameraFoward;
@@ -60,68 +60,65 @@ namespace Engine
 
             initlized = true;
         }
-    }
 
-    TrajectoryPoint UTrajectoryComponent::GetTrajectoryPoint(float time)
-    {
-        float           sumTime = 0.0f;
-        TrajectoryPoint result;
+        float distance = glm::distance(
+            m_TrajectoryPointArray_Back.getTrajectoryPoint(m_TrajectorySampleStep).m_Position, m_nowPosition);
+        float pawnMoveSpeed = distance / m_TrajectorySampleStep;
 
-        if (m_TrajecotryPoints.size() <= 1)
+        m_TrajectoryPointArray_Forward.clear();
+        m_TrajectoryPointArray_Forward.push_front({m_nowPosition, m_nowPawnFoward, deltaTime});
+        for (int i = 1; i < m_TrajectorySampleNum * 2; ++i)
         {
-            UTransformComponent& transformComponent = static_cast<AActor*>(m_Owner)->GetTransformComponent();
+            float nowTime = i * m_TrajectorySampleStep;
+            float nowSpeed =
+                glm::mix(pawnMoveSpeed, m_DesiredMoveSpeed, glm::min((float)i / 2.0f / m_TrajectorySampleNum, 1.0f));
 
-            result.m_Position    = transformComponent.GetPosition();
-            result.m_Orientation = transformComponent.GetRotation();
-            result.m_Time        = m_SampleStep;
+            glm::quat mixForward =
+                glm::slerp(m_nowPawnFoward, m_nowDesiredFoward, (float)i * 5.0f / m_TrajectorySampleNum);
+            glm::quat mixRight =
+                glm::slerp(m_nowPawnRight, m_nowDesiredRight, (float)i * 5.0f / m_TrajectorySampleNum);
+            glm::vec3 movement = glm::vec3(glm::mat4(mixRight) * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f));
 
-            return result;
+            float           lastTime     = (i - 1) * m_TrajectorySampleStep;
+            glm::vec3       lastPosition = m_TrajectoryPointArray_Forward.getTrajectoryPoint(lastTime).m_Position;
+            TrajectoryPoint trajectoryPoint {
+                lastPosition + movement * nowSpeed * m_TrajectorySampleStep, mixForward, m_TrajectorySampleStep};
+
+            m_TrajectoryPointArray_Forward.push_back(trajectoryPoint);
         }
-
-        for (int i = 0; i < m_TrajecotryPoints.size() - 1; ++i)
-        {
-            sumTime += m_TrajecotryPoints[i].m_Time;
-
-            if (sumTime >= time)
-            {
-                glm::vec3 position_a = m_TrajecotryPoints[i].m_Position;
-                glm::vec3 position_b = m_TrajecotryPoints[i + 1].m_Position;
-
-                glm::quat orientation_a = m_TrajecotryPoints[i].m_Orientation;
-                glm::quat orientation_b = m_TrajecotryPoints[i + 1].m_Orientation;
-
-                float mixFactor = 1.0 - (sumTime - time) / m_TrajecotryPoints[i].m_Time;
-
-                result.m_Position            = glm::mix(position_a, position_b, mixFactor);
-                glm::quat orientation_a_quat = glm::slerp(orientation_a, orientation_b, mixFactor);
-                result.m_Orientation         = glm::eulerAngles(orientation_a_quat);
-                result.m_Time                = m_SampleStep;
-
-                break;
-            }
-        }
-
-        if (sumTime < time)
-        {
-            result.m_Position    = m_TrajecotryPoints.back().m_Position;
-            result.m_Orientation = m_TrajecotryPoints.back().m_Orientation;
-            result.m_Time        = m_SampleStep;
-        }
-
-        return result;
     }
 
     void UTrajectoryComponent::Draw(Ref<Shader> shader, glm::mat4 vpMat, glm::mat4 transform)
     {
-        auto& vertexArray = m_TrajectoryStaticMesh.GetStaticMesh().m_Meshes[0].m_VertexArray;
+        auto&                       vertexArray = m_TrajectoryStaticMesh.GetStaticMesh().m_Meshes[0].m_VertexArray;
+        std::deque<TrajectoryPoint> m_TrajecotryPoints_Back;
+        std::deque<TrajectoryPoint> m_TrajecotryPoints_Forward;
+
+        // back
+        for (int i = 0; i < m_TrajectorySampleNum; ++i)
+        {
+            float           nowTime         = i * m_TrajectorySampleStep;
+            TrajectoryPoint trajectoryPoint = m_TrajectoryPointArray_Back.getTrajectoryPoint(nowTime);
+
+            m_TrajecotryPoints_Back.push_back(trajectoryPoint);
+        }
+
+        // forward
+        for (int i = 0; i < m_TrajectorySampleNum; ++i)
+        {
+            float           nowTime         = i * m_TrajectorySampleStep;
+            TrajectoryPoint trajectoryPoint = m_TrajectoryPointArray_Forward.getTrajectoryPoint(nowTime);
+
+            m_TrajecotryPoints_Forward.push_back(trajectoryPoint);
+        }
 
         shader->Bind();
 
-        // draw axis
-        for (int i = 1; i < m_SampleNum; ++i)
+        // draw axis back
+        for (int i = 1; i < m_TrajectorySampleNum; ++i)
         {
-            float           nowTime         = i * m_SampleStep;
-            TrajectoryPoint trajectoryPoint = GetTrajectoryPoint(nowTime);
+            float           nowTime         = i * m_TrajectorySampleStep;
+            TrajectoryPoint trajectoryPoint = m_TrajecotryPoints_Back[i];
 
             glm::mat4 translation = glm::translate(glm::mat4(1.0f), trajectoryPoint.m_Position);
             glm::mat4 rotation    = glm::toMat4(glm::quat(trajectoryPoint.m_Orientation));
@@ -170,11 +167,67 @@ namespace Engine
             }
         }
 
-        // draw nowPawnFoward
+        // draw axis forward
+        for (int i = 1; i < m_TrajectorySampleNum; ++i)
+        {
+            float           nowTime         = i * m_TrajectorySampleStep;
+            TrajectoryPoint trajectoryPoint = m_TrajecotryPoints_Forward[i];
+
+            glm::mat4 translation = glm::translate(glm::mat4(1.0f), trajectoryPoint.m_Position);
+            glm::mat4 rotation    = glm::toMat4(glm::quat(trajectoryPoint.m_Orientation));
+            glm::mat4 scale       = glm::scale(glm::mat4(1.0f), glm::vec3(0.3f, 1.0f, 1.0f));
+
+            glm::mat4 rotationX =
+                rotation * glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+            glm::mat4 rotationY =
+                rotation * glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+            glm::mat4 rotationZ =
+                rotation * glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+            shader->SetMat4("u_ViewProjection", vpMat);
+
+            // axis x
+            {
+                glm::mat4 localTransform = translation * rotationX * scale;
+                shader->SetMat4("u_Transform", localTransform);
+                shader->SetFloat3("u_Color", glm::vec3(0.5f, 0.0f, 0.0f));
+
+                vertexArray->Bind();
+                RenderCommand::DrawIndexed(vertexArray);
+                vertexArray->UnBind();
+            }
+
+            // axis y
+            {
+                glm::mat4 localTransform = translation * rotationY * scale;
+                shader->SetMat4("u_Transform", localTransform);
+                shader->SetFloat3("u_Color", glm::vec3(0.0f, 0.5f, 0.0f));
+
+                vertexArray->Bind();
+                RenderCommand::DrawIndexed(vertexArray);
+                vertexArray->UnBind();
+            }
+
+            // axis z
+            {
+                glm::mat4 localTransform = translation * rotationZ * scale;
+                shader->SetMat4("u_Transform", localTransform);
+                shader->SetFloat3("u_Color", glm::vec3(0.0f, 0.0f, 0.5f));
+
+                vertexArray->Bind();
+                RenderCommand::DrawIndexed(vertexArray);
+                vertexArray->UnBind();
+            }
+        }
+
+        // draw nowPawnFoward (x axis)
         {
             glm::mat4 translation = glm::translate(glm::mat4(1.0f), m_nowPosition);
             glm::mat4 rotation    = glm::toMat4(glm::quat(m_nowPawnFoward));
             glm::mat4 scale       = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+
+            // show z axis
+            rotation = glm::rotate(rotation, glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 
             shader->SetMat4("u_ViewProjection", vpMat);
             shader->SetMat4("u_Transform", translation * rotation * scale);
@@ -185,11 +238,14 @@ namespace Engine
             vertexArray->UnBind();
         }
 
-        // draw nowCameraFoward
+        // draw nowCameraFoward (x axis)
         {
             glm::mat4 translation = glm::translate(glm::mat4(1.0f), m_nowPosition);
             glm::mat4 rotation    = glm::toMat4(glm::quat(m_nowCameraFoward));
             glm::mat4 scale       = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+
+            // show z axis
+            rotation = glm::rotate(rotation, glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 
             shader->SetMat4("u_ViewProjection", vpMat);
             shader->SetMat4("u_Transform", translation * rotation * scale);
@@ -200,11 +256,14 @@ namespace Engine
             vertexArray->UnBind();
         }
 
-        // draw nowDesiredFoward
+        // draw nowDesiredFoward (x axis)
         {
             glm::mat4 translation = glm::translate(glm::mat4(1.0f), m_nowPosition);
             glm::mat4 rotation    = glm::toMat4(glm::quat(m_nowDesiredFoward));
             glm::mat4 scale       = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+
+            // show z axis
+            rotation = glm::rotate(rotation, glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 
             shader->SetMat4("u_ViewProjection", vpMat);
             shader->SetMat4("u_Transform", translation * rotation * scale);
@@ -215,14 +274,40 @@ namespace Engine
             vertexArray->UnBind();
         }
 
-        // draw trajectory
-        for (int i = 0; i < m_SampleNum; ++i)
+        // draw trajectory back
+        for (int i = 0; i < m_TrajectorySampleNum - 1; ++i)
         {
-            float nowTime  = i * m_SampleStep;
-            float nextTime = (i + 1) * m_SampleStep;
+            float nowTime  = i * m_TrajectorySampleStep;
+            float nextTime = (i + 1) * m_TrajectorySampleStep;
 
-            TrajectoryPoint trajectoryPoint     = GetTrajectoryPoint(nowTime);
-            TrajectoryPoint nextTrajectoryPoint = GetTrajectoryPoint(nextTime);
+            TrajectoryPoint trajectoryPoint     = m_TrajecotryPoints_Back[i];
+            TrajectoryPoint nextTrajectoryPoint = m_TrajecotryPoints_Back[i + 1];
+
+            glm::vec3 vecDir   = nextTrajectoryPoint.m_Position - trajectoryPoint.m_Position;
+            float     distance = glm::length(vecDir);
+            vecDir             = glm::normalize(vecDir);
+
+            glm::mat4 translation = glm::translate(glm::mat4(1.0f), trajectoryPoint.m_Position);
+            glm::mat4 rotation    = glm::toMat4(glm::quat(glm::vec3(1.0f, 0.0f, 0.0f), vecDir));
+            glm::mat4 scale       = glm::scale(glm::mat4(1.0f), glm::vec3(distance, 1.0f, 1.0f));
+
+            shader->SetMat4("u_ViewProjection", vpMat);
+            shader->SetMat4("u_Transform", translation * rotation * scale);
+            shader->SetFloat3("u_Color", glm::vec3(0.9f, 0.9f, 0.9f));
+
+            vertexArray->Bind();
+            RenderCommand::DrawIndexed(vertexArray);
+            vertexArray->UnBind();
+        }
+
+        // draw trajectory forward
+        for (int i = 0; i < m_TrajectorySampleNum - 1; ++i)
+        {
+            float nowTime  = i * m_TrajectorySampleStep;
+            float nextTime = (i + 1) * m_TrajectorySampleStep;
+
+            TrajectoryPoint trajectoryPoint     = m_TrajecotryPoints_Forward[i];
+            TrajectoryPoint nextTrajectoryPoint = m_TrajecotryPoints_Forward[i + 1];
 
             glm::vec3 vecDir   = nextTrajectoryPoint.m_Position - trajectoryPoint.m_Position;
             float     distance = glm::length(vecDir);
@@ -262,11 +347,14 @@ namespace Engine
             pawnStaticMeshvertexArray->UnBind();
         }
 
-        // draw nowMeshFoward
+        // draw nowMeshFoward (x axis)
         {
             glm::mat4 translation = glm::translate(glm::mat4(1.0f), m_nowMeshPosition);
             glm::mat4 rotation    = glm::toMat4(glm::quat(m_nowMeshFoward));
             glm::mat4 scale       = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+
+            // show z axis
+            rotation = glm::rotate(rotation, glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 
             shader->SetMat4("u_ViewProjection", vpMat);
             shader->SetMat4("u_Transform", translation * rotation * scale);
@@ -340,8 +428,7 @@ namespace Engine
         const glm::quat& nowPawnRight  = trajectoryComponent.GetNowPawnRightRef();
 
         glm::vec3 movement = glm::vec3(0.0f);
-        glm::vec3 forward  = glm::vec3(glm::mat4(nowPawnFoward) * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f));
-        glm::vec3 right    = glm::vec3(glm::mat4(nowPawnRight) * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f));
+        glm::vec3 forward  = glm::vec3(glm::mat4(nowPawnRight) * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f));
 
         bool isMoved = false;
         if (actor->GetIsControlled())
@@ -382,6 +469,11 @@ namespace Engine
             {
                 movement += forward;
                 movement = glm::normalize(movement);
+                trajectoryComponent.SetDesiredMoveSpeed(m_PawnMoveSpeed);
+            }
+            else
+            {
+                trajectoryComponent.SetDesiredMoveSpeed(0.0f);
             }
 
             if (Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_2))

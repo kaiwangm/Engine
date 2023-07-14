@@ -11,6 +11,7 @@ add_library(
     Pawn/UPawnComponent.cpp
     Animation/USkinnedMeshComponent.cpp
     Animation/ozz/mesh.cc
+    Animation/UMotionMatchingComponent.cpp
 )
 
 target_link_libraries(

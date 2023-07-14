@@ -67,6 +67,8 @@ namespace Engine
         {
             parents[i] = joint_parents[i];
         }
+
+        m_FrameTime = animation.duration();
     }
 
     USkeletonComponent::USkeletonComponent() :
@@ -111,8 +113,11 @@ namespace Engine
         }
         else
         {
-            locals[0].translation = initlized_translations;
-            // locals[0].rotation    = initlized_rotations;
+            if (m_UseRootMotion == false)
+            {
+                locals[0].translation = initlized_translations;
+                locals[0].rotation    = initlized_rotations;
+            }
         }
 
         // Converts from local space to model space matrices.
