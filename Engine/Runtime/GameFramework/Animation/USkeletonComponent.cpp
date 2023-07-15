@@ -116,7 +116,7 @@ namespace Engine
             if (m_UseRootMotion == false)
             {
                 locals[0].translation = initlized_translations;
-                locals[0].rotation    = initlized_rotations;
+                // locals[0].rotation    = initlized_rotations;
             }
         }
 
@@ -240,4 +240,32 @@ namespace Engine
     }
 
     int USkeletonComponent::GetNumJoints() { return num_joints; }
+
+    std::vector<std::array<float, 7>> USkeletonComponent::GetNowPose()
+    {
+        std::vector<std::array<float, 7>> result;
+
+        for (int i = 0; i < locals.size(); ++i)
+        {
+            std::function<float(const ozz::math::SimdFloat4&)> getFloat = [&](const ozz::math::SimdFloat4& simdFloat4) {
+                float result[4];
+                _mm_store_ps(result, simdFloat4);
+                return result[0];
+            };
+
+            std::array<float, 7> joint {
+                getFloat(locals[i].translation.x),
+                getFloat(locals[i].translation.y),
+                getFloat(locals[i].translation.z),
+                getFloat(locals[i].rotation.x),
+                getFloat(locals[i].rotation.y),
+                getFloat(locals[i].rotation.z),
+                getFloat(locals[i].rotation.w),
+            };
+
+            result.push_back(joint);
+        }
+
+        return result;
+    }
 } // namespace Engine

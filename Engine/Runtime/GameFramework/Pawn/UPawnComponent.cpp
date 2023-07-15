@@ -11,7 +11,8 @@ namespace Engine
 
     void UTrajectoryComponent::TickLogic(float deltaTime, const glm::mat4& cameraTransform)
     {
-        m_TrajectoryPointArray_Back.push_front({m_nowPosition, m_nowPawnFoward, deltaTime});
+        m_TrajectoryPointArray_Back.push_front(
+            {m_nowPosition, m_nowPawnFoward, glm::vec3(0.0f, 0.0f, 0.0f), deltaTime});
 
         if (m_TrajectoryPointArray_Back.size() > 300)
         {
@@ -66,7 +67,8 @@ namespace Engine
         float pawnMoveSpeed = distance / m_TrajectorySampleStep;
 
         m_TrajectoryPointArray_Forward.clear();
-        m_TrajectoryPointArray_Forward.push_front({m_nowPosition, m_nowPawnFoward, deltaTime});
+        m_TrajectoryPointArray_Forward.push_front(
+            {m_nowPosition, m_nowPawnFoward, glm::vec3(0.0f, 0.0f, 0.0f), deltaTime});
         for (int i = 1; i < m_TrajectorySampleNum * 2; ++i)
         {
             float nowTime = i * m_TrajectorySampleStep;
@@ -75,17 +77,65 @@ namespace Engine
 
             glm::quat mixForward =
                 glm::slerp(m_nowPawnFoward, m_nowDesiredFoward, (float)i * 5.0f / m_TrajectorySampleNum);
-            glm::quat mixRight =
-                glm::slerp(m_nowPawnRight, m_nowDesiredRight, (float)i * 5.0f / m_TrajectorySampleNum);
+            glm::quat mixRight = glm::slerp(m_nowPawnRight, m_nowDesiredRight, (float)i * 5.0f / m_TrajectorySampleNum);
             glm::vec3 movement = glm::vec3(glm::mat4(mixRight) * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f));
 
             float           lastTime     = (i - 1) * m_TrajectorySampleStep;
             glm::vec3       lastPosition = m_TrajectoryPointArray_Forward.getTrajectoryPoint(lastTime).m_Position;
-            TrajectoryPoint trajectoryPoint {
-                lastPosition + movement * nowSpeed * m_TrajectorySampleStep, mixForward, m_TrajectorySampleStep};
+            TrajectoryPoint trajectoryPoint {lastPosition + movement * nowSpeed * m_TrajectorySampleStep,
+                                             mixForward,
+                                             glm::vec3(0.0f, 0.0f, 0.0f),
+                                             m_TrajectorySampleStep};
 
             m_TrajectoryPointArray_Forward.push_back(trajectoryPoint);
         }
+
+        // knn search
+        std::deque<TrajectoryPoint> m_TrajecotryPoints_Back;
+        std::deque<TrajectoryPoint> m_TrajecotryPoints_Forward;
+
+        // back
+        for (int i = 0; i < m_TrajectorySampleNum; ++i)
+        {
+            float           nowTime         = i * m_TrajectorySampleStep;
+            TrajectoryPoint trajectoryPoint = m_TrajectoryPointArray_Back.getTrajectoryPoint(nowTime);
+
+            m_TrajecotryPoints_Back.push_back(trajectoryPoint);
+        }
+
+        // forward
+        for (int i = 0; i < m_TrajectorySampleNum; ++i)
+        {
+            float           nowTime         = i * m_TrajectorySampleStep;
+            TrajectoryPoint trajectoryPoint = m_TrajectoryPointArray_Forward.getTrajectoryPoint(nowTime);
+
+            m_TrajecotryPoints_Forward.push_back(trajectoryPoint);
+        }
+
+        UMotionMatchingComponent& motionMatchingComponent =
+            static_cast<APawn*>(m_Owner)->GetMotionMatchingComponentRef();
+        USkinnedMeshComponent& skinnedMeshComponent = static_cast<APawn*>(m_Owner)->GetSkinnedMeshComponentRef();
+
+        static float                      accumTime = 0.0f;
+        std::vector<std::array<float, 7>> nowPose   = skinnedMeshComponent.GetNowPose();
+        float                             nowPhase =
+            glm::sin(m_SearchResult.nowRatio * motionMatchingComponent.GetFrameTime() * glm::pi<float>() * 2.0f);
+        KnnResult result =
+            motionMatchingComponent.Search(m_TrajecotryPoints_Back, m_TrajecotryPoints_Forward, nowPose, nowPhase);
+
+        float nowTime    = m_SearchResult.nowRatio * motionMatchingComponent.GetFrameTime();
+        float resultTime = result.nowRatio * motionMatchingComponent.GetFrameTime();
+
+        if (accumTime > 5.5f || (accumTime > 0.08f && accumTime < 5.5f && result.loss < 100000.0f &&
+                                 (resultTime - nowTime < -0.8f || resultTime - nowTime > 0.08f)))
+        {
+            Log::Info("nowTime: {}, resultTime: {}, loss: {}", nowTime, resultTime, result.loss);
+            m_SearchResult = result;
+            accumTime      = 0.0f;
+        }
+        float nowRatio = deltaTime / motionMatchingComponent.GetFrameTime();
+        m_SearchResult = {m_SearchResult.index, m_SearchResult.nowRatio + nowRatio};
+        accumTime += deltaTime;
     }
 
     void UTrajectoryComponent::Draw(Ref<Shader> shader, glm::mat4 vpMat, glm::mat4 transform)
@@ -511,7 +561,7 @@ namespace Engine
         USkinnedMeshComponent& skinnedMeshComponent = aPawn->GetSkinnedMeshComponentRef();
 
         skinnedMeshComponent.GetTransformComponentRef().SetPosition(meshPosition);
-        skinnedMeshComponent.GetTransformComponentRef().SetRotation(glm::eulerAngles(meshFoward));
+        // skinnedMeshComponent.GetTransformComponentRef().SetRotation(glm::eulerAngles(meshFoward));
 
         // Update camera
         UCameraComponent& cameraComponent = static_cast<APawn*>(m_Owner)->GetCameraComponentRef();
@@ -529,6 +579,10 @@ namespace Engine
 
         cameraComponent.SetPosition(position);
         cameraComponent.SetRotation(orientation);
+
+        // update skinnedMesh
+        skinnedMeshComponent.Update(trajectoryComponent.GetSearchResult().nowRatio +
+                                    deltaTime / skinnedMeshComponent.GetFrameTime());
     }
 
     void UPawnComponent::Draw(Ref<Shader> shader, glm::mat4 vpMat, glm::mat4 transform)

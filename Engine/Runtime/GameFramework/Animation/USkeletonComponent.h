@@ -96,5 +96,7 @@ namespace Engine
 
             return q;
         }
+
+        std::vector<std::array<float, 7>> GetNowPose();
     };
 } // namespace Engine

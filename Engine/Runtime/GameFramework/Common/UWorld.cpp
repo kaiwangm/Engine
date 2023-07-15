@@ -247,13 +247,6 @@ namespace Engine
             trajectory.TickLogic(timeStep, cameraTransform);
         }
 
-        // Update Pawn
-
-        for (auto [entity, name, trans, pawn] : pawn_view.each())
-        {
-            pawn.TickLogic(timeStep);
-        }
-
         // Update Skeleton
 
         for (auto [entity, name, trans, skeleton] : skeleton_view.each())
@@ -273,6 +266,13 @@ namespace Engine
         for (auto [entity, name, trans, motionmatching] : motionmatching_view.each())
         {
             motionmatching.Update(nowTime, timeStep);
+        }
+
+        // Update Pawn
+
+        for (auto [entity, name, trans, pawn] : pawn_view.each())
+        {
+            pawn.TickLogic(timeStep);
         }
     }
 

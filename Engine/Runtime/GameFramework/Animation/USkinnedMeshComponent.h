@@ -41,8 +41,6 @@ namespace Engine
         std::vector<Ref<IndexBuffer>>  m_IndexBuffers;
         std::vector<Ref<VertexArray>>  m_VertexArrays;
 
-        float m_FrameTime;
-
         MMaterial* m_Material;
 
     private:
@@ -88,7 +86,8 @@ namespace Engine
         void  SetUseRootMotion(bool useRootMotion) { m_Skeleton.SetUseRootMotion(useRootMotion); }
 
     public:
-        glm::vec3 GetNowRootPosition() const { return m_Skeleton.GetNowRootPosition(); }
-        glm::quat GetNowRootOrientation() const { return m_Skeleton.GetNowRootOrientation(); }
+        glm::vec3                         GetNowRootPosition() const { return m_Skeleton.GetNowRootPosition(); }
+        glm::quat                         GetNowRootOrientation() const { return m_Skeleton.GetNowRootOrientation(); }
+        std::vector<std::array<float, 7>> GetNowPose() { return m_Skeleton.GetNowPose(); }
     };
 } // namespace Engine

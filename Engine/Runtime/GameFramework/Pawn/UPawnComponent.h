@@ -10,7 +10,9 @@ namespace Engine
     {
         glm::vec3 m_Position;
         glm::quat m_Orientation;
-        float     m_Time;
+        glm::vec3 m_Velocity;
+
+        float m_Time;
 
         static TrajectoryPoint mix(const TrajectoryPoint& a, const TrajectoryPoint& b, float mixFactor)
         {
@@ -18,7 +20,9 @@ namespace Engine
 
             result.m_Position    = glm::mix(a.m_Position, b.m_Position, mixFactor);
             result.m_Orientation = glm::slerp(a.m_Orientation, b.m_Orientation, mixFactor);
-            result.m_Time        = 0.0f;
+            result.m_Velocity    = glm::mix(a.m_Velocity, b.m_Velocity, mixFactor);
+
+            result.m_Time = 0.0f;
 
             return result;
         }
@@ -73,8 +77,11 @@ namespace Engine
 
             float mixFactor = 1.0 - (m_TrajectoryPointsTime[index] - time) / m_TrajectoryPoints[index].m_Time;
 
+            glm::vec3 velocity = (m_TrajectoryPoints[index + 1].m_Position - m_TrajectoryPoints[index].m_Position) /
+                                 m_TrajectoryPoints[index].m_Time;
             TrajectoryPoint result = TrajectoryPoint::mix(
                 m_TrajectoryPoints[index], m_TrajectoryPoints[index + 1], glm::min(mixFactor, 1.0f));
+            result.m_Velocity = velocity;
 
             return result;
         }
@@ -125,6 +132,13 @@ namespace Engine
         }
     };
 
+    struct KnnResult
+    {
+        int   index;
+        float nowRatio;
+        float loss;
+    };
+
     class UTrajectoryComponent : public UComponent
     {
     private:
@@ -133,6 +147,7 @@ namespace Engine
     private:
         TrajectoryPointArray m_TrajectoryPointArray_Back;
         TrajectoryPointArray m_TrajectoryPointArray_Forward;
+        KnnResult            m_SearchResult;
 
     public:
         glm::vec3 m_nowPosition = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -155,7 +170,7 @@ namespace Engine
         glm::quat m_nowMeshRight =
             glm::rotate(glm::quat(0.0f, 0.0f, 0.0f, 1.0f), glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 
-        int   m_TrajectorySampleNum  = 15;
+        int   m_TrajectorySampleNum  = 10;
         float m_TrajectorySampleStep = 0.15f;
         float m_DesiredMoveSpeed     = 0.0f;
 
@@ -192,6 +207,8 @@ namespace Engine
         void SetTrajectorySampleNum(int num) { m_TrajectorySampleNum = num; }
         void SetTrajectorySampleStep(float step) { m_TrajectorySampleStep = step; }
         void SetDesiredMoveSpeed(float speed) { m_DesiredMoveSpeed = speed; }
+
+        KnnResult GetSearchResult() { return m_SearchResult; }
     };
 
     class UPawnComponent : public UComponent
@@ -206,7 +223,7 @@ namespace Engine
 
         glm::vec3 m_CameraLookAt = glm::vec3(0.0f, 0.8f, 0.0f);
 
-        float m_PawnMoveSpeed     = 1.0f;
+        float m_PawnMoveSpeed     = 1.35f;
         float m_MouseSensitivityX = 0.09f;
         float m_MouseSensitivityY = 0.09f;
 

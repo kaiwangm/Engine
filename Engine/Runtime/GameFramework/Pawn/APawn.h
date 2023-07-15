@@ -15,7 +15,7 @@ namespace Engine
         UCameraComponent*     m_Camera;
         UTrajectoryComponent* m_Trajectory;
 
-        USkinnedMeshComponent*   m_PawnSkinnedMesh;
+        USkinnedMeshComponent*    m_PawnSkinnedMesh;
         UMotionMatchingComponent* m_MotionMaching;
 
     public:
@@ -68,10 +68,10 @@ namespace Engine
             m_MotionMaching->SetOwner(this);
         }
 
-        UPawnComponent& GetPawnComponentRef() { return *m_Pawn; }
-
-        UCameraComponent&      GetCameraComponentRef() { return *m_Camera; }
-        UTrajectoryComponent&  GetTrajectoryComponentRef() { return *m_Trajectory; }
-        USkinnedMeshComponent& GetSkinnedMeshComponentRef() { return *m_PawnSkinnedMesh; }
+        UPawnComponent&           GetPawnComponentRef() { return *m_Pawn; }
+        UCameraComponent&         GetCameraComponentRef() { return *m_Camera; }
+        UTrajectoryComponent&     GetTrajectoryComponentRef() { return *m_Trajectory; }
+        USkinnedMeshComponent&    GetSkinnedMeshComponentRef() { return *m_PawnSkinnedMesh; }
+        UMotionMatchingComponent& GetMotionMatchingComponentRef() { return *m_MotionMaching; }
     };
 } // namespace Engine
