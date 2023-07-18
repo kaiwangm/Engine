@@ -270,7 +270,9 @@ namespace Engine
     private:
         TrajectoryPointArray m_TrajectoryPointArray_Back;
         TrajectoryPointArray m_TrajectoryPointArray_Forward;
-        KnnResult            m_SearchResult;
+        KnnResult            m_SearchResult{
+            0, 0.0f, 0.0f,
+        };
 
     public:
         glm::vec3 m_nowPosition = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -346,7 +348,7 @@ namespace Engine
 
         glm::vec3 m_CameraLookAt = glm::vec3(0.0f, 0.8f, 0.0f);
 
-        float m_PawnMoveSpeed     = 1.35f;
+        float m_PawnMoveSpeed     = 1.0f;
         float m_MouseSensitivityX = 0.09f;
         float m_MouseSensitivityY = 0.09f;
 

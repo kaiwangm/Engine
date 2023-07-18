@@ -38,11 +38,17 @@ namespace Engine
 
             m_World->AddActor<AActor>("Actor");
 
+            const std::vector<std::string> animation_filepaths {
+                "Assets/Editor/Animation/geula/geula_walk1_subject1.ozz",
+                "Assets/Editor/Animation/geula/geula_walk1_subject2.ozz",
+                "Assets/Editor/Animation/geula/geula_walk1_subject5.ozz",
+            };
+
             auto apawn = m_World->AddActor<APawn>("pawn",
-                                                  "Assets/Editor/Animation/lafan/skeleton.ozz",
-                                                  "Assets/Editor/Animation/lafan/animcraft_anim1.ozz",
-                                                  "Assets/Editor/Animation/lafan/lafan.ozz");
-            apawn.GetTransformComponent().SetPosition(glm::vec3 {1.0f, 0.15f, 3.3f});
+                                                  "Assets/Editor/Animation/geula/geula_skeleton.ozz",
+                                                  animation_filepaths,
+                                                  "Assets/Editor/Animation/geula/geula_meshes.ozz");
+            apawn.GetTransformComponent().SetPosition(glm::vec3 {1.0f, 0.0f, 3.3f});
 
             // auto red_triangle = m_World->AddActor<AStaticMesh>("red_triangle", //
             //                                                    "Assets/Editor/Object/triangle/triangle.obj",
@@ -131,7 +137,7 @@ namespace Engine
                                                          "Texture",
                                                          "black-white-tile_sphere",
                                                          "black-white-tile");
-            ground.GetTransformComponent().SetPosition(glm::vec3 {0.0f, 0.0f, 0.0f});
+            ground.GetTransformComponent().SetPosition(glm::vec3 {0.0f, -0.15f, 0.0f});
 
             // auto teapot = m_World->AddActor<AStaticMesh>("teapot", //
             //                                              "Assets/Editor/Object/teapot/teapot.obj",

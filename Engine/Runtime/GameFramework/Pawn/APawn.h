@@ -36,12 +36,12 @@ namespace Engine
             m_Trajectory->SetOwner(this);
         }
 
-        APawn(UWorld*            world,
-              entt::entity       handle,
-              const std::string& name,
-              const std::string& skeletonPath,
-              const std::string& animationPath,
-              const std::string& meshPath) :
+        APawn(UWorld*                         world,
+              entt::entity                    handle,
+              const std::string&              name,
+              const std::string&              skeletonPath,
+              const std::vector<std::string>& animationPaths,
+              const std::string&              meshPath) :
             AActor(world, handle, name)
         {
             m_Pawn = m_World->RegisterComponents<UPawnComponent>(m_EntityHandle);
@@ -59,12 +59,12 @@ namespace Engine
             m_Trajectory->SetOwner(this);
 
             m_PawnSkinnedMesh = m_World->RegisterComponents<USkinnedMeshComponent>(
-                m_EntityHandle, skeletonPath, animationPath, meshPath);
+                m_EntityHandle, skeletonPath, animationPaths[0], meshPath);
             m_PawnSkinnedMesh->SetOwner(this);
             m_PawnSkinnedMesh->SetUseRootMotion(false);
 
             m_MotionMaching = m_World->RegisterComponents<UMotionMatchingComponent>(
-                m_EntityHandle, skeletonPath, animationPath, meshPath);
+                m_EntityHandle, skeletonPath, animationPaths, meshPath);
             m_MotionMaching->SetOwner(this);
         }
 

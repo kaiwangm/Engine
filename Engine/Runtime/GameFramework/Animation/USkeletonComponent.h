@@ -75,6 +75,9 @@ namespace Engine
         bool& GetUseRootMotionRef() { return m_UseRootMotion; }
         void  SetUseRootMotion(bool useRootMotion) { m_UseRootMotion = useRootMotion; }
 
+        void SetModels(const ozz::vector<ozz::math::Float4x4>& models) { this->models = models; }
+        ozz::vector<ozz::math::Float4x4> GetModels() const { return models; }
+
     public:
         glm::vec3 GetNowRootPosition() const
         {

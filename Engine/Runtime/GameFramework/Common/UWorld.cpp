@@ -248,24 +248,15 @@ namespace Engine
         }
 
         // Update Skeleton
-
         for (auto [entity, name, trans, skeleton] : skeleton_view.each())
         {
             skeleton.Update(fmod(0.06 * nowTime, 1.0f));
         }
 
         // Update SkinnedMesh
-
         for (auto [entity, name, trans, skinnedmesh] : skinnedmesh_view.each())
         {
             skinnedmesh.Update(fmod(0.0015 * nowTime, 1.0f));
-        }
-
-        // Update MotionMatching
-
-        for (auto [entity, name, trans, motionmatching] : motionmatching_view.each())
-        {
-            motionmatching.Update(nowTime, timeStep);
         }
 
         // Update Pawn
@@ -273,6 +264,12 @@ namespace Engine
         for (auto [entity, name, trans, pawn] : pawn_view.each())
         {
             pawn.TickLogic(timeStep);
+        }
+
+        // Update MotionMatching
+        for (auto [entity, name, trans, motionmatching] : motionmatching_view.each())
+        {
+            motionmatching.Update0(nowTime, timeStep);
         }
     }
 
@@ -383,10 +380,9 @@ namespace Engine
         }
 
         // draw MotionMatching
-
         for (auto [entity, name, trans, motionmatching] : motionmatching_view.each())
         {
-            USkinnedMeshComponent& skinnedmesh = motionmatching.GetSkinnedMeshComponentRef();
+            USkinnedMeshComponent& skinnedmesh = motionmatching.GetSkinnedMeshComponent0Ref();
 
             APawn&      skinnedmesh_actor = *static_cast<APawn*>(motionmatching.GetOwner());
             MMaterial*  material          = static_cast<MMaterial*>(skinnedmesh.GetMaterial());

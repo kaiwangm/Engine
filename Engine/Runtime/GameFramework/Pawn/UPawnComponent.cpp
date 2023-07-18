@@ -119,24 +119,32 @@ namespace Engine
         static float                      accumTime       = 0.0f;
         std::vector<std::array<float, 7>> nowPose         = skinnedMeshComponent.GetNowPose();
         std::vector<JointFeature>         nowJointFeature = skinnedMeshComponent.GetNowJointFeature(0.016f);
-        float                             nowTime = m_SearchResult.nowRatio * motionMatchingComponent.GetFrameTime();
-        float                             nowPhase =
+
+        float nowPhase =
             glm::sin(m_SearchResult.nowRatio * motionMatchingComponent.GetFrameTime() * glm::pi<float>() * 2.0f);
 
         KnnResult result = motionMatchingComponent.Search(
-            m_TrajecotryPoints_Back, m_TrajecotryPoints_Forward, nowPose, nowPhase, nowJointFeature, 0, nowTime);
+            m_TrajecotryPoints_Back, m_TrajecotryPoints_Forward, nowPose, nowPhase, nowJointFeature);
 
-        float resultTime = result.nowRatio * motionMatchingComponent.GetFrameTime();
-
-        if (accumTime > 3.0f || (accumTime > 0.08f && accumTime < 3.0f && result.loss < 100000.0f &&
-                                 (resultTime - nowTime < -0.8f || resultTime - nowTime > 0.08f)))
+        if (accumTime > 3.0f || (accumTime > 0.08f && accumTime < 3.0f))
         {
-            Log::Info("nowTime: {}, resultTime: {}, loss: {}", nowTime, resultTime, result.loss);
-            m_SearchResult = result;
-            accumTime      = 0.0f;
+            float nowTime    = m_SearchResult.nowRatio * motionMatchingComponent.GetFrameTime();
+            float resultTime = result.nowRatio * motionMatchingComponent.GetFrameTime();
+            if (result.index != m_SearchResult.index ||
+                result.index == m_SearchResult.index &&
+                    ((resultTime - nowTime) < -0.8 || (resultTime - nowTime) > 0.08))
+            {
+                Log::Info("nowTime: {}, resultTime: {}, loss: {}", nowTime, resultTime, result.loss);
+                m_SearchResult = result;
+                accumTime      = 0.0f;
+            }
         }
         float nowRatio = deltaTime / motionMatchingComponent.GetFrameTime();
         m_SearchResult = {m_SearchResult.index, m_SearchResult.nowRatio + nowRatio};
+        motionMatchingComponent.SetNowAnimationClipKnnResult(m_SearchResult);
+
+        Log::Info("AnimationClip: {}, nowRatio: {}", m_SearchResult.index, m_SearchResult.nowRatio);
+
         accumTime += deltaTime;
     }
 
@@ -583,8 +591,12 @@ namespace Engine
         cameraComponent.SetRotation(orientation);
 
         // update skinnedMesh
-        skinnedMeshComponent.Update(trajectoryComponent.GetSearchResult().nowRatio +
-                                    deltaTime / skinnedMeshComponent.GetFrameTime());
+        UMotionMatchingComponent& motionMatchingComponent = aPawn->GetMotionMatchingComponentRef();
+        ozz::vector<ozz::math::Float4x4> nowModels = motionMatchingComponent.GetNowAnimationClipModels();
+        // skinnedMeshComponent.SetModels(nowModels);
+        
+        skinnedMeshComponent.Update(trajectoryComponent.GetSearchResult().nowRatio);
+        skinnedMeshComponent.SetModels(nowModels);
     }
 
     void UPawnComponent::Draw(Ref<Shader> shader, glm::mat4 vpMat, glm::mat4 transform)

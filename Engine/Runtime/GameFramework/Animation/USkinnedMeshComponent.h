@@ -85,6 +85,9 @@ namespace Engine
         bool& GetUseRootMotionRef() { return m_Skeleton.GetUseRootMotionRef(); }
         void  SetUseRootMotion(bool useRootMotion) { m_Skeleton.SetUseRootMotion(useRootMotion); }
 
+        void SetModels(const ozz::vector<ozz::math::Float4x4>& models) { m_Skeleton.SetModels(models); }
+        ozz::vector<ozz::math::Float4x4> GetModels() const { return m_Skeleton.GetModels(); }
+
         glm::vec3                         GetNowRootPosition() const { return m_Skeleton.GetNowRootPosition(); }
         glm::quat                         GetNowRootOrientation() const { return m_Skeleton.GetNowRootOrientation(); }
         std::vector<std::array<float, 7>> GetNowPose() { return m_Skeleton.GetNowPose(); }
