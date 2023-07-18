@@ -116,17 +116,19 @@ namespace Engine
             static_cast<APawn*>(m_Owner)->GetMotionMatchingComponentRef();
         USkinnedMeshComponent& skinnedMeshComponent = static_cast<APawn*>(m_Owner)->GetSkinnedMeshComponentRef();
 
-        static float                      accumTime = 0.0f;
-        std::vector<std::array<float, 7>> nowPose   = skinnedMeshComponent.GetNowPose();
+        static float                      accumTime       = 0.0f;
+        std::vector<std::array<float, 7>> nowPose         = skinnedMeshComponent.GetNowPose();
+        std::vector<JointFeature>         nowJointFeature = skinnedMeshComponent.GetNowJointFeature(0.016f);
+        float                             nowTime = m_SearchResult.nowRatio * motionMatchingComponent.GetFrameTime();
         float                             nowPhase =
             glm::sin(m_SearchResult.nowRatio * motionMatchingComponent.GetFrameTime() * glm::pi<float>() * 2.0f);
-        KnnResult result =
-            motionMatchingComponent.Search(m_TrajecotryPoints_Back, m_TrajecotryPoints_Forward, nowPose, nowPhase);
 
-        float nowTime    = m_SearchResult.nowRatio * motionMatchingComponent.GetFrameTime();
+        KnnResult result = motionMatchingComponent.Search(
+            m_TrajecotryPoints_Back, m_TrajecotryPoints_Forward, nowPose, nowPhase, nowJointFeature, 0, nowTime);
+
         float resultTime = result.nowRatio * motionMatchingComponent.GetFrameTime();
 
-        if (accumTime > 5.5f || (accumTime > 0.08f && accumTime < 5.5f && result.loss < 100000.0f &&
+        if (accumTime > 3.0f || (accumTime > 0.08f && accumTime < 3.0f && result.loss < 100000.0f &&
                                  (resultTime - nowTime < -0.8f || resultTime - nowTime > 0.08f)))
         {
             Log::Info("nowTime: {}, resultTime: {}, loss: {}", nowTime, resultTime, result.loss);

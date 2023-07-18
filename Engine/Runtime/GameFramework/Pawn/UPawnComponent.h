@@ -132,6 +132,129 @@ namespace Engine
         }
     };
 
+    template<int dimDeepPhase>
+    struct ManiflowPoint
+    {
+        std::array<float, dimDeepPhase> m_Maniflow;
+        float                           m_Time;
+
+        static ManiflowPoint mix(const ManiflowPoint& a, const ManiflowPoint& b, float mixFactor)
+        {
+            ManiflowPoint result;
+
+            for (int i = 0; i < dimDeepPhase; i++)
+            {
+                result.m_Maniflow[i] = glm::mix(a.m_Maniflow[i], b.m_Maniflow[i], mixFactor);
+            }
+
+            result.m_Time = 0.0f;
+
+            return result;
+        }
+    };
+
+    template<int dimDeepPhase>
+    struct ManiflowArray
+    {
+        float                                   m_SumTime;
+        std::deque<ManiflowPoint<dimDeepPhase>> m_Maniflows;
+        std::deque<float>                       m_ManiflowsTime;
+
+        ManiflowArray() : m_SumTime(0.0f) {}
+
+        void push_back(const ManiflowPoint<dimDeepPhase>& point)
+        {
+            m_Maniflows.push_back(point);
+            m_SumTime += point.m_Time;
+            m_ManiflowsTime.push_back(m_SumTime);
+        }
+
+        void push_front(const ManiflowPoint<dimDeepPhase>& point)
+        {
+            m_Maniflows.push_front(point);
+            m_SumTime = 0.0f;
+            m_ManiflowsTime.clear();
+            for (auto& point : m_Maniflows)
+            {
+                m_SumTime += point.m_Time;
+                m_ManiflowsTime.push_back(m_SumTime);
+            }
+        }
+
+        ManiflowPoint<dimDeepPhase> getManiflowPoint(float time)
+        {
+            if (time < 0.0f)
+            {
+                return m_Maniflows.front();
+            }
+
+            if (time > m_SumTime)
+            {
+                return m_Maniflows.back();
+            }
+
+            auto it    = std::lower_bound(m_ManiflowsTime.begin(), m_ManiflowsTime.end(), time);
+            int  index = it - m_ManiflowsTime.begin();
+
+            if (index >= m_Maniflows.size() - 1)
+            {
+                return m_Maniflows.back();
+            }
+
+            float mixFactor = 1.0 - (m_ManiflowsTime[index] - time) / m_Maniflows[index].m_Time;
+
+            ManiflowPoint<dimDeepPhase> result =
+                ManiflowPoint<dimDeepPhase>::mix(m_Maniflows[index], m_Maniflows[index + 1], glm::min(mixFactor, 1.0f));
+
+            return result;
+        }
+
+        size_t size() { return m_Maniflows.size(); }
+
+        void clear()
+        {
+            m_SumTime = 0.0f;
+            m_Maniflows.clear();
+            m_ManiflowsTime.clear();
+        }
+
+        void pop_back()
+        {
+            if (m_Maniflows.size() == 0)
+            {
+                return;
+            }
+
+            m_Maniflows.pop_back();
+            m_ManiflowsTime.clear();
+
+            m_SumTime = 0.0f;
+            for (auto& point : m_Maniflows)
+            {
+                m_SumTime += point.m_Time;
+                m_ManiflowsTime.push_back(m_SumTime);
+            }
+        }
+
+        void pop_front()
+        {
+            if (m_Maniflows.size() == 0)
+            {
+                return;
+            }
+
+            m_Maniflows.pop_front();
+            m_ManiflowsTime.clear();
+
+            m_SumTime = 0.0f;
+            for (auto& point : m_Maniflows)
+            {
+                m_SumTime += point.m_Time;
+                m_ManiflowsTime.push_back(m_SumTime);
+            }
+        }
+    };
+
     struct KnnResult
     {
         int   index;

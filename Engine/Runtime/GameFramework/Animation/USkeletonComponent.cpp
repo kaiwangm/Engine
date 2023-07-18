@@ -129,6 +129,8 @@ namespace Engine
         {
             Log::Error("LocalToModelJob Run Failed.");
         }
+
+        m_NowTime = ratio * m_FrameTime;
     }
 
     void USkeletonComponent::Draw(Ref<Shader> shader,
@@ -265,6 +267,58 @@ namespace Engine
 
             result.push_back(joint);
         }
+
+        return result;
+    }
+
+    std::vector<JointFeature> USkeletonComponent::GetNowJointFeature(float deltaTime)
+    {
+        float nowRatio  = m_NowTime / m_FrameTime;
+        float lastRatio = glm::max(m_NowTime - deltaTime, 0.0f) / m_FrameTime;
+
+        std::vector<JointFeature> result(num_joints);
+        std::vector<glm::vec3>    nowRootSpacePosition(num_joints);
+        std::vector<glm::vec3>    lastRootSpacePosition(num_joints);
+
+        Update(nowRatio);
+        {
+            const ozz::math::Float4x4& model_mat = models[0];
+            glm::mat4                  model;
+            memcpy(&model, &model_mat.cols[0], sizeof(glm::mat4));
+            glm::vec3 nowRootPosition = glm::vec3(model[3][0], model[3][1], model[3][2]);
+            for (int i = 0; i < num_joints; ++i)
+            {
+                const ozz::math::Float4x4& model_mat = models[i];
+                glm::mat4                  model;
+                memcpy(&model, &model_mat.cols[0], sizeof(glm::mat4));
+                nowRootSpacePosition[i] = glm::vec3(model[3][0], model[3][1], model[3][2]) - nowRootPosition;
+            }
+            nowRootSpacePosition[0] = glm::vec3(0.0f);
+        }
+
+        Update(lastRatio);
+        {
+            const ozz::math::Float4x4& model_mat = models[0];
+            glm::mat4                  model;
+            memcpy(&model, &model_mat.cols[0], sizeof(glm::mat4));
+            glm::vec3 lastRootPosition = glm::vec3(model[3][0], model[3][1], model[3][2]);
+            for (int i = 0; i < num_joints; ++i)
+            {
+                const ozz::math::Float4x4& model_mat = models[i];
+                glm::mat4                  model;
+                memcpy(&model, &model_mat.cols[0], sizeof(glm::mat4));
+                lastRootSpacePosition[i] = glm::vec3(model[3][0], model[3][1], model[3][2]) - lastRootPosition;
+            }
+            lastRootSpacePosition[0] = glm::vec3(0.0f);
+        }
+
+        for (int i = 0; i < num_joints; ++i)
+        {
+            result[i].rootSpacePosition = nowRootSpacePosition[i];
+            result[i].rootSpaceVelocity = (nowRootSpacePosition[i] - lastRootSpacePosition[i]) / deltaTime;
+        }
+
+        Update(nowRatio);
 
         return result;
     }

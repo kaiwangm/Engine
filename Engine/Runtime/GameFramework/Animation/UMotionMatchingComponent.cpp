@@ -1,9 +1,106 @@
 #include <Engine/Runtime/GameFramework/Animation/UMotionMatchingComponent.h>
 #include <Engine/Runtime/GameFramework/Pawn/APawn.h>
 #include <hnswlib/hnswlib.h>
+#include <rapidjson/document.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
 
 namespace Engine
 {
+    void UMotionMatchingComponent::SaveAsJson(const std::vector<std::vector<JointFeature>>& nowJointFeatures,
+                                              const std::string&                            path)
+    {
+        rapidjson::Document document;
+        document.SetObject();
+
+        // add array to document
+        document.AddMember("num_frame", nowJointFeatures.size(), document.GetAllocator());
+        document.AddMember("num_channels", dimPoseFeature, document.GetAllocator());
+
+        rapidjson::Value array(rapidjson::kArrayType);
+        for (int i = 0; i < nowJointFeatures.size(); ++i)
+        {
+            rapidjson::Value frame(rapidjson::kObjectType);
+
+            rapidjson::Value features(rapidjson::kArrayType);
+            features.PushBack(0.0f, document.GetAllocator());
+            features.PushBack(0.0f, document.GetAllocator());
+            features.PushBack(0.0f, document.GetAllocator());
+            for (int j = 1; j < nowJointFeatures[i].size(); ++j)
+            {
+                features.PushBack(nowJointFeatures[i][j].rootSpaceVelocity.x, document.GetAllocator());
+                features.PushBack(nowJointFeatures[i][j].rootSpaceVelocity.y, document.GetAllocator());
+                features.PushBack(nowJointFeatures[i][j].rootSpaceVelocity.z, document.GetAllocator());
+            }
+            frame.AddMember("features", features, document.GetAllocator());
+
+            rapidjson::Value metadata(rapidjson::kObjectType);
+            metadata.AddMember("sequence_index", 1, document.GetAllocator());
+            metadata.AddMember("nowframe_index", i, document.GetAllocator());
+            metadata.AddMember("frame_type", "Standard", document.GetAllocator());
+            metadata.AddMember("file_name", "Recording_001.bvh", document.GetAllocator());
+            metadata.AddMember("hash", "aaaaaa", document.GetAllocator());
+            frame.AddMember("metadata", metadata, document.GetAllocator());
+
+            array.PushBack(frame, document.GetAllocator());
+        }
+        document.AddMember("rawdata", array, document.GetAllocator());
+
+        // write to file
+        rapidjson::StringBuffer                    buffer;
+        rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+        document.Accept(writer);
+
+        std::ofstream ofs(path);
+        ofs << buffer.GetString();
+        ofs.close();
+    }
+
+    void UMotionMatchingComponent::LoadPhaseManifold(const std::string& path)
+    {
+        std::vector<std::array<float, dimDeepPhase>> data_raw_deep_phase {};
+        std::ifstream                                ifs(path);
+        std::string str((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+
+        rapidjson::Document document;
+        document.Parse(str.c_str());
+
+        const rapidjson::Value& num_frame    = document["num_frame"];
+        const rapidjson::Value& num_channels = document["num_channels"];
+        const rapidjson::Value& rawdata      = document["rawdata"];
+
+        const int numFrame    = num_frame.GetInt();
+        const int numChannels = num_channels.GetInt();
+
+        data_raw_deep_phase.resize(numFrame);
+        data_raw_deep_phase.assign(numFrame, std::array<float, dimDeepPhase> {});
+
+        for (int i = 0; i < numFrame; ++i)
+        {
+            const rapidjson::Value& frame = rawdata[i];
+
+            const rapidjson::Value& features = frame["manifold"];
+            for (int j = 0; j < numChannels; ++j)
+            {
+                data_raw_deep_phase[i][j] = features[j].GetFloat();
+            }
+        }
+
+        ifs.close();
+
+        for (int i = 0; i < numFrame; ++i)
+        {
+            std::array<float, dimDeepPhase> sample  = data_raw_deep_phase[i];
+            float                           nowtime = (i + 1) * m_SampleStep;
+
+            ManiflowPoint<dimDeepPhase> maniflowPoint {
+                sample,
+                nowtime,
+            };
+
+            m_ManiflowArray.push_back(maniflowPoint);
+        }
+    }
 
     void UMotionMatchingComponent::Initialize()
     {
@@ -25,8 +122,7 @@ namespace Engine
             m_TrajectoryPointArray.push_back(point);
         }
 
-
-        const float startTime = 15.0f;
+        const float startTime = 0.0f;
 
         // knn search initialize
         for (float nowtime = startTime; nowtime < m_FrameTime; nowtime += m_SampleStep)
@@ -36,9 +132,12 @@ namespace Engine
         }
 
         std::vector<std::array<float, dimRawTrajectory>> data_raw_trajecotry {};
-        std::vector<std::array<float, dimRawPose>>       data_raw_pose {};
+        std::vector<std::array<float, dimDeepPhase>>     data_raw_pose {};
         std::vector<std::array<float, dimRawPawn>>       data_raw_pawn {};
         std::vector<std::array<float, 1>>                data_raw_phase {};
+        std::vector<std::vector<JointFeature>>           nowJointFeatures {};
+
+        LoadPhaseManifold("Assets/Editor/Animation/lafan/deepPhase.json");
 
         for (float nowtime = startTime; nowtime < m_FrameTime; nowtime += m_SampleStep)
         {
@@ -95,20 +194,30 @@ namespace Engine
             }
             data_raw_trajecotry.push_back(sampleTrajectory);
 
-            // init as 0.0f
-            std::array<float, dimRawPose> samplePose {};
+            // std::array<float, dimRawPose> samplePose {};
+            std::array<float, dimDeepPhase> samplePose {};
 
             m_SkinnedMesh.Update(nowtime / m_FrameTime);
+
             std::vector<std::array<float, 7>> nowPose = m_SkinnedMesh.GetNowPose();
-            for (int i = 1; i < nowPose.size(); ++i)
+            // std::vector<JointFeature>         nowJointFeature = m_SkinnedMesh.GetNowJointFeature(0.016f);
+            // nowJointFeatures.push_back(nowJointFeature);
+
+            // for (int i = 1; i < nowJointFeature.size(); ++i)
+            // {
+            //     samplePose[i * 7 + 0] = 0.0f;
+            //     samplePose[i * 7 + 1] = 0.0f;
+            //     samplePose[i * 7 + 2] = 0.0f;
+            //     samplePose[i * 7 + 3] = 0.0f;
+            //     samplePose[i * 7 + 4] = nowJointFeature[i].rootSpaceVelocity.x;
+            //     samplePose[i * 7 + 5] = nowJointFeature[i].rootSpaceVelocity.y;
+            //     samplePose[i * 7 + 6] = nowJointFeature[i].rootSpaceVelocity.z;
+            // }
+
+            ManiflowPoint<dimDeepPhase> maniflowPoint = m_ManiflowArray.getManiflowPoint(nowtime);
+            for (int i = 0; i < dimDeepPhase; ++i)
             {
-                samplePose[i * 7 + 0] = 0.0f;
-                samplePose[i * 7 + 1] = 0.0f;
-                samplePose[i * 7 + 2] = 0.0f;
-                samplePose[i * 7 + 3] = nowPose[i][3];
-                samplePose[i * 7 + 4] = nowPose[i][4];
-                samplePose[i * 7 + 5] = nowPose[i][5];
-                samplePose[i * 7 + 6] = nowPose[i][6];
+                samplePose[i] = maniflowPoint.m_Maniflow[i];
             }
             data_raw_pose.push_back(samplePose);
 
@@ -125,6 +234,8 @@ namespace Engine
             }
             data_raw_pawn.push_back(samplePawn);
         }
+
+        // SaveAsJson(nowJointFeatures, "./nowJointFeatures.json");
 
         for (float nowtime = startTime; nowtime < m_FrameTime; nowtime += m_SampleStep)
         {
@@ -143,10 +254,10 @@ namespace Engine
             }
         }
 
-        cv::Mat data_raw_pose_mat(data_raw_pose.size(), dimRawPose, CV_32FC1);
+        cv::Mat data_raw_pose_mat(data_raw_pose.size(), dimDeepPhase, CV_32FC1);
         for (int i = 0; i < data_raw_pose.size(); ++i)
         {
-            for (int j = 0; j < dimRawPose; ++j)
+            for (int j = 0; j < dimDeepPhase; ++j)
             {
                 data_raw_pose_mat.at<float>(i, j) = data_raw_pose[i][j];
             }
@@ -448,13 +559,16 @@ namespace Engine
     KnnResult UMotionMatchingComponent::Search(const std::deque<TrajectoryPoint>&       trajecotryPointsBack,
                                                const std::deque<TrajectoryPoint>&       trajecotryPointsForward,
                                                const std::vector<std::array<float, 7>>& nowPose,
-                                               const float                              nowPhase)
+                                               const float                              nowPhase,
+                                               const std::vector<JointFeature>&         nowJointFeature,
+                                               const int                                nowAnimationClip,
+                                               const float                              nowTime)
     {
         std::array<float, dim> query;
         glm::vec3              rootPosition = trajecotryPointsForward[0].m_Position;
 
         std::array<float, dimRawTrajectory> data_raw_trajecotry {};
-        std::array<float, dimRawPose>       data_raw_pose {};
+        std::array<float, dimDeepPhase>       data_raw_pose {};
         std::array<float, dimRawPawn>       data_raw_pawn {};
         for (int i = 0; i < m_TrajectorySampleNum; ++i)
         {
@@ -488,22 +602,28 @@ namespace Engine
             data_raw_trajecotry[i * 10 + 9] = trajectoryPoint.m_Velocity.z;
         }
 
-        for (int i = 1; i < nowPose.size(); ++i)
+        // for (int i = 1; i < nowJointFeature.size(); ++i)
+        // {
+        //     data_raw_pose[i * 7 + 0] = 0.0f;
+        //     data_raw_pose[i * 7 + 1] = 0.0f;
+        //     data_raw_pose[i * 7 + 2] = 0.0f;
+        //     data_raw_pose[i * 7 + 3] = 0.0f;
+        //     data_raw_pose[i * 7 + 4] = nowJointFeature[i].rootSpaceVelocity.x;
+        //     data_raw_pose[i * 7 + 5] = nowJointFeature[i].rootSpaceVelocity.y;
+        //     data_raw_pose[i * 7 + 6] = nowJointFeature[i].rootSpaceVelocity.z;
+        // }
+
+        ManiflowPoint<dimDeepPhase> maniflowPoint = m_ManiflowArray.getManiflowPoint(nowTime);
+        for (int i = 0; i < dimDeepPhase; ++i)
         {
-            data_raw_pose[i * 7 + 0] = 0.0f;
-            data_raw_pose[i * 7 + 1] = 0.0f;
-            data_raw_pose[i * 7 + 2] = 0.0f;
-            data_raw_pose[i * 7 + 3] = nowPose[i][3];
-            data_raw_pose[i * 7 + 4] = nowPose[i][4];
-            data_raw_pose[i * 7 + 5] = nowPose[i][5];
-            data_raw_pose[i * 7 + 6] = nowPose[i][6];
+            data_raw_pose[i] = maniflowPoint.m_Maniflow[i];
         }
 
         {
             const TrajectoryPoint& trajectoryPoint = trajecotryPointsForward[0];
-            data_raw_pawn[0]                       = trajectoryPoint.m_Position.x - rootPosition.x;
-            data_raw_pawn[1]                       = trajectoryPoint.m_Position.y - rootPosition.y;
-            data_raw_pawn[2]                       = trajectoryPoint.m_Position.z - rootPosition.z;
+            data_raw_pawn[0]                       = 0.0f;
+            data_raw_pawn[1]                       = 0.0f;
+            data_raw_pawn[2]                       = 0.0f;
             data_raw_pawn[3]                       = trajectoryPoint.m_Orientation.x;
             data_raw_pawn[4]                       = trajectoryPoint.m_Orientation.y;
             data_raw_pawn[5]                       = trajectoryPoint.m_Orientation.z;
@@ -516,8 +636,8 @@ namespace Engine
             data_raw_trajecotry_mat.at<float>(0, i) = data_raw_trajecotry[i];
         }
 
-        cv::Mat data_raw_pose_mat(1, dimRawPose, CV_32FC1);
-        for (int i = 0; i < dimRawPose; ++i)
+        cv::Mat data_raw_pose_mat(1, dimDeepPhase, CV_32FC1);
+        for (int i = 0; i < dimDeepPhase; ++i)
         {
             data_raw_pose_mat.at<float>(0, i) = data_raw_pose[i];
         }

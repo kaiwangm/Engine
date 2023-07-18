@@ -31,16 +31,20 @@ namespace Engine
         TrajectoryPointArray m_TrajectoryPointArray;
 
         static constexpr int dimRawTrajectory = (10 + 10) * 10;
-        static constexpr int dimRawPose       = 42 * 7;
+        static constexpr int dimRawPose       = 138 * 7;
         static constexpr int dimRawPawn       = 7;
-        static constexpr int dimTrajectory    = 50;
-        static constexpr int dimPose          = 50;
+        static constexpr int dimTrajectory    = 10;
+        static constexpr int dimPose          = 10;
         static constexpr int dimPawn          = 5;
         static constexpr int dim              = dimTrajectory + dimPose + dimPawn + 1; // Dimension of the elements
-        float                weightTrajectory = 0.3f;
-        float                weightPose       = 7.0f;
+        float                weightTrajectory = 3.0f;
+        float                weightPose       = 1.0f;
         float                weightPawn       = 5.0f;
         float                weightPhase      = 0.0f;
+
+        static constexpr int        dimPoseFeature = 138 * 3;
+        static constexpr int        dimDeepPhase   = 5 * 2;
+        ManiflowArray<dimDeepPhase> m_ManiflowArray;
 
         cv::PCA pcaTrajectory;
         cv::PCA pcaPose;
@@ -52,6 +56,8 @@ namespace Engine
 
     private:
         void Initialize();
+        void SaveAsJson(const std::vector<std::vector<JointFeature>>& nowJointFeatures, const std::string& path);
+        void LoadPhaseManifold(const std::string& path);
 
     public:
         UMotionMatchingComponent(const std::string& skeletonPath,
@@ -83,10 +89,15 @@ namespace Engine
 
         float GetFrameTime() { return m_FrameTime; }
 
+        TrajectoryPointArray& GetTrajectoryPointArrayRef() { return m_TrajectoryPointArray; }
+
     public:
         KnnResult Search(const std::deque<TrajectoryPoint>&       trajecotryPointsBack,
                          const std::deque<TrajectoryPoint>&       trajecotryPointsForward,
                          const std::vector<std::array<float, 7>>& nowPose,
-                         const float                              nowPhase);
+                         const float                              nowPhase,
+                         const std::vector<JointFeature>&         nowJointFeature,
+                         const int                                nowAnimationClip,
+                         const float                              nowTime);
     };
 } // namespace Engine

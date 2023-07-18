@@ -85,9 +85,13 @@ namespace Engine
         bool& GetUseRootMotionRef() { return m_Skeleton.GetUseRootMotionRef(); }
         void  SetUseRootMotion(bool useRootMotion) { m_Skeleton.SetUseRootMotion(useRootMotion); }
 
-    public:
         glm::vec3                         GetNowRootPosition() const { return m_Skeleton.GetNowRootPosition(); }
         glm::quat                         GetNowRootOrientation() const { return m_Skeleton.GetNowRootOrientation(); }
         std::vector<std::array<float, 7>> GetNowPose() { return m_Skeleton.GetNowPose(); }
+
+        std::vector<JointFeature> GetNowJointFeature(float deltaTime)
+        {
+            return m_Skeleton.GetNowJointFeature(deltaTime);
+        }
     };
 } // namespace Engine

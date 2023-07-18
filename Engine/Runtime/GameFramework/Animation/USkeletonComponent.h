@@ -14,6 +14,12 @@
 
 namespace Engine
 {
+    struct JointFeature
+    {
+        glm::vec3 rootSpacePosition;
+        glm::vec3 rootSpaceVelocity;
+    };
+
     class USkeletonComponent : public UComponent
     {
     private:
@@ -27,6 +33,7 @@ namespace Engine
         ozz::math::Float3                    color;
 
         float m_FrameTime;
+        float m_NowTime;
         bool  m_UseRootMotion = true;
 
     private:
@@ -74,7 +81,7 @@ namespace Engine
             auto                       models_sp = make_span(models);
             const ozz::math::Float4x4& model_mat = models_sp[0];
 
-            glm::mat4                  model;
+            glm::mat4 model;
             memcpy(&model, &model_mat.cols[0], sizeof(glm::mat4));
 
             float x = model[3][0];
@@ -89,7 +96,7 @@ namespace Engine
             auto                       models_sp = make_span(models);
             const ozz::math::Float4x4& model_mat = models_sp[0];
 
-            glm::mat4                  model;
+            glm::mat4 model;
             memcpy(&model, &model_mat.cols[0], sizeof(glm::mat4));
 
             glm::quat q = glm::quat_cast(model);
@@ -98,5 +105,6 @@ namespace Engine
         }
 
         std::vector<std::array<float, 7>> GetNowPose();
+        std::vector<JointFeature>         GetNowJointFeature(float deltaTime);
     };
 } // namespace Engine
