@@ -39,7 +39,7 @@ find_package(hnswlib CONFIG REQUIRED)
 find_package(unofficial-nativefiledialog CONFIG REQUIRED)
 find_package(GTest CONFIG REQUIRED)
 
-include(Cmake/Findozz-animation.cmake)
+include(Dependencies/Cmake/Findozz-animation.cmake)
 include(GenerateExportHeader)
 include(CTest)
 
