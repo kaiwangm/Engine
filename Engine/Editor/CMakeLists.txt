@@ -14,6 +14,6 @@ target_link_libraries(Editor PRIVATE Engine)
 add_custom_command(
     TARGET Editor POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-    ${CMAKE_CURRENT_SOURCE_DIR}/Assets
+    ${ENGINE_ROOT_DIR}/Assets/Editor
     $<TARGET_FILE_DIR:Editor>/Assets/Editor
 )
