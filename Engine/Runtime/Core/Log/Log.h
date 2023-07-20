@@ -17,64 +17,64 @@ namespace Engine
 
         inline static Ref<std::ostringstream>& GetOString() { return s_OString; }
 
-        template<class... Args>
-        inline static void Core_Trace(Args... args)
+        
+        inline static void Core_Trace(const std::string& log)
         {
-            GetCoreLogger()->trace(args...);
+            GetCoreLogger()->trace(log);
         }
 
-        template<class... Args>
-        inline static void Core_Info(Args... args)
+        
+        inline static void Core_Info(const std::string& log)
         {
-            GetCoreLogger()->info(args...);
+            GetCoreLogger()->info(log);
         }
 
-        template<class... Args>
-        inline static void Core_Warn(Args... args)
+        
+        inline static void Core_Warn(const std::string& log)
         {
-            GetCoreLogger()->warn(args...);
+            GetCoreLogger()->warn(log);
         }
 
-        template<class... Args>
-        inline static void Core_Error(Args... args)
+        
+        inline static void Core_Error(const std::string& log)
         {
-            GetCoreLogger()->error(args...);
+            GetCoreLogger()->error(log);
         }
 
-        template<class... Args>
-        inline static void Core_Critical(Args... args)
+        
+        inline static void Core_Critical(const std::string& log)
         {
-            GetCoreLogger()->critical(args...);
+            GetCoreLogger()->critical(log);
         }
 
-        template<class... Args>
-        inline static void Trace(Args... args)
+        
+        inline static void Trace(const std::string& log)
         {
-            GetClientLogger()->trace(args...);
+            GetClientLogger()->trace(log);
         }
 
-        template<class... Args>
-        inline static void Info(Args... args)
+        
+        inline static void Info(const std::string& log)
         {
-            GetClientLogger()->info(args...);
+            GetClientLogger()->info(log);
         }
 
-        template<class... Args>
-        inline static void Warn(Args... args)
+        
+        inline static void Warn(const std::string& log)
         {
-            GetClientLogger()->warn(args...);
+            GetClientLogger()->warn(log);
         }
 
-        template<class... Args>
-        inline static void Error(Args... args)
+        
+        inline static void Error(const std::string& log)
         {
-            GetClientLogger()->error(args...);
+            GetClientLogger()->error(log);
         }
 
-        template<class... Args>
-        inline static void Critical(Args... args)
+        
+        inline static void Critical(const std::string& log)
         {
-            GetClientLogger()->critical(args...);
+            GetClientLogger()->critical(log);
         }
 
     private:

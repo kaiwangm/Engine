@@ -24,7 +24,7 @@ namespace Engine
             m_Pawn = m_World->RegisterComponents<UPawnComponent>(m_EntityHandle);
             m_Pawn->SetOwner(this);
 
-            auto& camera = std::make_shared<PerspectiveCamera>(60.0f, 1.778f, 0.1f, 800.0f);
+            auto camera = std::make_shared<PerspectiveCamera>(60.0f, 1.778f, 0.1f, 800.0f);
 
             m_Camera = m_World->RegisterComponents<UCameraComponent>(m_EntityHandle, camera);
             m_Camera->SetOwner(this);
@@ -47,7 +47,7 @@ namespace Engine
             m_Pawn = m_World->RegisterComponents<UPawnComponent>(m_EntityHandle);
             m_Pawn->SetOwner(this);
 
-            auto& camera = std::make_shared<PerspectiveCamera>(60.0f, 1.778f, 0.1f, 800.0f);
+            auto camera = std::make_shared<PerspectiveCamera>(60.0f, 1.778f, 0.1f, 800.0f);
 
             m_Camera = m_World->RegisterComponents<UCameraComponent>(m_EntityHandle, camera);
             m_Camera->SetOwner(this);

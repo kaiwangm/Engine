@@ -18,9 +18,9 @@ namespace Engine
 
         Log::Core_Trace("OpenGL status:");
         Log::Core_Trace("--------------");
-        Log::Core_Trace("    Vendor: {0}", GETGLSTRING(GL_VENDOR));
-        Log::Core_Trace("    Render: {0}", GETGLSTRING(GL_RENDERER));
-        Log::Core_Trace("    Version: {0}", GETGLSTRING(GL_VERSION));
+        Log::Core_Trace(fmt::format("    Vendor: {0}", GETGLSTRING(GL_VENDOR)));
+        Log::Core_Trace(fmt::format("    Render: {0}", GETGLSTRING(GL_RENDERER)));
+        Log::Core_Trace(fmt::format("    Version: {0}", GETGLSTRING(GL_VERSION)));
         Log::Core_Trace("--------------");
 
         return gladload_status;

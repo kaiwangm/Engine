@@ -19,7 +19,7 @@ namespace Engine
         m_Data.Width  = props.Width;
         m_Data.Height = props.Height;
 
-        Log::Core_Info("Creating window \"{0}\" ({1}, {2})", props.Title, props.Width, props.Height);
+        Log::Core_Info(fmt::format("Creating window \"{0}\" ({1}, {2})", props.Title, props.Width, props.Height));
 
         if (!s_GLFWInitialized)
         {

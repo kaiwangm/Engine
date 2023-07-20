@@ -877,14 +877,14 @@ namespace Engine
                 {
                     auto& perspectiveCamera = reinterpret_cast<PerspectiveCamera&>(camera);
 
-                    Gui::Text("Camera Type: {}", cameraType);
+                    Gui::Text(fmt::format("Camera Type: {}", cameraType));
                     if (ImGui::Button("Set Viewport Camera"))
                     {
                         m_MainCamera->SetIsViewportCamera(false);
                         m_MainCamera = &cameraComponent;
                         m_MainCamera->SetIsViewportCamera(true);
                     }
-                    Gui::Text("Aspect: {0}", perspectiveCamera.GetAspectRatioRef());
+                    Gui::Text(fmt::format("Aspect: {0}", perspectiveCamera.GetAspectRatioRef()));
 
                     ImGui::BeginDisabled();
                     ImGui::Checkbox("Viewport Camera", &cameraComponent.GetIsViewportCameraRef());
@@ -937,7 +937,7 @@ namespace Engine
                 Gui::Text("FilePath:");
                 ImGui::TextWrapped("%s", pointCloudComponent.GetFilePath().c_str());
 
-                Gui::Text("Num Points: {}", pointCloudComponent.GetNumPoints());
+                Gui::Text(fmt::format("Num Points: {}", pointCloudComponent.GetNumPoints()));
                 Gui::SliderFloat("PointRenderSize", pointCloudComponent.GetPointRenderSizeRef(), 0.0f, 100.0f);
             }
 
@@ -972,7 +972,7 @@ namespace Engine
                 Gui::Text("Skeleton");
                 ImGui::Separator();
 
-                Gui::Text("Joints Num: {0}", skeletonComponent.GetNumJoints());
+                Gui::Text(fmt::format("Joints Num: {0}", skeletonComponent.GetNumJoints()));
 
                 ImGui::Checkbox("Render Skeleton", &skeletonComponent.GetShowSkeletonRef());
             }
@@ -983,7 +983,7 @@ namespace Engine
                 Gui::Text("Skinned Mesh");
                 ImGui::Separator();
 
-                Gui::Text("Num Joints: {0}", skinnedMeshComponent.GetSkeletonComponentRef().GetNumJoints());
+                Gui::Text(fmt::format("Num Joints: {0}", skinnedMeshComponent.GetSkeletonComponentRef().GetNumJoints()));
 
                 ImGui::Checkbox("Render Skeleton",
                                 &skinnedMeshComponent.GetSkeletonComponentRef().GetShowSkeletonRef());

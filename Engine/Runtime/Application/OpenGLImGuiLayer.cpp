@@ -33,7 +33,7 @@ namespace Engine
         // io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
 
         m_InitFilePath = std::string(m_Basedir + "\\imgui.ini");
-        Log::Info("IniFilename: {0}", m_InitFilePath.c_str());
+        Log::Info(fmt::format("IniFilename: {0}", m_InitFilePath.c_str()));
         io.IniFilename = m_InitFilePath.c_str();
 
         // Setup Dear ImGui style
@@ -154,7 +154,7 @@ namespace Engine
 
         ImGuiIO& io = ImGui::GetIO();
         m_FontPath  = std::string(m_Basedir + "\\Assets\\Editor\\Font\\pinghei.ttf");
-        Log::Info("Fonts: {0}", m_FontPath);
+        Log::Info(fmt::format("Fonts: {0}", m_FontPath));
         io.Fonts->AddFontFromFileTTF(
             m_FontPath.c_str(), 18.0f, NULL, io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
 

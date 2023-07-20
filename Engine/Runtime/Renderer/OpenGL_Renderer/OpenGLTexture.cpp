@@ -123,7 +123,7 @@ namespace Engine
         stbi_uc* data = stbi_load(path.c_str(), &width, &height, &channels, STBI_default);
         if (data == nullptr)
         {
-            Log::Core_Error("Could not open texture file \"{0}\".", path);
+            Log::Core_Error(fmt::format("Could not open texture file \"{0}\".", path));
         }
 
         m_Width    = width;
@@ -431,7 +431,7 @@ namespace Engine
 
                 if (image == nullptr)
                 {
-                    Log::Core_Error("Could not open texture file \"{0}\".", path);
+                    Log::Core_Error(fmt::format("Could not open texture file \"{0}\".", path));
                 }
 
                 glTexImage2D(

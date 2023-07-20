@@ -13,7 +13,7 @@ namespace Engine
         {
             m_World = std::make_shared<UWorld>();
 
-            auto& camera_viewport = std::make_shared<PerspectiveCamera>(60.0f, 1.778f, 0.1f, 800.0f);
+            auto camera_viewport = std::make_shared<PerspectiveCamera>(60.0f, 1.778f, 0.1f, 800.0f);
             auto& camera_s        = m_World->AddActor<ACamera>("viewport camera", camera_viewport);
             camera_s.GetTransformComponent().SetPosition(glm::vec3 {0.339f, 3.711f, 8.815f});
             camera_s.GetTransformComponent().SetRotation(glm::vec3 {-0.088f, -6.732f, 0.000f});
@@ -21,7 +21,7 @@ namespace Engine
             camera_s.SetIsControlled(true);
             camera_s.SetIsViewportCamera(true);
 
-            auto& camera_aa = std::make_shared<PerspectiveCamera>(60.0f, 1.778f, 0.1f, 800.0f);
+            auto camera_aa = std::make_shared<PerspectiveCamera>(60.0f, 1.778f, 0.1f, 800.0f);
             auto& camera_a  = m_World->AddActor<ACamera>("camera_aa", camera_aa);
             camera_a.GetTransformComponent().SetPosition(glm::vec3 {3.570f, 2.371f, 2.175f});
             camera_a.GetTransformComponent().SetRotation(glm::vec3 {-0.115f, 2.404f, 0.000f});
@@ -170,7 +170,7 @@ namespace Engine
             if (result == NFD_OKAY)
             {
                 filepath = outPath;
-                Log::Info("Opening file: {}", filepath);
+                Log::Info(fmt::format("Opening file: {}", filepath));
                 free(outPath);
             }
             else if (result == NFD_CANCEL)
@@ -179,7 +179,7 @@ namespace Engine
             }
             else
             {
-                Log::Error("Error: {}", NFD_GetError());
+                Log::Error(fmt::format("Error: {}", NFD_GetError()));
             }
 
             return filepath;

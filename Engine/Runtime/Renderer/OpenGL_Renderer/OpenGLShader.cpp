@@ -10,9 +10,9 @@ namespace Engine
                                const std::string& mode) :
         Shader(name)
     {
-        Log::Core_Info("Creating Shader: {0}", name);
-        Log::Core_Info("    Vertex Shader Path: {0}", vertexSrc);
-        Log::Core_Info("    Fragment Shader Path: {0}", fragmentSrc);
+        Log::Core_Info(fmt::format("Creating Shader: {0}", name));
+        Log::Core_Info(fmt::format("    Vertex Shader Path: {0}", vertexSrc));
+        Log::Core_Info(fmt::format("    Fragment Shader Path: {0}", fragmentSrc));
 
         std::string vertexShaderSource;
         std::string fragmentShaderSource;
@@ -35,7 +35,7 @@ namespace Engine
     {
         glDeleteProgram(m_RendererID);
 
-        Log::Core_Trace("Deleting Shader: {0}.", GetName());
+        Log::Core_Trace(fmt::format("Deleting Shader: {0}.", GetName()));
     }
 
     void OpenGLShader::Bind() const { glUseProgram(m_RendererID); }
@@ -133,7 +133,7 @@ namespace Engine
             glDeleteShader(vertexShader);
 
             // Use the infoLog as you see fit.
-            Log::Core_Error("\n{0}", infoLog.data());
+            Log::Core_Error(fmt::format("\n{0}", infoLog.data()));
             Log::Core_Error("Vertex shader compilation failed.");
 
             // In this simple program, we'll just leave
@@ -167,7 +167,7 @@ namespace Engine
             glDeleteShader(vertexShader);
 
             // Use the infoLog as you see fit.
-            Log::Core_Error("\n{0}", infoLog.data());
+            Log::Core_Error(fmt::format("\n{0}", infoLog.data()));
             Log::Core_Error("Fragment shader compilation failed.");
 
             // In this simple program, we'll just leave
@@ -206,7 +206,7 @@ namespace Engine
             glDeleteShader(fragmentShader);
 
             // Use the infoLog as you see fit.
-            Log::Core_Error("\n{0}", infoLog.data());
+            Log::Core_Error(fmt::format("\n{0}", infoLog.data()));
             Log::Core_Error("Shader Link failed.");
 
             // In this simple program, we'll just leave
@@ -230,7 +230,7 @@ namespace Engine
         }
         else
         {
-            Log::Core_Error("Could not open shader file \"{0}\".", shaderPath);
+            Log::Core_Error(fmt::format("Could not open shader file \"{0}\".", shaderPath));
         }
 
         return res;

@@ -9,75 +9,52 @@ namespace Engine
     class GuiCommand
     {
     public:
-        template<class... Args>
-        static void Begin(const std::string& name, Args... args)
-        {
-            ImGui::Begin(fmt::format(name, args...).c_str());
-        }
+        static void Begin(const std::string& name) { ImGui::Begin(name.c_str()); }
 
         static void End() { ImGui::End(); }
 
-        template<class... Args>
-        static void Text(const std::string& text, Args... args)
+        static void Text(const std::string& text) { ImGui::TextUnformatted(text.c_str()); }
+
+        static void ColorEdit4(const std::string& text, glm::vec4& color)
         {
-            // Text("%s", fmt::format(text, args...).c_str())
-            ImGui::TextUnformatted(fmt::format(text, args...).c_str());
+            ImGui::ColorEdit4(text.c_str(), glm::value_ptr(color));
         }
 
-        template<class... Args>
-        static void ColorEdit4(const std::string& text, glm::vec4& color, Args... args)
+        static void SliderFloat(const std::string& text, float& value, const float& v_min, const float& v_max)
         {
-            ImGui::ColorEdit4(fmt::format(text, args...).c_str(), glm::value_ptr(color));
+            ImGui::SliderFloat(text.c_str(), &value, v_min, v_max);
         }
 
-        template<class... Args>
+        static void SliderFloat3(const std::string& text, glm::vec3& values, const float& v_min, const float& v_max)
+        {
+            ImGui::SliderFloat3(text.c_str(), glm::value_ptr(values), v_min, v_max);
+        }
+
         static void
-        SliderFloat(const std::string& text, float& value, const float& v_min, const float& v_max, Args... args)
+        DragFloat(const std::string& text, float& value, const float& speed, const float& v_min, const float& v_max)
         {
-            ImGui::SliderFloat(fmt::format(text, args...).c_str(), &value, v_min, v_max);
+            ImGui::DragFloat(text.c_str(), &value, speed, v_min, v_max);
         }
 
-        template<class... Args>
-        static void
-        SliderFloat3(const std::string& text, glm::vec3& values, const float& v_min, const float& v_max, Args... args)
-        {
-            ImGui::SliderFloat3(fmt::format(text, args...).c_str(), glm::value_ptr(values), v_min, v_max);
-        }
-
-        template<class... Args>
-        static void DragFloat(const std::string& text,
-                              float&             value,
-                              const float&       speed,
-                              const float&       v_min,
-                              const float&       v_max,
-                              Args... args)
-        {
-            ImGui::DragFloat(fmt::format(text, args...).c_str(), &value, speed, v_min, v_max);
-        }
-
-        template<class... Args>
         static void DragFloat3(const std::string& text,
                                glm::vec3&         values,
                                const float&       speed,
                                const float&       v_min,
-                               const float&       v_max,
-                               Args... args)
+                               const float&       v_max)
         {
-            ImGui::DragFloat3(fmt::format(text, args...).c_str(), glm::value_ptr(values), speed, v_min, v_max);
+            ImGui::DragFloat3(text.c_str(), glm::value_ptr(values), speed, v_min, v_max);
         }
 
         static void ShowImNodesDemoWindow();
 
         static void DockSpace(bool& app_open_ref, std::unordered_map<std::string, std::function<void()>>& callbacks);
 
-        template<class... Args>
         static void ShowViewport(const std::string&     text,
                                  Ref<FrameRenderBuffer> framebuffer,
                                  const bool             show_overlap,
-                                 bool&                  is_focused,
-                                 Args... args)
+                                 bool&                  is_focused)
         {
-            ImGui::Begin(fmt::format(text, args...).c_str());
+            ImGui::Begin(text.c_str());
             {
                 ImGui::BeginChild("Render");
                 is_focused   = ImGui::IsWindowFocused();
@@ -90,15 +67,13 @@ namespace Engine
             ImGui::End();
         }
 
-        template<class... Args>
         static void ShowViewport(const std::string&     text,
                                  Ref<FrameRenderBuffer> framebuffer,
                                  const bool             show_overlap,
                                  bool&                  is_focused,
-                                 std::function<void()>  callback,
-                                 Args... args)
+                                 std::function<void()>  callback)
         {
-            ImGui::Begin(fmt::format(text, args...).c_str());
+            ImGui::Begin(text.c_str());
             {
                 ImGui::BeginChild("Render");
                 is_focused   = ImGui::IsWindowFocused();

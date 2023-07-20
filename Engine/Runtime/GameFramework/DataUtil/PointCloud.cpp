@@ -16,13 +16,13 @@ namespace Engine
         openvdb::Coord               xyz(1000, -200000000, 30000000);
         accessor.setValue(xyz, 1.0);
 
-        Log::Info("Grid xyz = {}", accessor.getValue(xyz));
+        Log::Info(fmt::format("Grid xyz = {}", accessor.getValue(xyz)));
 
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr pointcloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 
         if (pcl::io::loadPLYFile<pcl::PointXYZRGB>(m_FilePath, *pointcloud) == -1)
         {
-            Log::Error("Couldn't read point cloud file: {0}", m_FilePath);
+            Log::Error(fmt::format("Couldn't read point cloud file: {0}", m_FilePath));
             return;
         }
 

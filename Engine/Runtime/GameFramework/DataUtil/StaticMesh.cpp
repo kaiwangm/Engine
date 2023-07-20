@@ -34,7 +34,7 @@ namespace Engine
 
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
         {
-            Log::Core_Error("ERROR::ASSIMP::{0}", std::string(import.GetErrorString()));
+            Log::Core_Error(fmt::format("ERROR::ASSIMP::{0}", std::string(import.GetErrorString())));
             return;
         }
 

@@ -134,7 +134,7 @@ namespace Engine
                 result.index == m_SearchResult.index &&
                     ((resultTime - nowTime) < -0.8 || (resultTime - nowTime) > 0.08))
             {
-                Log::Info("nowTime: {}, resultTime: {}, loss: {}", nowTime, resultTime, result.loss);
+                Log::Info(fmt::format("nowTime: {}, resultTime: {}, loss: {}", nowTime, resultTime, result.loss));
                 m_SearchResult = result;
                 accumTime      = 0.0f;
             }
@@ -143,7 +143,7 @@ namespace Engine
         m_SearchResult = {m_SearchResult.index, m_SearchResult.nowRatio + nowRatio};
         motionMatchingComponent.SetNowAnimationClipKnnResult(m_SearchResult);
 
-        Log::Info("AnimationClip: {}, nowRatio: {}", m_SearchResult.index, m_SearchResult.nowRatio);
+        Log::Info(fmt::format("AnimationClip: {}, nowRatio: {}", m_SearchResult.index, m_SearchResult.nowRatio));
 
         accumTime += deltaTime;
     }
