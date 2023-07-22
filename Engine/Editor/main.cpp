@@ -15,8 +15,8 @@ namespace Engine
 
             auto  camera_viewport = std::make_shared<PerspectiveCamera>(60.0f, 1.778f, 0.01f, 800.0f);
             auto& camera_s        = m_World->AddActor<ACamera>("viewport camera", camera_viewport);
-            camera_s.GetTransformComponent().SetPosition(glm::vec3 {0.339f, 3.711f, 8.815f});
-            camera_s.GetTransformComponent().SetRotation(glm::vec3 {-0.088f, -6.732f, 0.000f});
+            camera_s.GetTransformComponent().SetPosition(glm::vec3 {-0.609f, 2.679f, 10.304f});
+            camera_s.GetTransformComponent().SetRotation(glm::vec3 {-0.158f, -6.669f, 0.000f});
             camera_s.GetTransformComponent().SetScale(glm::vec3 {1.000f, 1.000f, 1.000f});
             camera_s.SetIsControlled(true);
             camera_s.SetIsViewportCamera(true);

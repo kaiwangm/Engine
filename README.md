@@ -6,7 +6,7 @@
 
 My toy modern OpenGL game engine.
 
-![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Docs/Screenshot/SkinnedMesh_Render.png)
+![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Docs/Screenshot/SSR.png)
 
 ## Getting Started
 
