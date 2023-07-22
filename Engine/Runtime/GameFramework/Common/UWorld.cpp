@@ -27,9 +27,18 @@ namespace Engine
     UWorld::UWorld()
     {
         // Create Buffer
+        m_FrameRenderBuffer_skybox                       = FrameRenderBuffer::Create();
+        m_FrameRenderBuffer_DirectLighting_diffuse       = FrameRenderBuffer::Create();
+        m_FrameRenderBuffer_DirectLighting_specular      = FrameRenderBuffer::Create();
+        m_FrameRenderBuffer_EnvironmentLighting_diffuse  = FrameRenderBuffer::Create();
+        m_FrameRenderBuffer_EnvironmentLighting_specular = FrameRenderBuffer::Create();
+
+        m_FrameRenderBuffer_ssr      = FrameRenderBuffer::Create();
+        m_FrameRenderBuffer_ssr_blur = FrameRenderBuffer::Create();
+        m_FrameRenderBuffer_exposure = FrameRenderBuffer::Create();
+
         m_FrameRenderBuffer                = FrameRenderBuffer::Create();
         m_FrameRenderBuffer_bufferViewport = FrameRenderBuffer::Create();
-        m_FrameRenderBuffer_playground     = FrameRenderBuffer::Create();
 
         // GeometryBuffer
         m_GeometryBuffer = GeometryBuffer::Create();
@@ -126,6 +135,46 @@ namespace Engine
         LoadShader("Skinned",
                    "Assets/Editor/Shader/skinned/vertex.glsl",
                    "Assets/Editor/Shader/gbuffer_fragment.glsl",
+                   "Path");
+
+        LoadShader("ScreenSpaceReflection",
+                   "Assets/Editor/Shader/screen_quad_vertex.glsl",
+                   "Assets/Editor/Shader/deffered/ssr.glsl",
+                   "Path");
+
+        LoadShader("GaussianBlur",
+                   "Assets/Editor/Shader/screen_quad_vertex.glsl",
+                   "Assets/Editor/Shader/deffered/gaussian_blur.glsl",
+                   "Path");
+
+        LoadShader("Screen",
+                   "Assets/Editor/Shader/screen_quad_vertex.glsl",
+                   "Assets/Editor/Shader/screen_quad_fragment.glsl",
+                   "Path");
+
+        LoadShader("DirectLighting_diffuse",
+                   "Assets/Editor/Shader/screen_quad_vertex.glsl",
+                   "Assets/Editor/Shader/deffered/directLighting_diffuse.glsl",
+                   "Path");
+
+        LoadShader("DirectLighting_specular",
+                   "Assets/Editor/Shader/screen_quad_vertex.glsl",
+                   "Assets/Editor/Shader/deffered/directLighting_specular.glsl",
+                   "Path");
+
+        LoadShader("EnvironmentLighting_diffuse",
+                   "Assets/Editor/Shader/screen_quad_vertex.glsl",
+                   "Assets/Editor/Shader/deffered/environmentLighting_diffuse.glsl",
+                   "Path");
+
+        LoadShader("EnvironmentLighting_specular",
+                   "Assets/Editor/Shader/screen_quad_vertex.glsl",
+                   "Assets/Editor/Shader/deffered/environmentLighting_specular.glsl",
+                   "Path");
+
+        LoadShader("Composite",
+                   "Assets/Editor/Shader/screen_quad_vertex.glsl",
+                   "Assets/Editor/Shader/deffered/composite.glsl",
                    "Path");
     }
 
@@ -288,6 +337,20 @@ namespace Engine
 
         m_GeometryBuffer->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
         m_SSAOBuffer->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
+
+        m_FrameRenderBuffer_skybox->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
+        m_FrameRenderBuffer_DirectLighting_diffuse->SetViewPort(m_FrameRenderBuffer->GetWidth(),
+                                                                m_FrameRenderBuffer->GetHeight());
+        m_FrameRenderBuffer_DirectLighting_specular->SetViewPort(m_FrameRenderBuffer->GetWidth(),
+                                                                 m_FrameRenderBuffer->GetHeight());
+        m_FrameRenderBuffer_EnvironmentLighting_diffuse->SetViewPort(m_FrameRenderBuffer->GetWidth(),
+                                                                     m_FrameRenderBuffer->GetHeight());
+        m_FrameRenderBuffer_EnvironmentLighting_specular->SetViewPort(m_FrameRenderBuffer->GetWidth(),
+                                                                      m_FrameRenderBuffer->GetHeight());
+
+        m_FrameRenderBuffer_ssr->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
+        m_FrameRenderBuffer_ssr_blur->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
+        m_FrameRenderBuffer_exposure->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
 
         // Get Main SkyBox
         for (auto [entity, name, trans, skybox] : skybox_view.each())
@@ -467,7 +530,7 @@ namespace Engine
 
         m_SSAOBuffer->UnBind();
 
-        // Render to FrameRenderBuffer
+        // Render to m_FrameRenderBuffer_DirectLighting_diffuse
         m_MainCamera->GetCamera().SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
         m_MainCamera->GetCamera().RecalculateProjectionMatrix();
 
@@ -476,112 +539,493 @@ namespace Engine
         m_PMatrix  = m_MainCamera->GetCamera().GetProjectionMatrix();
         m_VPMatrix = m_PMatrix * m_VMatrix;
 
-        m_FrameRenderBuffer->Bind();
-        RenderCommand::SetViewPort(0, 0, m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
-
-        RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
-        RenderCommand::Clear();
-
-        if (m_RenderSkybox)
+        // skybox shading
         {
-            // draw skybox
-            // use a range-for
-            for (auto [entity, name, trans, skybox] : skybox_view.each())
+            m_FrameRenderBuffer_skybox->Bind();
+            RenderCommand::SetViewPort(0, 0, m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
+
+            RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+            RenderCommand::Clear();
+
+            if (m_RenderSkybox)
             {
-                auto shader = m_ShaderLibrary.Get("Skybox");
-                Renderer::SetShaderUniform(shader, "mipLevel", m_VisPrePrefilterMipLevel);
+                // draw skybox
+                // use a range-for
+                for (auto [entity, name, trans, skybox] : skybox_view.each())
+                {
+                    auto shader = m_ShaderLibrary.Get("Skybox");
+                    Renderer::SetShaderUniform(shader, "mipLevel", m_VisPrePrefilterMipLevel);
 
-                auto vpmat = m_PMatrix * glm::mat4(glm::mat3(m_VMatrix));
-                skybox.Tick(timeStep);
-                skybox.Draw(shader, vpmat);
-            }
-        }
-
-        // Deferred Shading
-        auto deferred_shader = m_ShaderLibrary.Get("Deferred");
-        deferred_shader->Bind();
-
-        deferred_shader->SetInt("g_ViewPosition", 0);
-        m_GeometryBuffer->BindViewPositionTexture(0);
-        deferred_shader->SetInt("g_ViewNormal", 1);
-        m_GeometryBuffer->BindViewNormalTexture(1);
-        deferred_shader->SetInt("g_Albedo", 2);
-        m_GeometryBuffer->BindAlbedoTexture(2);
-        deferred_shader->SetInt("g_Depth", 3);
-        m_GeometryBuffer->BindDepthTexture(3);
-        deferred_shader->SetInt("g_Roughness", 4);
-        m_GeometryBuffer->BindRoughnessTexture(4);
-        deferred_shader->SetInt("g_Metallic", 5);
-        m_GeometryBuffer->BindMetallicTexture(5);
-        deferred_shader->SetInt("g_WorldPosition", 6);
-        m_GeometryBuffer->BindWorldPositionTexture(6);
-        deferred_shader->SetInt("g_WorldNormal", 7);
-        m_GeometryBuffer->BindWorldNormalTexture(7);
-        deferred_shader->SetInt("g_AO", 8);
-        m_SSAOBuffer->BindSSAOTexture(8);
-
-        int ligth_num = 0;
-        for (auto [entity, name, trans, light] : light_view.each())
-        {
-            if (ligth_num >= 4)
-            {
-                break;
+                    auto vpmat = m_PMatrix * glm::mat4(glm::mat3(m_VMatrix));
+                    skybox.Tick(timeStep);
+                    skybox.Draw(shader, vpmat);
+                }
             }
 
-            deferred_shader->SetFloat3("lightPositions[" + std::to_string(ligth_num) + "]", trans.GetPosition());
-            deferred_shader->SetFloat3("lightColors[" + std::to_string(ligth_num) + "]", light.GetColorRef());
-
-            ligth_num++;
+            m_FrameRenderBuffer_skybox->UnBind();
         }
-        deferred_shader->SetInt("numLights", ligth_num);
 
-        glm::vec3 camPos = glm::vec3(glm::inverse(m_VMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-        deferred_shader->SetFloat3("camPos", camPos);
+        // DirectLighting_diffuse Shading
+        {
+            m_FrameRenderBuffer_DirectLighting_diffuse->Bind();
+            RenderCommand::SetViewPort(0, 0, m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
 
-        auto sky_cubeMap = m_MainSkybox->GetSkyboxComponent().GetCubeMap();
+            RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+            RenderCommand::Clear();
 
-        deferred_shader->SetInt("irradianceMap", 15);
-        sky_cubeMap->BindIrradianceTexture(15);
-        deferred_shader->SetInt("prefilterMap", 16);
-        sky_cubeMap->BindPrefilterTexture(16);
-        deferred_shader->SetInt("brdfLUT", 17);
-        sky_cubeMap->BindBrdfLutTexture(17);
+            auto deferred_shader = m_ShaderLibrary.Get("DirectLighting_diffuse");
+            deferred_shader->Bind();
 
-        RenderCommand::RenderToQuad();
+            deferred_shader->SetInt("g_ViewPosition", 0);
+            m_GeometryBuffer->BindViewPositionTexture(0);
+            deferred_shader->SetInt("g_ViewNormal", 1);
+            m_GeometryBuffer->BindViewNormalTexture(1);
+            deferred_shader->SetInt("g_Albedo", 2);
+            m_GeometryBuffer->BindAlbedoTexture(2);
+            deferred_shader->SetInt("g_Depth", 3);
+            m_GeometryBuffer->BindDepthTexture(3);
+            deferred_shader->SetInt("g_Roughness", 4);
+            m_GeometryBuffer->BindRoughnessTexture(4);
+            deferred_shader->SetInt("g_Metallic", 5);
+            m_GeometryBuffer->BindMetallicTexture(5);
+            deferred_shader->SetInt("g_WorldPosition", 6);
+            m_GeometryBuffer->BindWorldPositionTexture(6);
+            deferred_shader->SetInt("g_WorldNormal", 7);
+            m_GeometryBuffer->BindWorldNormalTexture(7);
+            deferred_shader->SetInt("g_AO", 8);
+            m_SSAOBuffer->BindSSAOTexture(8);
 
-        sky_cubeMap->UnBind(17);
-        sky_cubeMap->UnBind(16);
-        sky_cubeMap->UnBind(15);
+            int ligth_num = 0;
+            for (auto [entity, name, trans, light] : light_view.each())
+            {
+                if (ligth_num >= 4)
+                {
+                    break;
+                }
 
-        m_SSAOBuffer->UnBindTexture(8);
-        m_GeometryBuffer->UnBindTexture(7);
-        m_GeometryBuffer->UnBindTexture(6);
-        m_GeometryBuffer->UnBindTexture(5);
-        m_GeometryBuffer->UnBindTexture(4);
-        m_GeometryBuffer->UnBindTexture(3);
-        m_GeometryBuffer->UnBindTexture(2);
-        m_GeometryBuffer->UnBindTexture(1);
-        m_GeometryBuffer->UnBindTexture(0);
+                deferred_shader->SetFloat3("lightPositions[" + std::to_string(ligth_num) + "]", trans.GetPosition());
+                deferred_shader->SetFloat3("lightColors[" + std::to_string(ligth_num) + "]", light.GetColorRef());
 
-        deferred_shader->UnBind();
+                ligth_num++;
+            }
+            deferred_shader->SetInt("numLights", ligth_num);
+
+            glm::vec3 camPos = glm::vec3(glm::inverse(m_VMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+            deferred_shader->SetFloat3("camPos", camPos);
+
+            auto sky_cubeMap = m_MainSkybox->GetSkyboxComponent().GetCubeMap();
+
+            deferred_shader->SetInt("irradianceMap", 15);
+            sky_cubeMap->BindIrradianceTexture(15);
+            deferred_shader->SetInt("prefilterMap", 16);
+            sky_cubeMap->BindPrefilterTexture(16);
+            deferred_shader->SetInt("brdfLUT", 17);
+            sky_cubeMap->BindBrdfLutTexture(17);
+
+            RenderCommand::RenderToQuad();
+
+            sky_cubeMap->UnBind(17);
+            sky_cubeMap->UnBind(16);
+            sky_cubeMap->UnBind(15);
+
+            m_SSAOBuffer->UnBindTexture(8);
+            m_GeometryBuffer->UnBindTexture(7);
+            m_GeometryBuffer->UnBindTexture(6);
+            m_GeometryBuffer->UnBindTexture(5);
+            m_GeometryBuffer->UnBindTexture(4);
+            m_GeometryBuffer->UnBindTexture(3);
+            m_GeometryBuffer->UnBindTexture(2);
+            m_GeometryBuffer->UnBindTexture(1);
+            m_GeometryBuffer->UnBindTexture(0);
+
+            deferred_shader->UnBind();
+            m_FrameRenderBuffer_DirectLighting_diffuse->UnBind();
+        }
+        // DirectLighting_specular Shading
+        {
+            m_FrameRenderBuffer_DirectLighting_specular->Bind();
+            RenderCommand::SetViewPort(0, 0, m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
+
+            RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+            RenderCommand::Clear();
+
+            auto deferred_shader = m_ShaderLibrary.Get("DirectLighting_specular");
+            deferred_shader->Bind();
+
+            deferred_shader->SetInt("g_ViewPosition", 0);
+            m_GeometryBuffer->BindViewPositionTexture(0);
+            deferred_shader->SetInt("g_ViewNormal", 1);
+            m_GeometryBuffer->BindViewNormalTexture(1);
+            deferred_shader->SetInt("g_Albedo", 2);
+            m_GeometryBuffer->BindAlbedoTexture(2);
+            deferred_shader->SetInt("g_Depth", 3);
+            m_GeometryBuffer->BindDepthTexture(3);
+            deferred_shader->SetInt("g_Roughness", 4);
+            m_GeometryBuffer->BindRoughnessTexture(4);
+            deferred_shader->SetInt("g_Metallic", 5);
+            m_GeometryBuffer->BindMetallicTexture(5);
+            deferred_shader->SetInt("g_WorldPosition", 6);
+            m_GeometryBuffer->BindWorldPositionTexture(6);
+            deferred_shader->SetInt("g_WorldNormal", 7);
+            m_GeometryBuffer->BindWorldNormalTexture(7);
+            deferred_shader->SetInt("g_AO", 8);
+            m_SSAOBuffer->BindSSAOTexture(8);
+
+            int ligth_num = 0;
+            for (auto [entity, name, trans, light] : light_view.each())
+            {
+                if (ligth_num >= 4)
+                {
+                    break;
+                }
+
+                deferred_shader->SetFloat3("lightPositions[" + std::to_string(ligth_num) + "]", trans.GetPosition());
+                deferred_shader->SetFloat3("lightColors[" + std::to_string(ligth_num) + "]", light.GetColorRef());
+
+                ligth_num++;
+            }
+            deferred_shader->SetInt("numLights", ligth_num);
+
+            glm::vec3 camPos = glm::vec3(glm::inverse(m_VMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+            deferred_shader->SetFloat3("camPos", camPos);
+
+            auto sky_cubeMap = m_MainSkybox->GetSkyboxComponent().GetCubeMap();
+
+            deferred_shader->SetInt("irradianceMap", 15);
+            sky_cubeMap->BindIrradianceTexture(15);
+            deferred_shader->SetInt("prefilterMap", 16);
+            sky_cubeMap->BindPrefilterTexture(16);
+            deferred_shader->SetInt("brdfLUT", 17);
+            sky_cubeMap->BindBrdfLutTexture(17);
+
+            RenderCommand::RenderToQuad();
+
+            sky_cubeMap->UnBind(17);
+            sky_cubeMap->UnBind(16);
+            sky_cubeMap->UnBind(15);
+
+            m_SSAOBuffer->UnBindTexture(8);
+            m_GeometryBuffer->UnBindTexture(7);
+            m_GeometryBuffer->UnBindTexture(6);
+            m_GeometryBuffer->UnBindTexture(5);
+            m_GeometryBuffer->UnBindTexture(4);
+            m_GeometryBuffer->UnBindTexture(3);
+            m_GeometryBuffer->UnBindTexture(2);
+            m_GeometryBuffer->UnBindTexture(1);
+            m_GeometryBuffer->UnBindTexture(0);
+
+            deferred_shader->UnBind();
+            m_FrameRenderBuffer_DirectLighting_specular->UnBind();
+        }
+        // EnvironmentLighting_diffuse Shading
+        {
+            m_FrameRenderBuffer_EnvironmentLighting_diffuse->Bind();
+            RenderCommand::SetViewPort(0, 0, m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
+
+            RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+            RenderCommand::Clear();
+
+            auto deferred_shader = m_ShaderLibrary.Get("EnvironmentLighting_diffuse");
+            deferred_shader->Bind();
+
+            deferred_shader->SetInt("g_ViewPosition", 0);
+            m_GeometryBuffer->BindViewPositionTexture(0);
+            deferred_shader->SetInt("g_ViewNormal", 1);
+            m_GeometryBuffer->BindViewNormalTexture(1);
+            deferred_shader->SetInt("g_Albedo", 2);
+            m_GeometryBuffer->BindAlbedoTexture(2);
+            deferred_shader->SetInt("g_Depth", 3);
+            m_GeometryBuffer->BindDepthTexture(3);
+            deferred_shader->SetInt("g_Roughness", 4);
+            m_GeometryBuffer->BindRoughnessTexture(4);
+            deferred_shader->SetInt("g_Metallic", 5);
+            m_GeometryBuffer->BindMetallicTexture(5);
+            deferred_shader->SetInt("g_WorldPosition", 6);
+            m_GeometryBuffer->BindWorldPositionTexture(6);
+            deferred_shader->SetInt("g_WorldNormal", 7);
+            m_GeometryBuffer->BindWorldNormalTexture(7);
+            deferred_shader->SetInt("g_AO", 8);
+            m_SSAOBuffer->BindSSAOTexture(8);
+
+            int ligth_num = 0;
+            for (auto [entity, name, trans, light] : light_view.each())
+            {
+                if (ligth_num >= 4)
+                {
+                    break;
+                }
+
+                deferred_shader->SetFloat3("lightPositions[" + std::to_string(ligth_num) + "]", trans.GetPosition());
+                deferred_shader->SetFloat3("lightColors[" + std::to_string(ligth_num) + "]", light.GetColorRef());
+
+                ligth_num++;
+            }
+            deferred_shader->SetInt("numLights", ligth_num);
+
+            glm::vec3 camPos = glm::vec3(glm::inverse(m_VMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+            deferred_shader->SetFloat3("camPos", camPos);
+
+            auto sky_cubeMap = m_MainSkybox->GetSkyboxComponent().GetCubeMap();
+
+            deferred_shader->SetInt("irradianceMap", 15);
+            sky_cubeMap->BindIrradianceTexture(15);
+            deferred_shader->SetInt("prefilterMap", 16);
+            sky_cubeMap->BindPrefilterTexture(16);
+            deferred_shader->SetInt("brdfLUT", 17);
+            sky_cubeMap->BindBrdfLutTexture(17);
+
+            RenderCommand::RenderToQuad();
+
+            sky_cubeMap->UnBind(17);
+            sky_cubeMap->UnBind(16);
+            sky_cubeMap->UnBind(15);
+
+            m_SSAOBuffer->UnBindTexture(8);
+            m_GeometryBuffer->UnBindTexture(7);
+            m_GeometryBuffer->UnBindTexture(6);
+            m_GeometryBuffer->UnBindTexture(5);
+            m_GeometryBuffer->UnBindTexture(4);
+            m_GeometryBuffer->UnBindTexture(3);
+            m_GeometryBuffer->UnBindTexture(2);
+            m_GeometryBuffer->UnBindTexture(1);
+            m_GeometryBuffer->UnBindTexture(0);
+
+            deferred_shader->UnBind();
+            m_FrameRenderBuffer_EnvironmentLighting_diffuse->UnBind();
+        }
+        // EnvironmentLighting_specular Shading
+        {
+            m_FrameRenderBuffer_EnvironmentLighting_specular->Bind();
+            RenderCommand::SetViewPort(0, 0, m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
+
+            RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+            RenderCommand::Clear();
+
+            auto deferred_shader = m_ShaderLibrary.Get("EnvironmentLighting_specular");
+            deferred_shader->Bind();
+
+            deferred_shader->SetInt("g_ViewPosition", 0);
+            m_GeometryBuffer->BindViewPositionTexture(0);
+            deferred_shader->SetInt("g_ViewNormal", 1);
+            m_GeometryBuffer->BindViewNormalTexture(1);
+            deferred_shader->SetInt("g_Albedo", 2);
+            m_GeometryBuffer->BindAlbedoTexture(2);
+            deferred_shader->SetInt("g_Depth", 3);
+            m_GeometryBuffer->BindDepthTexture(3);
+            deferred_shader->SetInt("g_Roughness", 4);
+            m_GeometryBuffer->BindRoughnessTexture(4);
+            deferred_shader->SetInt("g_Metallic", 5);
+            m_GeometryBuffer->BindMetallicTexture(5);
+            deferred_shader->SetInt("g_WorldPosition", 6);
+            m_GeometryBuffer->BindWorldPositionTexture(6);
+            deferred_shader->SetInt("g_WorldNormal", 7);
+            m_GeometryBuffer->BindWorldNormalTexture(7);
+            deferred_shader->SetInt("g_AO", 8);
+            m_SSAOBuffer->BindSSAOTexture(8);
+
+            int ligth_num = 0;
+            for (auto [entity, name, trans, light] : light_view.each())
+            {
+                if (ligth_num >= 4)
+                {
+                    break;
+                }
+
+                deferred_shader->SetFloat3("lightPositions[" + std::to_string(ligth_num) + "]", trans.GetPosition());
+                deferred_shader->SetFloat3("lightColors[" + std::to_string(ligth_num) + "]", light.GetColorRef());
+
+                ligth_num++;
+            }
+            deferred_shader->SetInt("numLights", ligth_num);
+
+            glm::vec3 camPos = glm::vec3(glm::inverse(m_VMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+            deferred_shader->SetFloat3("camPos", camPos);
+
+            auto sky_cubeMap = m_MainSkybox->GetSkyboxComponent().GetCubeMap();
+
+            deferred_shader->SetInt("irradianceMap", 15);
+            sky_cubeMap->BindIrradianceTexture(15);
+            deferred_shader->SetInt("prefilterMap", 16);
+            sky_cubeMap->BindPrefilterTexture(16);
+            deferred_shader->SetInt("brdfLUT", 17);
+            sky_cubeMap->BindBrdfLutTexture(17);
+
+            RenderCommand::RenderToQuad();
+
+            sky_cubeMap->UnBind(17);
+            sky_cubeMap->UnBind(16);
+            sky_cubeMap->UnBind(15);
+
+            m_SSAOBuffer->UnBindTexture(8);
+            m_GeometryBuffer->UnBindTexture(7);
+            m_GeometryBuffer->UnBindTexture(6);
+            m_GeometryBuffer->UnBindTexture(5);
+            m_GeometryBuffer->UnBindTexture(4);
+            m_GeometryBuffer->UnBindTexture(3);
+            m_GeometryBuffer->UnBindTexture(2);
+            m_GeometryBuffer->UnBindTexture(1);
+            m_GeometryBuffer->UnBindTexture(0);
+
+            deferred_shader->UnBind();
+            m_FrameRenderBuffer_EnvironmentLighting_specular->UnBind();
+        }
+
+        // ssr
+        {
+            glDisable(GL_DEPTH_TEST);
+            m_FrameRenderBuffer_ssr->Bind();
+            RenderCommand::SetViewPort(0, 0, m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
+            RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+            RenderCommand::Clear();
+
+            auto ssr_shader = m_ShaderLibrary.Get("ScreenSpaceReflection");
+            ssr_shader->Bind();
+
+            ssr_shader->SetInt("g_DirectLightinging_diffuse", 0);
+            m_FrameRenderBuffer_DirectLighting_diffuse->BindTexture(0);
+            ssr_shader->SetInt("g_DirectLightinging_specular", 1);
+            m_FrameRenderBuffer_DirectLighting_specular->BindTexture(1);
+            ssr_shader->SetInt("g_EnvironmentLighting_diffuse", 2);
+            m_FrameRenderBuffer_EnvironmentLighting_diffuse->BindTexture(2);
+            ssr_shader->SetInt("g_EnvironmentLighting_specular", 3);
+            m_FrameRenderBuffer_EnvironmentLighting_specular->BindTexture(3);
+            ssr_shader->SetInt("g_ViewPosition", 4);
+            m_GeometryBuffer->BindViewPositionTexture(4);
+            ssr_shader->SetInt("g_ViewNormal", 5);
+            m_GeometryBuffer->BindViewNormalTexture(5);
+            ssr_shader->SetInt("g_Depth", 6);
+            m_GeometryBuffer->BindDepthTexture(6);
+            ssr_shader->SetInt("g_Metallic", 7);
+            m_GeometryBuffer->BindMetallicTexture(7);
+            ssr_shader->SetInt("g_WorldPosition", 8);
+            m_GeometryBuffer->BindWorldPositionTexture(8);
+            ssr_shader->SetInt("g_Roughness", 9);
+            m_GeometryBuffer->BindRoughnessTexture(9);
+
+            ssr_shader->SetFloat("rayStep", m_SSR_settings.rayStep);
+            ssr_shader->SetFloat("minRayStep", m_SSR_settings.minRayStep);
+            ssr_shader->SetFloat("maxSteps", m_SSR_settings.maxSteps);
+            ssr_shader->SetInt("numBinarySearchSteps", m_SSR_settings.numBinarySearchSteps);
+            ssr_shader->SetFloat("reflectionSpecularFalloffExponent", m_SSR_settings.reflectionSpecularFalloffExponent);
+            ssr_shader->SetBool("debug", m_SSR_settings.debug);
+            ssr_shader->SetFloat("refBias", m_SSR_settings.refBias);
+
+            ssr_shader->SetMat4("u_MProjection", m_PMatrix);
+            ssr_shader->SetMat4("u_MView", m_VMatrix);
+            ssr_shader->SetMat4("u_MInvProjection", glm::inverse(m_PMatrix));
+            ssr_shader->SetMat4("u_MInvView", glm::inverse(m_VMatrix));
+
+            RenderCommand::RenderToQuad();
+
+            m_GeometryBuffer->UnBindTexture(9);
+            m_GeometryBuffer->UnBindTexture(8);
+            m_GeometryBuffer->UnBindTexture(7);
+            m_GeometryBuffer->UnBindTexture(6);
+            m_GeometryBuffer->UnBindTexture(5);
+            m_GeometryBuffer->UnBindTexture(4);
+            m_FrameRenderBuffer_EnvironmentLighting_specular->UnBindTexture(3);
+            m_FrameRenderBuffer_EnvironmentLighting_diffuse->UnBindTexture(2);
+            m_FrameRenderBuffer_DirectLighting_specular->UnBindTexture(1);
+            m_FrameRenderBuffer_DirectLighting_diffuse->UnBindTexture(0);
+
+            ssr_shader->UnBind();
+            Renderer::EndScene(m_FrameRenderBuffer_ssr);
+            glEnable(GL_DEPTH_TEST);
+        }
+        // blur ssr
+        {
+            glDisable(GL_DEPTH_TEST);
+            m_FrameRenderBuffer_ssr_blur->Bind();
+            RenderCommand::SetViewPort(0, 0, m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
+            RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+            RenderCommand::Clear();
+
+            auto blur_shader = m_ShaderLibrary.Get("GaussianBlur");
+            blur_shader->Bind();
+
+            blur_shader->SetInt("g_Color", 0);
+            m_FrameRenderBuffer_ssr->BindTexture(0);
+            blur_shader->SetFloat2(
+                "screenSize", glm::vec2(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight()) / 5.0f);
+
+            RenderCommand::RenderToQuad();
+
+            m_FrameRenderBuffer_ssr->UnBindTexture(0);
+
+            blur_shader->UnBind();
+            Renderer::EndScene(m_FrameRenderBuffer_ssr_blur);
+            glEnable(GL_DEPTH_TEST);
+        }
+
+        // composite
+        {
+            glDisable(GL_DEPTH_TEST);
+            m_FrameRenderBuffer->Bind();
+            RenderCommand::SetViewPort(0, 0, m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
+            RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+            RenderCommand::Clear();
+
+            auto composite_shader = m_ShaderLibrary.Get("Composite");
+            composite_shader->Bind();
+
+            composite_shader->SetInt("g_DirectLightinging_diffuse", 0);
+            m_FrameRenderBuffer_DirectLighting_diffuse->BindTexture(0);
+            composite_shader->SetInt("g_DirectLightinging_specular", 1);
+            m_FrameRenderBuffer_DirectLighting_specular->BindTexture(1);
+            composite_shader->SetInt("g_EnvironmentLighting_diffuse", 2);
+            m_FrameRenderBuffer_EnvironmentLighting_diffuse->BindTexture(2);
+            composite_shader->SetInt("g_EnvironmentLighting_specular", 3);
+            m_FrameRenderBuffer_EnvironmentLighting_specular->BindTexture(3);
+            composite_shader->SetInt("g_Skybox", 4);
+            m_FrameRenderBuffer_skybox->BindTexture(4);
+            composite_shader->SetInt("g_ScreenSpaceReflection", 5);
+            m_FrameRenderBuffer_ssr_blur->BindTexture(5);
+            composite_shader->SetInt("g_AO", 6);
+            m_SSAOBuffer->BindSSAOTexture(6);
+
+            RenderCommand::RenderToQuad();
+
+            m_SSAOBuffer->UnBindTexture(6);
+            m_FrameRenderBuffer_ssr_blur->UnBindTexture(5);
+            m_FrameRenderBuffer_skybox->UnBindTexture(4);
+            m_FrameRenderBuffer_EnvironmentLighting_specular->UnBindTexture(3);
+            m_FrameRenderBuffer_EnvironmentLighting_diffuse->UnBindTexture(2);
+            m_FrameRenderBuffer_DirectLighting_specular->UnBindTexture(1);
+            m_FrameRenderBuffer_DirectLighting_diffuse->UnBindTexture(0);
+
+            composite_shader->UnBind();
+            Renderer::EndScene(m_FrameRenderBuffer);
+            glEnable(GL_DEPTH_TEST);
+        }
 
         // exposure
-        glDepthMask(GL_FALSE);
-        auto exposure_shader = m_ShaderLibrary.Get("Exposure");
-        exposure_shader->Bind();
+        {
+            glDisable(GL_DEPTH_TEST);
+            m_FrameRenderBuffer_exposure->Bind();
+            RenderCommand::SetViewPort(0, 0, m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
+            RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+            RenderCommand::Clear();
 
-        exposure_shader->SetInt("g_Color", 0);
-        m_FrameRenderBuffer->BindTexture(0);
-        exposure_shader->SetFloat("exposure", m_Exposure);
+            auto exposure_shader = m_ShaderLibrary.Get("Exposure");
+            exposure_shader->Bind();
 
-        RenderCommand::RenderToQuad();
+            exposure_shader->SetInt("g_Color", 0);
+            m_FrameRenderBuffer->BindTexture(0);
+            exposure_shader->SetFloat("exposure", m_Exposure);
 
-        m_FrameRenderBuffer->UnBindTexture(0);
+            RenderCommand::RenderToQuad();
 
-        exposure_shader->UnBind();
-        glDepthMask(GL_TRUE);
+            m_FrameRenderBuffer->UnBindTexture(0);
 
+            exposure_shader->UnBind();
+            Renderer::EndScene(m_FrameRenderBuffer_exposure);
+            glEnable(GL_DEPTH_TEST);
+        }
+
+        // forward
         // Point Cloud
+        m_FrameRenderBuffer->Bind();
+
         for (auto [entity, name, trans, pointcloud] : pointcloud_view.each())
         {
             APointCloud& pointcloud_actor = *static_cast<APointCloud*>(pointcloud.GetOwner());
@@ -678,7 +1122,7 @@ namespace Engine
         RenderCommand::SetViewPort(
             0, 0, m_FrameRenderBuffer_bufferViewport->GetWidth(), m_FrameRenderBuffer_bufferViewport->GetHeight());
 
-        RenderCommand::SetClearColor(m_BackGroundColor);
+        RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
         RenderCommand::Clear();
 
         std::string gbuffer_shader_name[] = {
@@ -691,55 +1135,105 @@ namespace Engine
             "VisMetallic",
             "VisPosition",
             "VisNormal",
+            "Screen",
+            "Screen",
+            "Screen",
+            "Screen",
+            "Screen",
+            "Screen",
+            "Screen",
+            "Screen",
         };
-        auto gbuffer_viewport_shader = m_ShaderLibrary.Get(gbuffer_shader_name[m_ViewportGBufferMap]);
+
+        const std::string viewport_buffer_name    = viewport_items[m_ViewportGBufferMap];
+        auto              gbuffer_viewport_shader = m_ShaderLibrary.Get(gbuffer_shader_name[m_ViewportGBufferMap]);
 
         gbuffer_viewport_shader->Bind();
 
-        if (m_ViewportGBufferMap == 0)
+        if (viewport_buffer_name == "ViewPosition")
         {
             gbuffer_viewport_shader->SetInt("g_Position", 0);
             m_GeometryBuffer->BindViewPositionTexture(0);
         }
-        else if (m_ViewportGBufferMap == 1)
+        if (viewport_buffer_name == "ViewNormal")
         {
             gbuffer_viewport_shader->SetInt("g_Normal", 0);
             m_GeometryBuffer->BindViewNormalTexture(0);
         }
-        else if (m_ViewportGBufferMap == 2)
+        if (viewport_buffer_name == "Albedo")
         {
             gbuffer_viewport_shader->SetInt("g_Albedo", 0);
             m_GeometryBuffer->BindAlbedoTexture(0);
         }
-        else if (m_ViewportGBufferMap == 3)
+        if (viewport_buffer_name == "Depth")
         {
             gbuffer_viewport_shader->SetInt("g_Depth", 0);
             m_GeometryBuffer->BindDepthTexture(0);
         }
-        else if (m_ViewportGBufferMap == 4)
+        if (viewport_buffer_name == "Ambient Occlusion")
         {
             gbuffer_viewport_shader->SetInt("g_AO", 0);
             m_SSAOBuffer->BindSSAOTexture(0);
         }
-        else if (m_ViewportGBufferMap == 5)
+        if (viewport_buffer_name == "Roughness")
         {
             gbuffer_viewport_shader->SetInt("g_Roughness", 0);
             m_GeometryBuffer->BindRoughnessTexture(0);
         }
-        else if (m_ViewportGBufferMap == 6)
+        if (viewport_buffer_name == "Metallic")
         {
             gbuffer_viewport_shader->SetInt("g_Metallic", 0);
             m_GeometryBuffer->BindMetallicTexture(0);
         }
-        else if (m_ViewportGBufferMap == 7)
+        if (viewport_buffer_name == "WorldPosition")
         {
             gbuffer_viewport_shader->SetInt("g_Position", 0);
             m_GeometryBuffer->BindWorldPositionTexture(0);
         }
-        else if (m_ViewportGBufferMap == 8)
+        if (viewport_buffer_name == "WorldNormal")
         {
             gbuffer_viewport_shader->SetInt("g_Normal", 0);
             m_GeometryBuffer->BindWorldNormalTexture(0);
+        }
+        if (viewport_buffer_name == "Skybox")
+        {
+            gbuffer_viewport_shader->SetInt("g_Color", 0);
+            m_FrameRenderBuffer_skybox->BindTexture(0);
+        }
+        if (viewport_buffer_name == "DirectLighting_Diffuse")
+        {
+            gbuffer_viewport_shader->SetInt("g_Color", 0);
+            m_FrameRenderBuffer_DirectLighting_diffuse->BindTexture(0);
+        }
+        if (viewport_buffer_name == "DirectLighting_Specular")
+        {
+            gbuffer_viewport_shader->SetInt("g_Color", 0);
+            m_FrameRenderBuffer_DirectLighting_specular->BindTexture(0);
+        }
+        if (viewport_buffer_name == "EnvironmentLighting_Diffuse")
+        {
+            gbuffer_viewport_shader->SetInt("g_Color", 0);
+            m_FrameRenderBuffer_EnvironmentLighting_diffuse->BindTexture(0);
+        }
+        if (viewport_buffer_name == "EnvironmentLighting_Specular")
+        {
+            gbuffer_viewport_shader->SetInt("g_Color", 0);
+            m_FrameRenderBuffer_EnvironmentLighting_specular->BindTexture(0);
+        }
+        if (viewport_buffer_name == "ScreenSpaceReflection")
+        {
+            gbuffer_viewport_shader->SetInt("g_Color", 0);
+            m_FrameRenderBuffer_ssr->BindTexture(0);
+        }
+        if (viewport_buffer_name == "ScreenSpaceReflection_Blur")
+        {
+            gbuffer_viewport_shader->SetInt("g_Color", 0);
+            m_FrameRenderBuffer_ssr_blur->BindTexture(0);
+        }
+        if (viewport_buffer_name == "Exposure")
+        {
+            gbuffer_viewport_shader->SetInt("g_Color", 0);
+            m_FrameRenderBuffer_exposure->BindTexture(0);
         }
 
         RenderCommand::RenderToQuad();
@@ -748,6 +1242,27 @@ namespace Engine
         gbuffer_viewport_shader->UnBind();
 
         Renderer::EndScene(m_FrameRenderBuffer_bufferViewport);
+
+        // Render to Screen
+        glDisable(GL_DEPTH_TEST);
+        m_FrameRenderBuffer->Bind();
+        RenderCommand::SetViewPort(0, 0, m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
+        RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+        RenderCommand::Clear();
+
+        auto screen_shader = m_ShaderLibrary.Get("Screen");
+        screen_shader->Bind();
+
+        screen_shader->SetInt("g_Color", 0);
+        m_FrameRenderBuffer_exposure->BindTexture(0);
+
+        RenderCommand::RenderToQuad();
+
+        m_FrameRenderBuffer_exposure->UnBindTexture(0);
+
+        screen_shader->UnBind();
+        Renderer::EndScene(m_FrameRenderBuffer);
+        glEnable(GL_DEPTH_TEST);
     }
 
     void UWorld::TickGui(float timeStep)
@@ -765,18 +1280,7 @@ namespace Engine
         ImGui::Separator();
 
         Gui::Text("Buffer Viewport");
-        const char* items[] = {
-            "ViewPosition",
-            "ViewNormal",
-            "Albedo",
-            "Depth",
-            "Ambient Occlusion",
-            "Roughness",
-            "Metallic",
-            "WorldPosition",
-            "WorldNormal",
-        };
-        ImGui::Combo("Viewport GBuffer Map", &m_ViewportGBufferMap, items, IM_ARRAYSIZE(items));
+        ImGui::Combo("Viewport Map", &m_ViewportGBufferMap, viewport_items, IM_ARRAYSIZE(viewport_items));
 
         ImGui::Separator();
 
@@ -784,6 +1288,18 @@ namespace Engine
         ImGui::SliderFloat("Radius", &m_SSAOBuffer->GetRadiusRef(), 0.05f, 2.0f);
         ImGui::SliderFloat("Bias", &m_SSAOBuffer->GetBiasRef(), 0.0f, 0.005f);
         ImGui::SliderFloat("Power", &m_SSAOBuffer->GetPowerRef(), 0.0f, 5.0f);
+
+        ImGui::Separator();
+
+        Gui::Text("Screen Space Reflection (SSR)");
+        ImGui::SliderFloat("Ray Step", &m_SSR_settings.rayStep, 0.001f, 1.0f);
+        ImGui::SliderFloat("Min Ray Step", &m_SSR_settings.minRayStep, 0.001f, 1.0f);
+        ImGui::SliderFloat("Max Steps", &m_SSR_settings.maxSteps, 1.0f, 1800.0f);
+        ImGui::SliderInt("Num Binary Search Steps", &m_SSR_settings.numBinarySearchSteps, 1, 20);
+        ImGui::SliderFloat(
+            "Reflection Specular Falloff Exponent", &m_SSR_settings.reflectionSpecularFalloffExponent, 0.0f, 10.0f);
+        ImGui::Checkbox("Debug", &m_SSR_settings.debug);
+        ImGui::SliderFloat("Ref Bias", &m_SSR_settings.refBias, -10.0f, 10.0f);
 
         Gui::End();
 
@@ -983,7 +1499,8 @@ namespace Engine
                 Gui::Text("Skinned Mesh");
                 ImGui::Separator();
 
-                Gui::Text(fmt::format("Num Joints: {0}", skinnedMeshComponent.GetSkeletonComponentRef().GetNumJoints()));
+                Gui::Text(
+                    fmt::format("Num Joints: {0}", skinnedMeshComponent.GetSkeletonComponentRef().GetNumJoints()));
 
                 ImGui::Checkbox("Render Skeleton",
                                 &skinnedMeshComponent.GetSkeletonComponentRef().GetShowSkeletonRef());

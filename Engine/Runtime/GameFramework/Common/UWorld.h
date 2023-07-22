@@ -22,9 +22,38 @@ namespace Engine
         ShaderLibrary            m_ShaderLibrary;
 
     public:
+        Ref<FrameRenderBuffer> m_FrameRenderBuffer_skybox;
+        Ref<FrameRenderBuffer> m_FrameRenderBuffer_DirectLighting_diffuse;
+        Ref<FrameRenderBuffer> m_FrameRenderBuffer_DirectLighting_specular;
+        Ref<FrameRenderBuffer> m_FrameRenderBuffer_EnvironmentLighting_diffuse;
+        Ref<FrameRenderBuffer> m_FrameRenderBuffer_EnvironmentLighting_specular;
+
+        Ref<FrameRenderBuffer> m_FrameRenderBuffer_ssr;
+        Ref<FrameRenderBuffer> m_FrameRenderBuffer_ssr_blur;
+        Ref<FrameRenderBuffer> m_FrameRenderBuffer_exposure;
+
         Ref<FrameRenderBuffer> m_FrameRenderBuffer;
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_bufferViewport;
-        Ref<FrameRenderBuffer> m_FrameRenderBuffer_playground;
+
+        const char* viewport_items[17] = {
+            "ViewPosition",
+            "ViewNormal",
+            "Albedo",
+            "Depth",
+            "Ambient Occlusion",
+            "Roughness",
+            "Metallic",
+            "WorldPosition",
+            "WorldNormal",
+            "Skybox",
+            "DirectLighting_Diffuse",
+            "DirectLighting_Specular",
+            "EnvironmentLighting_Diffuse",
+            "EnvironmentLighting_Specular",
+            "ScreenSpaceReflection",
+            "ScreenSpaceReflection_Blur",
+            "Exposure",
+        };
 
         Ref<GeometryBuffer> m_GeometryBuffer;
         Ref<SSAOBuffer>     m_SSAOBuffer;
@@ -39,15 +68,26 @@ namespace Engine
         glm::mat4 m_PMatrix;
         glm::mat4 m_VPMatrix;
 
-        float m_Exposure                = 0.66f;
+        float m_Exposure                = 0.3f;
         float m_VisPrePrefilterMipLevel = 0.0f;
         int   m_ViewportGBufferMap      = 0;
+
+        struct ScreenSpaceReflection
+        {
+            float rayStep = 0.01f;
+            float minRayStep = 0.1f;
+            float maxSteps = 500.0f;
+            int numBinarySearchSteps = 5;
+            float reflectionSpecularFalloffExponent = 1.0f;
+            bool debug = false;
+            float refBias = 0.001f;
+        } m_SSR_settings;
 
         entt::entity entity_selected = entt::null;
 
     public:
         bool m_RenderSkybox = true;
-        bool m_RenderGrid   = true;
+        bool m_RenderGrid   = false;
         bool m_RenderGizmo  = true;
 
     public:
