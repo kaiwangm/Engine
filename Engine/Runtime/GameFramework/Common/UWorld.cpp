@@ -21,6 +21,7 @@
 #include <Engine/Runtime/GameFramework/Camera/ACamera.h>
 #include <Engine/Runtime/GameFramework/Pawn/APawn.h>
 #include <Engine/Runtime/GameFramework/Light/UPointLightComponent.h>
+#include <Engine/Runtime/GameFramework/Light/UDirectionalLightComponent.h>
 
 namespace Engine
 {
@@ -32,13 +33,15 @@ namespace Engine
         m_FrameRenderBuffer_DirectLighting_specular      = FrameRenderBuffer::Create();
         m_FrameRenderBuffer_EnvironmentLighting_diffuse  = FrameRenderBuffer::Create();
         m_FrameRenderBuffer_EnvironmentLighting_specular = FrameRenderBuffer::Create();
+        m_FrameRenderBuffer_playground                   = FrameRenderBuffer::Create();
 
-        m_FrameRenderBuffer_ssr      = FrameRenderBuffer::Create();
-        m_FrameRenderBuffer_ssr_blur = FrameRenderBuffer::Create();
-        m_FrameRenderBuffer_exposure = FrameRenderBuffer::Create();
-
-        m_FrameRenderBuffer                = FrameRenderBuffer::Create();
-        m_FrameRenderBuffer_bufferViewport = FrameRenderBuffer::Create();
+        m_FrameRenderBuffer_ssr                   = FrameRenderBuffer::Create();
+        m_FrameRenderBuffer_ssr_blur              = FrameRenderBuffer::Create();
+        m_FrameRenderBuffer_exposure              = FrameRenderBuffer::Create();
+        m_FrameRenderBuffer                       = FrameRenderBuffer::Create();
+        m_FrameRenderBuffer_bufferViewport        = FrameRenderBuffer::Create();
+        m_FrameRenderBuffer_shadowMapViewport     = FrameRenderBuffer::Create();
+        m_FrameRenderBuffer_shadowCubeMapViewport = FrameRenderBuffer::Create();
 
         // GeometryBuffer
         m_GeometryBuffer = GeometryBuffer::Create();
@@ -176,6 +179,16 @@ namespace Engine
                    "Assets/Editor/Shader/screen_quad_vertex.glsl",
                    "Assets/Editor/Shader/deffered/composite.glsl",
                    "Path");
+
+        LoadShader("ShadowMap",
+                   "Assets/Editor/Shader/shadowmap/vertex.glsl",
+                   "Assets/Editor/Shader/shadowmap/fragment.glsl",
+                   "Path");
+
+        LoadShader("VisCubeDepth",
+                   "Assets/Editor/Shader/screen_quad_vertex.glsl",
+                   "Assets/Editor/Shader/viewport/depth_cubemap.glsl",
+                   "Path");
     }
 
     void UWorld::TickLogic(float timeStep, float nowTime, bool isWindowFocused)
@@ -189,7 +202,7 @@ namespace Engine
         auto pawn_view           = m_Registry.view<UTagComponent, UTransformComponent, UPawnComponent>();
         auto skeleton_view       = m_Registry.view<UTagComponent, UTransformComponent, USkeletonComponent>();
         auto trajectory_view     = m_Registry.view<UTagComponent, UTransformComponent, UTrajectoryComponent>();
-        auto light_view          = m_Registry.view<UTagComponent, UTransformComponent, UPointLightComponent>();
+        auto pointlight_view     = m_Registry.view<UTagComponent, UTransformComponent, UPointLightComponent>();
         auto skinnedmesh_view    = m_Registry.view<UTagComponent, UTransformComponent, USkinnedMeshComponent>();
         auto motionmatching_view = m_Registry.view<UTagComponent, UTransformComponent, UMotionMatchingComponent>();
 
@@ -324,19 +337,18 @@ namespace Engine
 
     void UWorld::TickRender(float timeStep)
     {
-        auto camrea_view         = m_Registry.view<UTagComponent, UTransformComponent, UCameraComponent>();
-        auto model_view          = m_Registry.view<UTagComponent, UTransformComponent, UStaticMeshComponent>();
-        auto pointcloud_view     = m_Registry.view<UTagComponent, UTransformComponent, UPointCloudComponent>();
-        auto light_view          = m_Registry.view<UTagComponent, UTransformComponent, UPointLightComponent>();
-        auto skybox_view         = m_Registry.view<UTagComponent, UTransformComponent, USkyboxComponent>();
-        auto skeleton_view       = m_Registry.view<UTagComponent, UTransformComponent, USkeletonComponent>();
-        auto pawn_view           = m_Registry.view<UTagComponent, UTransformComponent, UPawnComponent>();
-        auto trajectory_view     = m_Registry.view<UTagComponent, UTransformComponent, UTrajectoryComponent>();
-        auto skinnedmesh_view    = m_Registry.view<UTagComponent, UTransformComponent, USkinnedMeshComponent>();
-        auto motionmatching_view = m_Registry.view<UTagComponent, UTransformComponent, UMotionMatchingComponent>();
-
-        m_GeometryBuffer->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
-        m_SSAOBuffer->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
+        auto actor_view           = m_Registry.view<UTagComponent, UTransformComponent>();
+        auto camrea_view          = m_Registry.view<UTagComponent, UTransformComponent, UCameraComponent>();
+        auto model_view           = m_Registry.view<UTagComponent, UTransformComponent, UStaticMeshComponent>();
+        auto pointcloud_view      = m_Registry.view<UTagComponent, UTransformComponent, UPointCloudComponent>();
+        auto pointlight_view      = m_Registry.view<UTagComponent, UTransformComponent, UPointLightComponent>();
+        auto dirctionallight_view = m_Registry.view<UTagComponent, UTransformComponent, UDirectionalLightComponent>();
+        auto skybox_view          = m_Registry.view<UTagComponent, UTransformComponent, USkyboxComponent>();
+        auto skeleton_view        = m_Registry.view<UTagComponent, UTransformComponent, USkeletonComponent>();
+        auto pawn_view            = m_Registry.view<UTagComponent, UTransformComponent, UPawnComponent>();
+        auto trajectory_view      = m_Registry.view<UTagComponent, UTransformComponent, UTrajectoryComponent>();
+        auto skinnedmesh_view     = m_Registry.view<UTagComponent, UTransformComponent, USkinnedMeshComponent>();
+        auto motionmatching_view  = m_Registry.view<UTagComponent, UTransformComponent, UMotionMatchingComponent>();
 
         m_FrameRenderBuffer_skybox->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
         m_FrameRenderBuffer_DirectLighting_diffuse->SetViewPort(m_FrameRenderBuffer->GetWidth(),
@@ -347,15 +359,129 @@ namespace Engine
                                                                      m_FrameRenderBuffer->GetHeight());
         m_FrameRenderBuffer_EnvironmentLighting_specular->SetViewPort(m_FrameRenderBuffer->GetWidth(),
                                                                       m_FrameRenderBuffer->GetHeight());
+        m_FrameRenderBuffer_playground->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
 
         m_FrameRenderBuffer_ssr->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
         m_FrameRenderBuffer_ssr_blur->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
         m_FrameRenderBuffer_exposure->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
+        m_GeometryBuffer->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
+        m_SSAOBuffer->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
+        m_FrameRenderBuffer_shadowMapViewport->SetViewPort(256, 256);
+        m_FrameRenderBuffer_shadowCubeMapViewport->SetViewPort(512, 256);
+
+        // set point light cube shadow map viewport
+        for (auto [entity, name, trans, light] : pointlight_view.each())
+        {
+            light.SetShadowCubeMapViewPort(3072, 3072);
+        }
+
+        // set directional light shadow map viewport
+        for (auto [entity, name, trans, light] : dirctionallight_view.each())
+        {
+            light.SetShadowMapViewPort(3072, 3072);
+        }
 
         // Get Main SkyBox
         for (auto [entity, name, trans, skybox] : skybox_view.each())
         {
             m_MainSkybox = static_cast<ASkybox*>(skybox.GetOwner());
+        }
+
+        // Render to point light ShadowCubeMap
+        for (auto [entity, name, trans, light] : pointlight_view.each())
+        {
+            ShadowCubeMapBuffer&                 shadowCubeMapBuffer = light.GetShadowCubeMapBufferRef();
+            std::array<std::function<void()>, 6> renderFuncs {
+                std::bind(&ShadowCubeMapBuffer::BindTop, &shadowCubeMapBuffer),
+                std::bind(&ShadowCubeMapBuffer::BindBottom, &shadowCubeMapBuffer),
+                std::bind(&ShadowCubeMapBuffer::BindLeft, &shadowCubeMapBuffer),
+                std::bind(&ShadowCubeMapBuffer::BindRight, &shadowCubeMapBuffer),
+                std::bind(&ShadowCubeMapBuffer::BindFront, &shadowCubeMapBuffer),
+                std::bind(&ShadowCubeMapBuffer::BindBack, &shadowCubeMapBuffer),
+            };
+
+            glm::vec3                lightPosition      = trans.GetPosition();
+            glm::mat4                projectionMatrices = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+            std::array<glm::mat4, 6> viewMatrices       = {
+                glm::lookAt(lightPosition, lightPosition + glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
+                glm::lookAt(lightPosition, lightPosition + glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)),
+                glm::lookAt(lightPosition, lightPosition + glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+                glm::lookAt(lightPosition, lightPosition + glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+                glm::lookAt(lightPosition, lightPosition + glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+                glm::lookAt(lightPosition, lightPosition + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+            };
+
+            for (int i = 0; i < 6; ++i)
+            {
+                const std::function<void()>& bindFunc = renderFuncs[i];
+                bindFunc();
+
+                RenderCommand::SetViewPort(0, 0, 3072, 3072);
+                RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+                RenderCommand::Clear();
+
+                // use a range-for
+                for (auto [entity, name, trans, model] : model_view.each())
+                {
+                    const auto meshes = model.GetStaticMesh().m_Meshes;
+                    for (const auto& mesh : meshes)
+                    {
+                        auto shader = m_ShaderLibrary.Get("ShadowMap");
+                        shader->Bind();
+
+                        shader->SetMat4("u_MLightSpace", projectionMatrices * viewMatrices[i]);
+                        shader->SetMat4("u_MTransform", trans.GetTransform());
+
+                        mesh.m_VertexArray->Bind();
+                        RenderCommand::DrawIndexed(mesh.m_VertexArray);
+                        mesh.m_VertexArray->UnBind();
+
+                        shader->UnBind();
+                    }
+                }
+
+                shadowCubeMapBuffer.UnBind();
+            }
+        }
+
+        // Render to directional light ShadowMap
+        for (auto [entity, name, trans, light] : dirctionallight_view.each())
+        {
+            ShadowMapBuffer& shadowMapBuffer = light.GetShadowMapBufferRef();
+            shadowMapBuffer.Bind();
+
+            RenderCommand::SetViewPort(0, 0, 3072, 3072);
+            RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+            RenderCommand::Clear();
+
+            const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 1.0f, 33.0f);
+            const glm::vec3 lightPositon    = trans.GetPosition();
+            const glm::vec3 lightDirection  = light.GetDirectionRef();
+            const glm::mat4 lightView =
+                glm::lookAt(lightPositon, lightPositon + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
+            const glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+
+            // use a range-for
+            for (auto [entity, name, trans, model] : model_view.each())
+            {
+                const auto meshes = model.GetStaticMesh().m_Meshes;
+                for (const auto& mesh : meshes)
+                {
+                    auto shader = m_ShaderLibrary.Get("ShadowMap");
+                    shader->Bind();
+
+                    shader->SetMat4("u_MLightSpace", lightSpaceMatrix);
+                    shader->SetMat4("u_MTransform", trans.GetTransform());
+
+                    mesh.m_VertexArray->Bind();
+                    RenderCommand::DrawIndexed(mesh.m_VertexArray);
+                    mesh.m_VertexArray->UnBind();
+
+                    shader->UnBind();
+                }
+            }
+
+            shadowMapBuffer.UnBind();
         }
 
         // Render to GeometryBuffer
@@ -596,19 +722,49 @@ namespace Engine
             m_SSAOBuffer->BindSSAOTexture(8);
 
             int ligth_num = 0;
-            for (auto [entity, name, trans, light] : light_view.each())
+            for (auto [entity, name, trans, light] : pointlight_view.each())
             {
-                if (ligth_num >= 4)
-                {
-                    break;
-                }
+                deferred_shader->SetFloat3("pointLightPositions[" + std::to_string(ligth_num) + "]",
+                                           trans.GetPosition());
+                deferred_shader->SetFloat3("pointLightColors[" + std::to_string(ligth_num) + "]", light.GetColorRef());
+                deferred_shader->SetFloat("pointLightIntensities[" + std::to_string(ligth_num) + "]",
+                                          light.GetIntensityRef());
 
-                deferred_shader->SetFloat3("lightPositions[" + std::to_string(ligth_num) + "]", trans.GetPosition());
-                deferred_shader->SetFloat3("lightColors[" + std::to_string(ligth_num) + "]", light.GetColorRef());
+                deferred_shader->SetInt("pointShadowCubeMaps[" + std::to_string(ligth_num) + "]", 50 + ligth_num);
+                light.GetShadowCubeMapBufferRef().BindTexture(50 + ligth_num);
+                deferred_shader->SetFloat("pointShadowCubeMapsNearPlane[" + std::to_string(ligth_num) + "]", 0.1f);
+                deferred_shader->SetFloat("pointShadowCubeMapsFarPlane[" + std::to_string(ligth_num) + "]", 10.0f);
 
                 ligth_num++;
             }
-            deferred_shader->SetInt("numLights", ligth_num);
+            deferred_shader->SetInt("numPointLights", ligth_num);
+
+            int dirctionallight_num = 0;
+            for (auto [entity, name, trans, light] : dirctionallight_view.each())
+            {
+                const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 1.0f, 33.0f);
+                const glm::vec3 lightPositon    = trans.GetPosition();
+                const glm::vec3 lightDirection  = light.GetDirectionRef();
+                const glm::mat4 lightView =
+                    glm::lookAt(lightPositon, lightPositon + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
+                const glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+
+                deferred_shader->SetFloat3("directionalLightDirections[" + std::to_string(dirctionallight_num) + "]",
+                                           light.GetDirectionRef());
+                deferred_shader->SetFloat3("directionalLightColors[" + std::to_string(dirctionallight_num) + "]",
+                                           light.GetColorRef());
+                deferred_shader->SetFloat("directionalLightIntensities[" + std::to_string(dirctionallight_num) + "]",
+                                          light.GetIntensityRef());
+                deferred_shader->SetMat4("directionalLightMatrices[" + std::to_string(dirctionallight_num) + "]",
+                                         lightSpaceMatrix);
+                deferred_shader->SetInt("directionalShadowMaps[" + std::to_string(dirctionallight_num) + "]",
+                                        150 + dirctionallight_num);
+
+                light.GetShadowMapBufferRef().BindTexture(150 + dirctionallight_num);
+
+                dirctionallight_num++;
+            }
+            deferred_shader->SetInt("numDirectionalLights", dirctionallight_num);
 
             glm::vec3 camPos = glm::vec3(glm::inverse(m_VMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
             deferred_shader->SetFloat3("camPos", camPos);
@@ -672,19 +828,49 @@ namespace Engine
             m_SSAOBuffer->BindSSAOTexture(8);
 
             int ligth_num = 0;
-            for (auto [entity, name, trans, light] : light_view.each())
+            for (auto [entity, name, trans, light] : pointlight_view.each())
             {
-                if (ligth_num >= 4)
-                {
-                    break;
-                }
+                deferred_shader->SetFloat3("pointLightPositions[" + std::to_string(ligth_num) + "]",
+                                           trans.GetPosition());
+                deferred_shader->SetFloat3("pointLightColors[" + std::to_string(ligth_num) + "]", light.GetColorRef());
+                deferred_shader->SetFloat("pointLightIntensities[" + std::to_string(ligth_num) + "]",
+                                          light.GetIntensityRef());
 
-                deferred_shader->SetFloat3("lightPositions[" + std::to_string(ligth_num) + "]", trans.GetPosition());
-                deferred_shader->SetFloat3("lightColors[" + std::to_string(ligth_num) + "]", light.GetColorRef());
+                deferred_shader->SetInt("pointShadowCubeMaps[" + std::to_string(ligth_num) + "]", 50 + ligth_num);
+                light.GetShadowCubeMapBufferRef().BindTexture(50 + ligth_num);
+                deferred_shader->SetFloat("pointShadowCubeMapsNearPlane[" + std::to_string(ligth_num) + "]", 0.1f);
+                deferred_shader->SetFloat("pointShadowCubeMapsFarPlane[" + std::to_string(ligth_num) + "]", 10.0f);
 
                 ligth_num++;
             }
-            deferred_shader->SetInt("numLights", ligth_num);
+            deferred_shader->SetInt("numPointLights", ligth_num);
+
+            int dirctionallight_num = 0;
+            for (auto [entity, name, trans, light] : dirctionallight_view.each())
+            {
+                const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 1.0f, 33.0f);
+                const glm::vec3 lightPositon    = trans.GetPosition();
+                const glm::vec3 lightDirection  = light.GetDirectionRef();
+                const glm::mat4 lightView =
+                    glm::lookAt(lightPositon, lightPositon + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
+                const glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+
+                deferred_shader->SetFloat3("directionalLightDirections[" + std::to_string(dirctionallight_num) + "]",
+                                           light.GetDirectionRef());
+                deferred_shader->SetFloat3("directionalLightColors[" + std::to_string(dirctionallight_num) + "]",
+                                           light.GetColorRef());
+                deferred_shader->SetFloat("directionalLightIntensities[" + std::to_string(dirctionallight_num) + "]",
+                                          light.GetIntensityRef());
+                deferred_shader->SetMat4("directionalLightMatrices[" + std::to_string(dirctionallight_num) + "]",
+                                         lightSpaceMatrix);
+                deferred_shader->SetInt("directionalShadowMaps[" + std::to_string(dirctionallight_num) + "]",
+                                        150 + dirctionallight_num);
+
+                light.GetShadowMapBufferRef().BindTexture(150 + dirctionallight_num);
+
+                dirctionallight_num++;
+            }
+            deferred_shader->SetInt("numDirectionalLights", dirctionallight_num);
 
             glm::vec3 camPos = glm::vec3(glm::inverse(m_VMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
             deferred_shader->SetFloat3("camPos", camPos);
@@ -748,19 +934,15 @@ namespace Engine
             m_SSAOBuffer->BindSSAOTexture(8);
 
             int ligth_num = 0;
-            for (auto [entity, name, trans, light] : light_view.each())
+            for (auto [entity, name, trans, light] : pointlight_view.each())
             {
-                if (ligth_num >= 4)
-                {
-                    break;
-                }
-
-                deferred_shader->SetFloat3("lightPositions[" + std::to_string(ligth_num) + "]", trans.GetPosition());
-                deferred_shader->SetFloat3("lightColors[" + std::to_string(ligth_num) + "]", light.GetColorRef());
+                deferred_shader->SetFloat3("pointLightPositions[" + std::to_string(ligth_num) + "]",
+                                           trans.GetPosition());
+                deferred_shader->SetFloat3("pointLightColors[" + std::to_string(ligth_num) + "]", light.GetColorRef());
 
                 ligth_num++;
             }
-            deferred_shader->SetInt("numLights", ligth_num);
+            deferred_shader->SetInt("numPointLights", ligth_num);
 
             glm::vec3 camPos = glm::vec3(glm::inverse(m_VMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
             deferred_shader->SetFloat3("camPos", camPos);
@@ -824,19 +1006,15 @@ namespace Engine
             m_SSAOBuffer->BindSSAOTexture(8);
 
             int ligth_num = 0;
-            for (auto [entity, name, trans, light] : light_view.each())
+            for (auto [entity, name, trans, light] : pointlight_view.each())
             {
-                if (ligth_num >= 4)
-                {
-                    break;
-                }
-
-                deferred_shader->SetFloat3("lightPositions[" + std::to_string(ligth_num) + "]", trans.GetPosition());
-                deferred_shader->SetFloat3("lightColors[" + std::to_string(ligth_num) + "]", light.GetColorRef());
+                deferred_shader->SetFloat3("pointLightPositions[" + std::to_string(ligth_num) + "]",
+                                           trans.GetPosition());
+                deferred_shader->SetFloat3("pointLightColors[" + std::to_string(ligth_num) + "]", light.GetColorRef());
 
                 ligth_num++;
             }
-            deferred_shader->SetInt("numLights", ligth_num);
+            deferred_shader->SetInt("numPointLights", ligth_num);
 
             glm::vec3 camPos = glm::vec3(glm::inverse(m_VMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
             deferred_shader->SetFloat3("camPos", camPos);
@@ -945,8 +1123,8 @@ namespace Engine
 
             blur_shader->SetInt("g_Color", 0);
             m_FrameRenderBuffer_ssr->BindTexture(0);
-            blur_shader->SetFloat2(
-                "screenSize", glm::vec2(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight()) / 5.0f);
+            blur_shader->SetFloat2("screenSize",
+                                   glm::vec2(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight()) / 1.0f);
 
             RenderCommand::RenderToQuad();
 
@@ -1306,14 +1484,15 @@ namespace Engine
         // Scence Collection
         Gui::Begin("Scence Collection");
 
-        auto object_view      = m_Registry.view<UTagComponent, UTransformComponent>();
-        auto camrea_view      = m_Registry.view<UTagComponent, UTransformComponent, UCameraComponent>();
-        auto staticmodel_view = m_Registry.view<UTagComponent, UTransformComponent, UStaticMeshComponent>();
-        auto pointcloud_view  = m_Registry.view<UTagComponent, UTransformComponent, UPointCloudComponent>();
-        auto light_view       = m_Registry.view<UTagComponent, UTransformComponent, UPointLightComponent>();
-        auto skybox_view      = m_Registry.view<UTagComponent, UTransformComponent, USkyboxComponent>();
-        auto skeleton_view    = m_Registry.view<UTagComponent, UTransformComponent, USkeletonComponent>();
-        auto skinnedmesh_view = m_Registry.view<UTagComponent, UTransformComponent, USkinnedMeshComponent>();
+        auto object_view          = m_Registry.view<UTagComponent, UTransformComponent>();
+        auto camrea_view          = m_Registry.view<UTagComponent, UTransformComponent, UCameraComponent>();
+        auto staticmodel_view     = m_Registry.view<UTagComponent, UTransformComponent, UStaticMeshComponent>();
+        auto pointcloud_view      = m_Registry.view<UTagComponent, UTransformComponent, UPointCloudComponent>();
+        auto pointlight_view      = m_Registry.view<UTagComponent, UTransformComponent, UPointLightComponent>();
+        auto dirctionallight_view = m_Registry.view<UTagComponent, UTransformComponent, UDirectionalLightComponent>();
+        auto skybox_view          = m_Registry.view<UTagComponent, UTransformComponent, USkyboxComponent>();
+        auto skeleton_view        = m_Registry.view<UTagComponent, UTransformComponent, USkeletonComponent>();
+        auto skinnedmesh_view     = m_Registry.view<UTagComponent, UTransformComponent, USkinnedMeshComponent>();
 
         static ImGuiTreeNodeFlags base_flags =
             ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
@@ -1464,7 +1643,171 @@ namespace Engine
                 ImGui::Separator();
 
                 ImGui::ColorEdit3("Color", glm::value_ptr(pointLightComponent.GetColorRef()));
-                Gui::SliderFloat("Intensity", pointLightComponent.GetIntensityRef(), 0.0f, 1.0f);
+                Gui::SliderFloat("Intensity", pointLightComponent.GetIntensityRef(), 0.0f, 30.0f);
+
+                // Render texture to ShadowCube Viewport
+                ShadowCubeMapBuffer& shadowCubeMapBuffer = pointLightComponent.GetShadowCubeMapBufferRef();
+                m_FrameRenderBuffer_shadowCubeMapViewport->Bind();
+                RenderCommand::SetViewPort(0, 0, 512, 256);
+                RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+                RenderCommand::Clear();
+
+                auto shader = m_ShaderLibrary.Get("VisCubeDepth");
+                shader->Bind();
+
+                shader->SetInt("g_Depth", 0);
+                shadowCubeMapBuffer.BindTexture(0);
+
+                shader->SetFloat("u_NearPlane", 0.1f);
+                shader->SetFloat("u_FarPlane", 33.0f);
+
+                RenderCommand::RenderToQuad();
+
+                shadowCubeMapBuffer.UnBindTexture(0);
+
+                shader->UnBind();
+                m_FrameRenderBuffer_shadowCubeMapViewport->UnBind();
+
+                ImGui::Text("ShadowCubeMap");
+
+                ImGuiIO& io         = ImGui::GetIO();
+                ImVec2   pos        = ImGui::GetCursorScreenPos();
+                int      my_tex_w   = 512;
+                int      my_tex_h   = 256;
+                ImVec4   tint_col   = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+                ImVec4   border_col = ImGui::GetStyleColorVec4(ImGuiCol_Border);
+
+                ImGui::Image(m_FrameRenderBuffer_shadowCubeMapViewport->GetTextureID(),
+                             ImVec2(512, 256),
+                             ImVec2(0, 1),
+                             ImVec2(1, 0),
+                             tint_col,
+                             border_col);
+
+                if (ImGui::BeginItemTooltip())
+                {
+                    float region_sz = 32.0f;
+                    float region_x  = io.MousePos.x - pos.x - region_sz * 0.5f;
+                    float region_y  = io.MousePos.y - pos.y - region_sz * 0.5f;
+                    float zoom      = 4.0f;
+                    if (region_x < 0.0f)
+                    {
+                        region_x = 0.0f;
+                    }
+                    else if (region_x > my_tex_w - region_sz)
+                    {
+                        region_x = my_tex_w - region_sz;
+                    }
+                    if (region_y < 0.0f)
+                    {
+                        region_y = 0.0f;
+                    }
+                    else if (region_y > my_tex_h - region_sz)
+                    {
+                        region_y = my_tex_h - region_sz;
+                    }
+                    ImGui::Text("Min: (%.2f, %.2f)", region_x, region_y);
+                    ImGui::Text("Max: (%.2f, %.2f)", region_x + region_sz, region_y + region_sz);
+                    ImVec2 uv0 = ImVec2((region_x) / my_tex_w, (region_y) / my_tex_h);
+                    uv0.y      = 1.0f - uv0.y;
+                    ImVec2 uv1 = ImVec2((region_x + region_sz) / my_tex_w, (region_y + region_sz) / my_tex_h);
+                    uv1.y      = 1.0f - uv1.y;
+                    ImGui::Image(m_FrameRenderBuffer_shadowCubeMapViewport->GetTextureID(),
+                                 ImVec2(region_sz * zoom, region_sz * zoom),
+                                 uv0,
+                                 uv1,
+                                 tint_col,
+                                 border_col);
+                    ImGui::EndTooltip();
+                }
+            }
+
+            if (m_Registry.any_of<UDirectionalLightComponent>(entity_selected) == true)
+            {
+                auto& directionalLightComponent = m_Registry.get<UDirectionalLightComponent>(entity_selected);
+                Gui::Text("Directional Light");
+                ImGui::Separator();
+
+                ImGui::ColorEdit3("Color", glm::value_ptr(directionalLightComponent.GetColorRef()));
+                {
+                    glm::vec3 direction = directionalLightComponent.GetDirectionRef();
+                    Gui::DragFloat3("Direction", direction, 0.005f, -1.0f, 1.0f);
+                    directionalLightComponent.SetDirection(direction);
+                }
+                Gui::SliderFloat("Intensity", directionalLightComponent.GetIntensityRef(), 0.0f, 30.0f);
+
+                // Render texture to ShadowMap Viewport
+                ShadowMapBuffer& shadowMapBuffer = directionalLightComponent.GetShadowMapBufferRef();
+                m_FrameRenderBuffer_shadowMapViewport->Bind();
+                RenderCommand::SetViewPort(0, 0, 256, 256);
+                RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+                RenderCommand::Clear();
+
+                auto shader = m_ShaderLibrary.Get("VisDepth");
+                shader->Bind();
+
+                shader->SetInt("g_Depth", 0);
+                shadowMapBuffer.BindTexture(0);
+
+                RenderCommand::RenderToQuad();
+
+                shadowMapBuffer.UnBindTexture(0);
+
+                shader->UnBind();
+                m_FrameRenderBuffer_shadowMapViewport->UnBind();
+
+                ImGui::Text("ShadowMap");
+
+                ImGuiIO& io         = ImGui::GetIO();
+                ImVec2   pos        = ImGui::GetCursorScreenPos();
+                int      my_tex_w   = 256;
+                int      my_tex_h   = 256;
+                ImVec4   tint_col   = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+                ImVec4   border_col = ImGui::GetStyleColorVec4(ImGuiCol_Border);
+
+                ImGui::Image(m_FrameRenderBuffer_shadowMapViewport->GetTextureID(),
+                             ImVec2(256, 256),
+                             ImVec2(0, 1),
+                             ImVec2(1, 0),
+                             tint_col,
+                             border_col);
+
+                if (ImGui::BeginItemTooltip())
+                {
+                    float region_sz = 32.0f;
+                    float region_x  = io.MousePos.x - pos.x - region_sz * 0.5f;
+                    float region_y  = io.MousePos.y - pos.y - region_sz * 0.5f;
+                    float zoom      = 4.0f;
+                    if (region_x < 0.0f)
+                    {
+                        region_x = 0.0f;
+                    }
+                    else if (region_x > my_tex_w - region_sz)
+                    {
+                        region_x = my_tex_w - region_sz;
+                    }
+                    if (region_y < 0.0f)
+                    {
+                        region_y = 0.0f;
+                    }
+                    else if (region_y > my_tex_h - region_sz)
+                    {
+                        region_y = my_tex_h - region_sz;
+                    }
+                    ImGui::Text("Min: (%.2f, %.2f)", region_x, region_y);
+                    ImGui::Text("Max: (%.2f, %.2f)", region_x + region_sz, region_y + region_sz);
+                    ImVec2 uv0 = ImVec2((region_x) / my_tex_w, (region_y) / my_tex_h);
+                    uv0.y      = 1.0f - uv0.y;
+                    ImVec2 uv1 = ImVec2((region_x + region_sz) / my_tex_w, (region_y + region_sz) / my_tex_h);
+                    uv1.y      = 1.0f - uv1.y;
+                    ImGui::Image(m_FrameRenderBuffer_shadowMapViewport->GetTextureID(),
+                                 ImVec2(region_sz * zoom, region_sz * zoom),
+                                 uv0,
+                                 uv1,
+                                 tint_col,
+                                 border_col);
+                    ImGui::EndTooltip();
+                }
             }
 
             if (m_Registry.any_of<USkyboxComponent>(entity_selected) == true)

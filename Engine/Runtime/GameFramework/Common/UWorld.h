@@ -27,13 +27,15 @@ namespace Engine
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_DirectLighting_specular;
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_EnvironmentLighting_diffuse;
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_EnvironmentLighting_specular;
+        Ref<FrameRenderBuffer> m_FrameRenderBuffer_playground;
 
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_ssr;
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_ssr_blur;
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_exposure;
-
         Ref<FrameRenderBuffer> m_FrameRenderBuffer;
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_bufferViewport;
+        Ref<FrameRenderBuffer> m_FrameRenderBuffer_shadowMapViewport;
+        Ref<FrameRenderBuffer> m_FrameRenderBuffer_shadowCubeMapViewport;
 
         const char* viewport_items[17] = {
             "ViewPosition",
@@ -74,13 +76,13 @@ namespace Engine
 
         struct ScreenSpaceReflection
         {
-            float rayStep = 0.01f;
-            float minRayStep = 0.1f;
-            float maxSteps = 500.0f;
-            int numBinarySearchSteps = 5;
+            float rayStep                           = 0.01f;
+            float minRayStep                        = 0.1f;
+            float maxSteps                          = 500.0f;
+            int   numBinarySearchSteps              = 5;
             float reflectionSpecularFalloffExponent = 1.0f;
-            bool debug = false;
-            float refBias = 0.001f;
+            bool  debug                             = false;
+            float refBias                           = 0.001f;
         } m_SSR_settings;
 
         entt::entity entity_selected = entt::null;

@@ -140,8 +140,8 @@ namespace Engine
             ground.GetTransformComponent().SetPosition(glm::vec3 {0.0f, -0.15f, 0.0f});
             MBasicPbr* ground_material = static_cast<MBasicPbr*>(ground.GetMaterial());
             ground_material->SetAlbedo(glm::vec3 {0.3f, 0.3f, 0.3f});
-            ground_material->SetMetallic(0.9f);
-            ground_material->SetRoughness(0.3f);
+            ground_material->SetMetallic(0.6f);
+            ground_material->SetRoughness(0.6f);
 
             // auto teapot = m_World->AddActor<AStaticMesh>("teapot", //
             //                                              "Assets/Editor/Object/teapot/teapot.obj",
@@ -171,6 +171,12 @@ namespace Engine
 
             auto light3 = m_World->AddActor<APointLight>("point light_3");
             light3.GetTransformComponent().SetPosition(glm::vec3 {1.0f, 2.5f, 1.5f});
+
+            auto sky_light = m_World->AddActor<ADirectionalLight>("sky light");
+            sky_light.GetTransformComponent().SetPosition(glm::vec3 {5.0f, 5.0f, 5.0f});
+            sky_light.GetLightRef().SetColor(glm::vec3 {0.72f, 0.54f, 0.50f});
+            sky_light.GetLightRef().SetDirection(glm::vec3 {-0.623f, -0.157f, -0.766f});
+            sky_light.GetLightRef().SetIntensity(5.0f);
 
             // auto pointcloud =
             //     m_World->AddActor<APointCloud>("pointcloud",

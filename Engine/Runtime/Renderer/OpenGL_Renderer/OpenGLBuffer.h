@@ -67,6 +67,61 @@ namespace Engine
         GLuint   m_RenderBuffer_RendererID;
     };
 
+    class OpenGLShadowMapBuffer : public ShadowMapBuffer
+    {
+    public:
+        OpenGLShadowMapBuffer();
+        virtual ~OpenGLShadowMapBuffer();
+
+        virtual void Bind() const override;
+        virtual void UnBind() const override;
+
+        virtual void  SetViewPort(uint32_t width, uint32_t height) override;
+        virtual void* GetTextureID() const override;
+
+        virtual uint32_t GetWidth() const override;
+        virtual uint32_t GetHeight() const override;
+
+        virtual void BindTexture(const uint32_t& slot) const override;
+        virtual void UnBindTexture(const uint32_t& slot) const override;
+
+    private:
+        uint32_t m_Width;
+        uint32_t m_Height;
+        GLuint   m_FrameBuffer_RendererID;
+        GLuint   m_Texture_RendererID;
+    };
+
+    class OpenGLShadowCubeMapBuffer : public ShadowCubeMapBuffer
+    {
+    public:
+        OpenGLShadowCubeMapBuffer();
+        virtual ~OpenGLShadowCubeMapBuffer();
+
+        virtual void BindTop() const override;
+        virtual void BindBottom() const override;
+        virtual void BindLeft() const override;
+        virtual void BindRight() const override;
+        virtual void BindFront() const override;
+        virtual void BindBack() const override;
+        virtual void UnBind() const override;
+
+        virtual void  SetViewPort(uint32_t width, uint32_t height) override;
+        virtual void* GetTextureID() const override;
+
+        virtual uint32_t GetWidth() const override;
+        virtual uint32_t GetHeight() const override;
+
+        virtual void BindTexture(const uint32_t& slot) const override;
+        virtual void UnBindTexture(const uint32_t& slot) const override;
+
+    private:
+        uint32_t m_Width;
+        uint32_t m_Height;
+        GLuint   m_FrameBuffer_RendererID;
+        GLuint   m_Texture_RendererID;
+    };
+
     class OpenGLGeometryBuffer : public GeometryBuffer
     {
     public:

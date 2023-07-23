@@ -162,7 +162,6 @@ namespace Engine
         static Ref<VertexBuffer> Create();
         static Ref<VertexBuffer> Create(const void* vertices, uint32_t size, uint32_t count);
 
-
     protected:
         BufferLayout layout;
     };
@@ -175,7 +174,7 @@ namespace Engine
         virtual void Bind() const   = 0;
         virtual void UnBind() const = 0;
 
-        virtual uint32_t GetCount() const = 0;
+        virtual uint32_t GetCount() const         = 0;
         virtual void     SetCount(uint32_t count) = 0;
 
         static Ref<IndexBuffer> Create();
@@ -199,6 +198,49 @@ namespace Engine
         virtual void UnBindTexture(const uint32_t& slot) const = 0;
 
         static Ref<FrameRenderBuffer> Create();
+    };
+
+    class ShadowMapBuffer
+    {
+    public:
+        virtual ~ShadowMapBuffer() {}
+        virtual void Bind() const   = 0;
+        virtual void UnBind() const = 0;
+
+        virtual void  SetViewPort(uint32_t width, uint32_t height) = 0;
+        virtual void* GetTextureID() const                         = 0;
+
+        virtual uint32_t GetWidth() const  = 0;
+        virtual uint32_t GetHeight() const = 0;
+
+        virtual void BindTexture(const uint32_t& slot) const   = 0;
+        virtual void UnBindTexture(const uint32_t& slot) const = 0;
+
+        static Ref<ShadowMapBuffer> Create();
+    };
+
+    class ShadowCubeMapBuffer
+    {
+    public:
+        virtual ~ShadowCubeMapBuffer() {}
+        virtual void BindTop() const    = 0;
+        virtual void BindBottom() const = 0;
+        virtual void BindLeft() const   = 0;
+        virtual void BindRight() const  = 0;
+        virtual void BindFront() const  = 0;
+        virtual void BindBack() const   = 0;
+        virtual void UnBind() const     = 0;
+
+        virtual void  SetViewPort(uint32_t width, uint32_t height) = 0;
+        virtual void* GetTextureID() const                         = 0;
+
+        virtual uint32_t GetWidth() const  = 0;
+        virtual uint32_t GetHeight() const = 0;
+
+        virtual void BindTexture(const uint32_t& slot) const   = 0;
+        virtual void UnBindTexture(const uint32_t& slot) const = 0;
+
+        static Ref<ShadowCubeMapBuffer> Create();
     };
 
     class GeometryBuffer

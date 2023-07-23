@@ -87,9 +87,9 @@ namespace Engine
 
     OpenGLFrameRenderBuffer::~OpenGLFrameRenderBuffer()
     {
-        glDeleteFramebuffers(1, &m_FrameBuffer_RendererID);
-        glDeleteTextures(1, &m_Texture_RendererID);
         glDeleteRenderbuffers(1, &m_RenderBuffer_RendererID);
+        glDeleteTextures(1, &m_Texture_RendererID);
+        glDeleteFramebuffers(1, &m_FrameBuffer_RendererID);
     }
 
     void OpenGLFrameRenderBuffer::Bind() const
@@ -152,6 +152,166 @@ namespace Engine
     }
 
     void OpenGLFrameRenderBuffer::UnBindTexture(const uint32_t& slot) const { glBindTextureUnit(slot, 0); }
+
+    OpenGLShadowMapBuffer::OpenGLShadowMapBuffer() : m_Width(0), m_Height(0)
+    {
+        glGenFramebuffers(1, &m_FrameBuffer_RendererID);
+        glGenTextures(1, &m_Texture_RendererID);
+    }
+
+    OpenGLShadowMapBuffer::~OpenGLShadowMapBuffer()
+    {
+        glDeleteTextures(1, &m_Texture_RendererID);
+        glDeleteFramebuffers(1, &m_FrameBuffer_RendererID);
+    }
+
+    void OpenGLShadowMapBuffer::Bind() const { glBindFramebuffer(GL_FRAMEBUFFER, m_FrameBuffer_RendererID); }
+
+    void OpenGLShadowMapBuffer::UnBind() const { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
+
+    void OpenGLShadowMapBuffer::SetViewPort(uint32_t width, uint32_t height)
+    {
+        if (width != m_Width || height != m_Height)
+        {
+            glBindFramebuffer(GL_FRAMEBUFFER, m_FrameBuffer_RendererID);
+
+            glBindTexture(GL_TEXTURE_2D, m_Texture_RendererID);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);     // GL_NEAREST
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);     // GL_NEAREST
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER); // GL_CLAMP_TO_BORDER
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER); // GL_CLAMP_TO_BORDER
+            float borderColor[] = {1.0f, 1.0f, 1.0f, 1.0f};
+            glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_Texture_RendererID, 0);
+            glDrawBuffer(GL_NONE);
+            glReadBuffer(GL_NONE);
+            glBindTexture(GL_TEXTURE_2D, 0);
+
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+            m_Width  = width;
+            m_Height = height;
+        }
+
+        return;
+    }
+
+    void* OpenGLShadowMapBuffer::GetTextureID() const { return (void*)(uint64_t)m_Texture_RendererID; }
+
+    uint32_t OpenGLShadowMapBuffer::GetWidth() const { return m_Width; }
+
+    uint32_t OpenGLShadowMapBuffer::GetHeight() const { return m_Height; }
+
+    void OpenGLShadowMapBuffer::BindTexture(const uint32_t& slot) const
+    {
+        glBindTextureUnit(slot, m_Texture_RendererID);
+    }
+
+    void OpenGLShadowMapBuffer::UnBindTexture(const uint32_t& slot) const { glBindTextureUnit(slot, 0); }
+
+    OpenGLShadowCubeMapBuffer::OpenGLShadowCubeMapBuffer() : m_Width(0), m_Height(0)
+    {
+        glGenFramebuffers(1, &m_FrameBuffer_RendererID);
+        glGenTextures(1, &m_Texture_RendererID);
+    }
+
+    OpenGLShadowCubeMapBuffer::~OpenGLShadowCubeMapBuffer()
+    {
+        glDeleteTextures(1, &m_Texture_RendererID);
+        glDeleteFramebuffers(1, &m_FrameBuffer_RendererID);
+    }
+
+    void OpenGLShadowCubeMapBuffer::BindTop() const
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, m_FrameBuffer_RendererID);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_Y, m_Texture_RendererID, 0);
+    }
+
+    void OpenGLShadowCubeMapBuffer::BindBottom() const
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, m_FrameBuffer_RendererID);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, m_Texture_RendererID, 0);
+    }
+
+    void OpenGLShadowCubeMapBuffer::BindLeft() const
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, m_FrameBuffer_RendererID);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_NEGATIVE_X, m_Texture_RendererID, 0);
+    }
+
+    void OpenGLShadowCubeMapBuffer::BindRight() const
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, m_FrameBuffer_RendererID);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_X, m_Texture_RendererID, 0);
+    }
+
+    void OpenGLShadowCubeMapBuffer::BindFront() const
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, m_FrameBuffer_RendererID);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_Z, m_Texture_RendererID, 0);
+    }
+
+    void OpenGLShadowCubeMapBuffer::BindBack() const
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, m_FrameBuffer_RendererID);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, m_Texture_RendererID, 0);
+    }
+
+    void OpenGLShadowCubeMapBuffer::UnBind() const { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
+
+    void OpenGLShadowCubeMapBuffer::SetViewPort(uint32_t width, uint32_t height)
+    {
+        if (width != m_Width || height != m_Height)
+        {
+            glBindFramebuffer(GL_FRAMEBUFFER, m_FrameBuffer_RendererID);
+
+            glBindTexture(GL_TEXTURE_CUBE_MAP, m_Texture_RendererID);
+            for (unsigned int i = 0; i < 6; ++i)
+            {
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+                             0,
+                             GL_DEPTH_COMPONENT,
+                             width,
+                             height,
+                             0,
+                             GL_DEPTH_COMPONENT,
+                             GL_FLOAT,
+                             NULL);
+            }
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);     // GL_NEAREST
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);     // GL_NEAREST
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER); // GL_CLAMP_TO_BORDER
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER); // GL_CLAMP_TO_BORDER
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER); // GL_CLAMP_TO_BORDER
+            float borderColor[] = {1.0f, 1.0f, 1.0f, 1.0f};
+            glTexParameterfv(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BORDER_COLOR, borderColor);
+            glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_Texture_RendererID, 0);
+            glDrawBuffer(GL_NONE);
+            glReadBuffer(GL_NONE);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+            m_Width  = width;
+            m_Height = height;
+        }
+
+        return;
+    } 
+
+    void* OpenGLShadowCubeMapBuffer::GetTextureID() const { return (void*)(uint64_t)m_Texture_RendererID; }
+
+    uint32_t OpenGLShadowCubeMapBuffer::GetWidth() const { return m_Width; }
+
+    uint32_t OpenGLShadowCubeMapBuffer::GetHeight() const { return m_Height; }
+
+    void OpenGLShadowCubeMapBuffer::BindTexture(const uint32_t& slot) const
+    {
+        glBindTextureUnit(slot, m_Texture_RendererID);
+    }
+
+    void OpenGLShadowCubeMapBuffer::UnBindTexture(const uint32_t& slot) const { glBindTextureUnit(slot, 0); }
 
     OpenGLGeometryBuffer::OpenGLGeometryBuffer() : m_Width(0), m_Height(0)
     {

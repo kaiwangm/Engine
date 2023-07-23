@@ -25,6 +25,8 @@
 
 #include <Engine/Runtime/GameFramework/Skybox/ASkybox.h>
 #include <Engine/Runtime/GameFramework/Light/APointLight.h>
+#include <Engine/Runtime/GameFramework/Light/ADirectionalLight.h>
+
 #include <Engine/Runtime/GameFramework/Material/MBasicPbr.h>
 
 #ifdef ENGINE_PLATFORM_WINDOWS
