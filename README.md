@@ -6,7 +6,7 @@
 
 My toy modern OpenGL game engine.
 
-![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Docs/Screenshot/Bloom.png)
+![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Docs/Screenshots/Bloom.png)
 
 ## Getting Started
 
