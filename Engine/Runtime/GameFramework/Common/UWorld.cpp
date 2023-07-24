@@ -35,10 +35,23 @@ namespace Engine
         m_FrameRenderBuffer_EnvironmentLighting_specular = FrameRenderBuffer::Create();
         m_FrameRenderBuffer_playground                   = FrameRenderBuffer::Create();
 
-        m_FrameRenderBuffer_ssr                   = FrameRenderBuffer::Create();
-        m_FrameRenderBuffer_ssr_blur              = FrameRenderBuffer::Create();
-        m_FrameRenderBuffer_exposure              = FrameRenderBuffer::Create();
-        m_FrameRenderBuffer                       = FrameRenderBuffer::Create();
+        m_FrameRenderBuffer_ssr       = FrameRenderBuffer::Create();
+        m_FrameRenderBuffer_ssr_blur  = FrameRenderBuffer::Create();
+        m_FrameRenderBuffer_exposure  = FrameRenderBuffer::Create();
+        m_FrameRenderBuffer           = FrameRenderBuffer::Create();
+        m_FrameRenderBuffer_highLight = FrameRenderBuffer::Create();
+        for (int i = 0; i < 10; ++i)
+        {
+            m_FrameRenderBuffer_highLight_downSampled[i] = FrameRenderBuffer::Create();
+        }
+
+        for (int i = 0; i < 9; ++i)
+        {
+            m_FrameRenderBuffer_highLight_blur[i]      = FrameRenderBuffer::Create();
+            m_FrameRenderBuffer_highLight_upSampled[i] = FrameRenderBuffer::Create();
+        }
+        m_FrameRenderBuffer_bloom = FrameRenderBuffer::Create();
+
         m_FrameRenderBuffer_bufferViewport        = FrameRenderBuffer::Create();
         m_FrameRenderBuffer_shadowMapViewport     = FrameRenderBuffer::Create();
         m_FrameRenderBuffer_shadowCubeMapViewport = FrameRenderBuffer::Create();
@@ -188,6 +201,21 @@ namespace Engine
         LoadShader("VisCubeDepth",
                    "Assets/Editor/Shader/screen_quad_vertex.glsl",
                    "Assets/Editor/Shader/viewport/depth_cubemap.glsl",
+                   "Path");
+
+        LoadShader("HighLight",
+                   "Assets/Editor/Shader/screen_quad_vertex.glsl",
+                   "Assets/Editor/Shader/deffered/highlight.glsl",
+                   "Path");
+
+        LoadShader("Identity",
+                   "Assets/Editor/Shader/screen_quad_vertex.glsl",
+                   "Assets/Editor/Shader/deffered/identity.glsl",
+                   "Path");
+        
+        LoadShader("Addition",
+                   "Assets/Editor/Shader/screen_quad_vertex.glsl",
+                   "Assets/Editor/Shader/deffered/addition.glsl",
                    "Path");
     }
 
@@ -365,6 +393,22 @@ namespace Engine
         m_FrameRenderBuffer_ssr_blur->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
         m_FrameRenderBuffer_exposure->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
         m_GeometryBuffer->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
+        m_FrameRenderBuffer_highLight->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
+        for (int i = 0; i < 10; ++i)
+        {
+            m_FrameRenderBuffer_highLight_downSampled[i]->SetViewPort(m_FrameRenderBuffer->GetWidth() / (8 << i),
+                                                                      m_FrameRenderBuffer->GetHeight() / (8 << i));
+        }
+
+        for (int i = 0; i < 9; ++i)
+        {
+            m_FrameRenderBuffer_highLight_blur[i]->SetViewPort(m_FrameRenderBuffer->GetWidth() / (8 << i),
+                                                               m_FrameRenderBuffer->GetHeight() / (8 << i));
+            m_FrameRenderBuffer_highLight_upSampled[i]->SetViewPort(m_FrameRenderBuffer->GetWidth() / (8 << i),
+                                                                    m_FrameRenderBuffer->GetHeight() / (8 << i));
+        }
+        m_FrameRenderBuffer_bloom->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
+
         m_SSAOBuffer->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
         m_FrameRenderBuffer_shadowMapViewport->SetViewPort(256, 256);
         m_FrameRenderBuffer_shadowCubeMapViewport->SetViewPort(512, 256);
@@ -1176,6 +1220,172 @@ namespace Engine
             glEnable(GL_DEPTH_TEST);
         }
 
+        // extract highLight
+        {
+            glDisable(GL_DEPTH_TEST);
+            m_FrameRenderBuffer_highLight->Bind();
+            RenderCommand::SetViewPort(0, 0, m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
+            RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+            RenderCommand::Clear();
+
+            auto highLight_shader = m_ShaderLibrary.Get("HighLight");
+            highLight_shader->Bind();
+
+            highLight_shader->SetInt("g_Color", 0);
+            m_FrameRenderBuffer->BindTexture(0);
+
+            RenderCommand::RenderToQuad();
+
+            m_FrameRenderBuffer->UnBindTexture(0);
+
+            highLight_shader->UnBind();
+            Renderer::EndScene(m_FrameRenderBuffer_highLight);
+            glEnable(GL_DEPTH_TEST);
+        }
+
+        // downsample to m_FrameRenderBuffer_highLight_downSampled
+        for (int i = 0; i < 10; i++)
+        {
+            glDisable(GL_DEPTH_TEST);
+            m_FrameRenderBuffer_highLight_downSampled[i]->Bind();
+            RenderCommand::SetViewPort(0,
+                                       0,
+                                       m_FrameRenderBuffer_highLight_downSampled[i]->GetWidth(),
+                                       m_FrameRenderBuffer_highLight_downSampled[i]->GetHeight());
+            RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+            RenderCommand::Clear();
+
+            auto downsample_shader = m_ShaderLibrary.Get("Identity");
+            downsample_shader->Bind();
+
+            downsample_shader->SetInt("g_Color", 0);
+            if (i == 0)
+            {
+                m_FrameRenderBuffer_highLight->BindTexture(0);
+            }
+            else
+            {
+                m_FrameRenderBuffer_highLight_downSampled[i - 1]->BindTexture(0);
+            }
+
+            RenderCommand::RenderToQuad();
+
+            if (i == 0)
+            {
+                m_FrameRenderBuffer_highLight->UnBindTexture(0);
+            }
+            else
+            {
+                m_FrameRenderBuffer_highLight_downSampled[i - 1]->UnBindTexture(0);
+            }
+
+            downsample_shader->UnBind();
+            Renderer::EndScene(m_FrameRenderBuffer_highLight_downSampled[i]);
+            glEnable(GL_DEPTH_TEST);
+        }
+        // blur
+        for (int i = 0; i < 9; i++)
+        {
+            glDisable(GL_DEPTH_TEST);
+            m_FrameRenderBuffer_highLight_blur[i]->Bind();
+            RenderCommand::SetViewPort(0,
+                                       0,
+                                       m_FrameRenderBuffer_highLight_blur[i]->GetWidth(),
+                                       m_FrameRenderBuffer_highLight_blur[i]->GetHeight());
+            RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+            RenderCommand::Clear();
+
+            auto blur_shader = m_ShaderLibrary.Get("GaussianBlur");
+            blur_shader->Bind();
+
+            blur_shader->SetInt("g_Color", 0);
+            m_FrameRenderBuffer_highLight_downSampled[i]->BindTexture(0);
+            blur_shader->SetFloat2("screenSize",
+                                   glm::vec2(m_FrameRenderBuffer_highLight_blur[i]->GetWidth(),
+                                             m_FrameRenderBuffer_highLight_blur[i]->GetHeight()) /
+                                       1.0f);
+
+            RenderCommand::RenderToQuad();
+
+            m_FrameRenderBuffer_highLight_downSampled[i]->UnBindTexture(0);
+
+            blur_shader->UnBind();
+            Renderer::EndScene(m_FrameRenderBuffer_highLight_blur[i]);
+            glEnable(GL_DEPTH_TEST);
+        }
+        // upsample and addition
+        for(int i=8;i>=0;--i)
+        {
+            glDisable(GL_DEPTH_TEST);
+            m_FrameRenderBuffer_highLight_upSampled[i]->Bind();
+            RenderCommand::SetViewPort(0,
+                                       0,
+                                       m_FrameRenderBuffer_highLight_upSampled[i]->GetWidth(),
+                                       m_FrameRenderBuffer_highLight_upSampled[i]->GetHeight());
+            RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+            RenderCommand::Clear();
+
+            auto upsample_shader = m_ShaderLibrary.Get("Addition");
+            upsample_shader->Bind();
+
+            upsample_shader->SetInt("g_ImageA", 0);
+            if (i == 8)
+            {
+                m_FrameRenderBuffer_highLight_downSampled[6]->BindTexture(0);
+            }
+            else
+            {
+                m_FrameRenderBuffer_highLight_upSampled[i + 1]->BindTexture(0);
+            }
+            upsample_shader->SetInt("g_ImageB", 1);
+            m_FrameRenderBuffer_highLight_blur[i]->BindTexture(1);
+
+            RenderCommand::RenderToQuad();
+
+            m_FrameRenderBuffer_highLight_blur[i]->UnBindTexture(1);
+            if (i == 8)
+            {
+                m_FrameRenderBuffer_highLight_downSampled[6]->UnBindTexture(0);
+            }
+            else
+            {
+                m_FrameRenderBuffer_highLight_upSampled[i + 1]->UnBindTexture(0);
+            }
+
+            upsample_shader->UnBind();
+            Renderer::EndScene(m_FrameRenderBuffer_highLight_upSampled[i]);
+            glEnable(GL_DEPTH_TEST);
+        }
+
+        // add to orgin
+        {
+            glDisable(GL_DEPTH_TEST);
+            m_FrameRenderBuffer_bloom->Bind();
+            RenderCommand::SetViewPort(0, 0, m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
+            RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+            RenderCommand::Clear();
+
+            auto addition_shader = m_ShaderLibrary.Get("Addition");
+            addition_shader->Bind();
+
+            addition_shader->SetInt("g_ImageA", 0);
+            m_FrameRenderBuffer->BindTexture(0);
+            
+            addition_shader->SetInt("g_ImageB", 1);
+            m_FrameRenderBuffer_highLight_upSampled[0]->BindTexture(1);
+
+            addition_shader->SetFloat("weight", m_Bloom_Intensity);
+
+            RenderCommand::RenderToQuad();
+
+            m_FrameRenderBuffer_highLight_upSampled[0]->UnBindTexture(1);
+            m_FrameRenderBuffer->UnBindTexture(0);
+
+            addition_shader->UnBind();
+            Renderer::EndScene(m_FrameRenderBuffer_bloom);
+            glEnable(GL_DEPTH_TEST);
+        }
+
         // exposure
         {
             glDisable(GL_DEPTH_TEST);
@@ -1188,12 +1398,12 @@ namespace Engine
             exposure_shader->Bind();
 
             exposure_shader->SetInt("g_Color", 0);
-            m_FrameRenderBuffer->BindTexture(0);
+            m_FrameRenderBuffer_bloom->BindTexture(0);
             exposure_shader->SetFloat("exposure", m_Exposure);
 
             RenderCommand::RenderToQuad();
 
-            m_FrameRenderBuffer->UnBindTexture(0);
+            m_FrameRenderBuffer_bloom->UnBindTexture(0);
 
             exposure_shader->UnBind();
             Renderer::EndScene(m_FrameRenderBuffer_exposure);
@@ -1321,6 +1531,7 @@ namespace Engine
             "Screen",
             "Screen",
             "Screen",
+            "Screen",
         };
 
         const std::string viewport_buffer_name    = viewport_items[m_ViewportGBufferMap];
@@ -1408,6 +1619,11 @@ namespace Engine
             gbuffer_viewport_shader->SetInt("g_Color", 0);
             m_FrameRenderBuffer_ssr_blur->BindTexture(0);
         }
+        if (viewport_buffer_name == "Bloom")
+        {
+            gbuffer_viewport_shader->SetInt("g_Color", 0);
+            m_FrameRenderBuffer_highLight_upSampled[0]->BindTexture(0);
+        }
         if (viewport_buffer_name == "Exposure")
         {
             gbuffer_viewport_shader->SetInt("g_Color", 0);
@@ -1450,6 +1666,7 @@ namespace Engine
 
         Gui::Text("General");
         Gui::SliderFloat("Exposure", m_Exposure, 0.0f, 3.0f);
+        Gui::SliderFloat("Bloom Intensity", m_Bloom_Intensity, 0.0f, 1.0f);
         Gui::ColorEdit4("Background Color", m_BackGroundColor);
         ImGui::Checkbox("Render Skybox", &m_RenderSkybox);
         ImGui::Checkbox("Render Grid", &m_RenderGrid);

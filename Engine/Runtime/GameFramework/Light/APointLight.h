@@ -15,5 +15,7 @@ namespace Engine
             m_Light = m_World->RegisterComponents<UPointLightComponent>(m_EntityHandle);
             m_Light->SetOwner(this);
         }
+
+        UPointLightComponent& GetPointLightComponentRef() const { return *m_Light; }
     };
 } // namespace Engine

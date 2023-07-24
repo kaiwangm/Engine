@@ -163,6 +163,8 @@ namespace Engine
             auto light0 = m_World->AddActor<APointLight>("point light_0");
             light0.GetTransformComponent().SetPosition(glm::vec3 {0.0f, 1.5f, 1.5f});
 
+            light0.GetPointLightComponentRef().SetIntensity(10.0f);
+
             auto light1 = m_World->AddActor<APointLight>("point light_1");
             light1.GetTransformComponent().SetPosition(glm::vec3 {1.0f, 1.5f, 1.5f});
 
@@ -174,9 +176,10 @@ namespace Engine
 
             auto sky_light = m_World->AddActor<ADirectionalLight>("sky light");
             sky_light.GetTransformComponent().SetPosition(glm::vec3 {5.0f, 5.0f, 5.0f});
-            sky_light.GetLightRef().SetColor(glm::vec3 {0.72f, 0.54f, 0.50f});
-            sky_light.GetLightRef().SetDirection(glm::vec3 {-0.623f, -0.157f, -0.766f});
-            sky_light.GetLightRef().SetIntensity(5.0f);
+
+            sky_light.GetDirectionalLightComponentRef().SetColor(glm::vec3 {0.72f, 0.54f, 0.50f});
+            sky_light.GetDirectionalLightComponentRef().SetDirection(glm::vec3 {-0.623f, -0.157f, -0.766f});
+            sky_light.GetDirectionalLightComponentRef().SetIntensity(5.0f);
 
             // auto pointcloud =
             //     m_World->AddActor<APointCloud>("pointcloud",

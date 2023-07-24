@@ -33,11 +33,17 @@ namespace Engine
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_ssr_blur;
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_exposure;
         Ref<FrameRenderBuffer> m_FrameRenderBuffer;
+        Ref<FrameRenderBuffer> m_FrameRenderBuffer_highLight;
+        std::array<Ref<FrameRenderBuffer>, 10> m_FrameRenderBuffer_highLight_downSampled;
+        std::array<Ref<FrameRenderBuffer>, 9> m_FrameRenderBuffer_highLight_blur;
+        std::array<Ref<FrameRenderBuffer>, 9> m_FrameRenderBuffer_highLight_upSampled;
+        Ref<FrameRenderBuffer> m_FrameRenderBuffer_bloom;
+
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_bufferViewport;
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_shadowMapViewport;
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_shadowCubeMapViewport;
 
-        const char* viewport_items[17] = {
+        const char* viewport_items[18] = {
             "ViewPosition",
             "ViewNormal",
             "Albedo",
@@ -54,6 +60,7 @@ namespace Engine
             "EnvironmentLighting_Specular",
             "ScreenSpaceReflection",
             "ScreenSpaceReflection_Blur",
+            "Bloom",
             "Exposure",
         };
 
@@ -84,6 +91,8 @@ namespace Engine
             bool  debug                             = false;
             float refBias                           = 0.001f;
         } m_SSR_settings;
+
+        float m_Bloom_Intensity = 0.3f;
 
         entt::entity entity_selected = entt::null;
 

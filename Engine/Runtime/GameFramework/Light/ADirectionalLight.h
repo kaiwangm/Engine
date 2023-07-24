@@ -16,6 +16,6 @@ namespace Engine
             m_Light->SetOwner(this);
         }
 
-        UDirectionalLightComponent& GetLightRef() { return *m_Light; }
+        UDirectionalLightComponent& GetDirectionalLightComponentRef() { return *m_Light; }
     };
 } // namespace Engine
