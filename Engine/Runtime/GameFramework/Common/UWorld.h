@@ -34,9 +34,9 @@ namespace Engine
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_exposure;
         Ref<FrameRenderBuffer> m_FrameRenderBuffer;
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_highLight;
-        std::array<Ref<FrameRenderBuffer>, 10> m_FrameRenderBuffer_highLight_downSampled;
-        std::array<Ref<FrameRenderBuffer>, 9> m_FrameRenderBuffer_highLight_blur;
-        std::array<Ref<FrameRenderBuffer>, 9> m_FrameRenderBuffer_highLight_upSampled;
+        std::array<Ref<FrameRenderBuffer>, 7> m_FrameRenderBuffer_highLight_downSampled;
+        std::array<Ref<FrameRenderBuffer>, 6> m_FrameRenderBuffer_highLight_blur;
+        std::array<Ref<FrameRenderBuffer>, 6> m_FrameRenderBuffer_highLight_upSampled;
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_bloom;
 
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_bufferViewport;
@@ -77,7 +77,7 @@ namespace Engine
         glm::mat4 m_PMatrix;
         glm::mat4 m_VPMatrix;
 
-        float m_Exposure                = 0.3f;
+        float m_Exposure                = 0.25f;
         float m_VisPrePrefilterMipLevel = 0.0f;
         int   m_ViewportGBufferMap      = 0;
 
@@ -92,7 +92,8 @@ namespace Engine
             float refBias                           = 0.001f;
         } m_SSR_settings;
 
-        float m_Bloom_Intensity = 0.3f;
+        float m_Bloom_Intensity = 0.08f;
+        float m_PCSS_FilterRadius = 1.0f;
 
         entt::entity entity_selected = entt::null;
 

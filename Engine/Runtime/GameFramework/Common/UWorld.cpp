@@ -40,12 +40,12 @@ namespace Engine
         m_FrameRenderBuffer_exposure  = FrameRenderBuffer::Create();
         m_FrameRenderBuffer           = FrameRenderBuffer::Create();
         m_FrameRenderBuffer_highLight = FrameRenderBuffer::Create();
-        for (int i = 0; i < 10; ++i)
+        for (int i = 0; i < 7; ++i)
         {
             m_FrameRenderBuffer_highLight_downSampled[i] = FrameRenderBuffer::Create();
         }
 
-        for (int i = 0; i < 9; ++i)
+        for (int i = 0; i < 6; ++i)
         {
             m_FrameRenderBuffer_highLight_blur[i]      = FrameRenderBuffer::Create();
             m_FrameRenderBuffer_highLight_upSampled[i] = FrameRenderBuffer::Create();
@@ -170,22 +170,22 @@ namespace Engine
 
         LoadShader("DirectLighting_diffuse",
                    "Assets/Editor/Shader/screen_quad_vertex.glsl",
-                   "Assets/Editor/Shader/deffered/directLighting_diffuse.glsl",
+                   "Assets/Editor/Shader/deffered/directLighting_diffuse.fs",
                    "Path");
 
         LoadShader("DirectLighting_specular",
                    "Assets/Editor/Shader/screen_quad_vertex.glsl",
-                   "Assets/Editor/Shader/deffered/directLighting_specular.glsl",
+                   "Assets/Editor/Shader/deffered/directLighting_specular.fs",
                    "Path");
 
         LoadShader("EnvironmentLighting_diffuse",
                    "Assets/Editor/Shader/screen_quad_vertex.glsl",
-                   "Assets/Editor/Shader/deffered/environmentLighting_diffuse.glsl",
+                   "Assets/Editor/Shader/deffered/environmentLighting_diffuse.fs",
                    "Path");
 
         LoadShader("EnvironmentLighting_specular",
                    "Assets/Editor/Shader/screen_quad_vertex.glsl",
-                   "Assets/Editor/Shader/deffered/environmentLighting_specular.glsl",
+                   "Assets/Editor/Shader/deffered/environmentLighting_specular.fs",
                    "Path");
 
         LoadShader("Composite",
@@ -205,7 +205,7 @@ namespace Engine
 
         LoadShader("HighLight",
                    "Assets/Editor/Shader/screen_quad_vertex.glsl",
-                   "Assets/Editor/Shader/deffered/highlight.glsl",
+                   "Assets/Editor/Shader/deffered/highlight.fs",
                    "Path");
 
         LoadShader("Identity",
@@ -394,18 +394,18 @@ namespace Engine
         m_FrameRenderBuffer_exposure->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
         m_GeometryBuffer->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
         m_FrameRenderBuffer_highLight->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
-        for (int i = 0; i < 10; ++i)
+        for (int i = 0; i < 7; ++i)
         {
-            m_FrameRenderBuffer_highLight_downSampled[i]->SetViewPort(m_FrameRenderBuffer->GetWidth() / (8 << i),
-                                                                      m_FrameRenderBuffer->GetHeight() / (8 << i));
+            m_FrameRenderBuffer_highLight_downSampled[i]->SetViewPort(m_FrameRenderBuffer->GetWidth() / (32 << i),
+                                                                      m_FrameRenderBuffer->GetHeight() / (32 << i));
         }
 
-        for (int i = 0; i < 9; ++i)
+        for (int i = 0; i < 6; ++i)
         {
-            m_FrameRenderBuffer_highLight_blur[i]->SetViewPort(m_FrameRenderBuffer->GetWidth() / (8 << i),
-                                                               m_FrameRenderBuffer->GetHeight() / (8 << i));
-            m_FrameRenderBuffer_highLight_upSampled[i]->SetViewPort(m_FrameRenderBuffer->GetWidth() / (8 << i),
-                                                                    m_FrameRenderBuffer->GetHeight() / (8 << i));
+            m_FrameRenderBuffer_highLight_blur[i]->SetViewPort(m_FrameRenderBuffer->GetWidth() / (32 << i),
+                                                               m_FrameRenderBuffer->GetHeight() / (32 << i));
+            m_FrameRenderBuffer_highLight_upSampled[i]->SetViewPort(m_FrameRenderBuffer->GetWidth() / (32 << i),
+                                                                    m_FrameRenderBuffer->GetHeight() / (32 << i));
         }
         m_FrameRenderBuffer_bloom->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
 
@@ -498,7 +498,7 @@ namespace Engine
             RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
             RenderCommand::Clear();
 
-            const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 1.0f, 33.0f);
+            const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 100.0f);
             const glm::vec3 lightPositon    = trans.GetPosition();
             const glm::vec3 lightDirection  = light.GetDirectionRef();
             const glm::mat4 lightView =
@@ -786,7 +786,7 @@ namespace Engine
             int dirctionallight_num = 0;
             for (auto [entity, name, trans, light] : dirctionallight_view.each())
             {
-                const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 1.0f, 33.0f);
+                const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 100.0f);
                 const glm::vec3 lightPositon    = trans.GetPosition();
                 const glm::vec3 lightDirection  = light.GetDirectionRef();
                 const glm::mat4 lightView =
@@ -809,6 +809,7 @@ namespace Engine
                 dirctionallight_num++;
             }
             deferred_shader->SetInt("numDirectionalLights", dirctionallight_num);
+            deferred_shader->SetFloat("PCSS_FilterRadius", m_PCSS_FilterRadius);
 
             glm::vec3 camPos = glm::vec3(glm::inverse(m_VMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
             deferred_shader->SetFloat3("camPos", camPos);
@@ -892,7 +893,7 @@ namespace Engine
             int dirctionallight_num = 0;
             for (auto [entity, name, trans, light] : dirctionallight_view.each())
             {
-                const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 1.0f, 33.0f);
+                const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 100.0f);
                 const glm::vec3 lightPositon    = trans.GetPosition();
                 const glm::vec3 lightDirection  = light.GetDirectionRef();
                 const glm::mat4 lightView =
@@ -915,6 +916,7 @@ namespace Engine
                 dirctionallight_num++;
             }
             deferred_shader->SetInt("numDirectionalLights", dirctionallight_num);
+            deferred_shader->SetFloat("PCSS_FilterRadius", m_PCSS_FilterRadius);
 
             glm::vec3 camPos = glm::vec3(glm::inverse(m_VMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
             deferred_shader->SetFloat3("camPos", camPos);
@@ -1244,7 +1246,7 @@ namespace Engine
         }
 
         // downsample to m_FrameRenderBuffer_highLight_downSampled
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < 7; i++)
         {
             glDisable(GL_DEPTH_TEST);
             m_FrameRenderBuffer_highLight_downSampled[i]->Bind();
@@ -1284,7 +1286,7 @@ namespace Engine
             glEnable(GL_DEPTH_TEST);
         }
         // blur
-        for (int i = 0; i < 9; i++)
+        for (int i = 0; i < 6; i++)
         {
             glDisable(GL_DEPTH_TEST);
             m_FrameRenderBuffer_highLight_blur[i]->Bind();
@@ -1314,7 +1316,7 @@ namespace Engine
             glEnable(GL_DEPTH_TEST);
         }
         // upsample and addition
-        for(int i=8;i>=0;--i)
+        for(int i=5;i>=0;--i)
         {
             glDisable(GL_DEPTH_TEST);
             m_FrameRenderBuffer_highLight_upSampled[i]->Bind();
@@ -1329,7 +1331,7 @@ namespace Engine
             upsample_shader->Bind();
 
             upsample_shader->SetInt("g_ImageA", 0);
-            if (i == 8)
+            if (i == 5)
             {
                 m_FrameRenderBuffer_highLight_downSampled[6]->BindTexture(0);
             }
@@ -1338,12 +1340,13 @@ namespace Engine
                 m_FrameRenderBuffer_highLight_upSampled[i + 1]->BindTexture(0);
             }
             upsample_shader->SetInt("g_ImageB", 1);
+            upsample_shader->SetFloat("weight", 1.0f);
             m_FrameRenderBuffer_highLight_blur[i]->BindTexture(1);
 
             RenderCommand::RenderToQuad();
 
             m_FrameRenderBuffer_highLight_blur[i]->UnBindTexture(1);
-            if (i == 8)
+            if (i == 5)
             {
                 m_FrameRenderBuffer_highLight_downSampled[6]->UnBindTexture(0);
             }
@@ -1667,6 +1670,7 @@ namespace Engine
         Gui::Text("General");
         Gui::SliderFloat("Exposure", m_Exposure, 0.0f, 3.0f);
         Gui::SliderFloat("Bloom Intensity", m_Bloom_Intensity, 0.0f, 1.0f);
+        ImGui::SliderFloat("PCSS FilterRadius", &m_PCSS_FilterRadius, 0.0f, 30.0f);
         Gui::ColorEdit4("Background Color", m_BackGroundColor);
         ImGui::Checkbox("Render Skybox", &m_RenderSkybox);
         ImGui::Checkbox("Render Grid", &m_RenderGrid);

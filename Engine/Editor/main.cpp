@@ -175,7 +175,7 @@ namespace Engine
             light3.GetTransformComponent().SetPosition(glm::vec3 {1.0f, 2.5f, 1.5f});
 
             auto sky_light = m_World->AddActor<ADirectionalLight>("sky light");
-            sky_light.GetTransformComponent().SetPosition(glm::vec3 {5.0f, 5.0f, 5.0f});
+            sky_light.GetTransformComponent().SetPosition(glm::vec3 {30.0f, 30.0f, 30.0f});
 
             sky_light.GetDirectionalLightComponentRef().SetColor(glm::vec3 {0.72f, 0.54f, 0.50f});
             sky_light.GetDirectionalLightComponentRef().SetDirection(glm::vec3 {-0.623f, -0.157f, -0.766f});
