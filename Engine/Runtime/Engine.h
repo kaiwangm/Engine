@@ -18,6 +18,7 @@
 #include <Engine/Runtime/GameFramework/Animation/ASkinnedMesh.h>
 
 #include <Engine/Runtime/GameFramework/StaticMesh/AStaticMesh.h>
+#include <Engine/Runtime/GameFramework/StaticMesh/AChunk.h>
 #include <Engine/Runtime/GameFramework/StaticMesh/APointCloud.h>
 
 #include <Engine/Runtime/GameFramework/Camera/ACamera.h>

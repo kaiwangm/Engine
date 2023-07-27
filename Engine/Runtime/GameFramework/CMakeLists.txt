@@ -12,6 +12,7 @@ add_library(
     Animation/USkinnedMeshComponent.cpp
     Animation/ozz/mesh.cc
     Animation/UMotionMatchingComponent.cpp
+    StaticMesh/UChunkComponent.cpp
 )
 
 target_link_libraries(

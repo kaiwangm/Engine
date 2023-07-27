@@ -16,13 +16,10 @@ namespace Engine
         virtual void AddVertexBuffer(const Ref<VertexBuffer>& buffer, const bool instance) override;
         virtual void AddIndexBuffer(const Ref<IndexBuffer>& buffer) override;
 
-        virtual const std::vector<Ref<VertexBuffer>>& GetVertexBuffers() const override { return m_VertexBuffers; };
-
         virtual const Ref<IndexBuffer>& GetIndexBuffer() const override { return m_IndexBuffer; };
 
     private:
-        GLuint                         m_RendererID;
-        std::vector<Ref<VertexBuffer>> m_VertexBuffers;
-        Ref<IndexBuffer>               m_IndexBuffer;
+        GLuint           m_RendererID;
+        Ref<IndexBuffer> m_IndexBuffer;
     };
 } // namespace Engine

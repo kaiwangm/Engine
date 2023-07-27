@@ -10,6 +10,7 @@
 #include <Engine/Runtime/GameFramework/Common/UComponent.h>
 #include <Engine/Runtime/GameFramework/Camera/UCameraComponent.h>
 #include <Engine/Runtime/GameFramework/StaticMesh/AStaticMesh.h>
+#include <Engine/Runtime/GameFramework/StaticMesh/UChunkComponent.h>
 #include <Engine/Runtime/GameFramework/StaticMesh/APointCloud.h>
 #include <Engine/Runtime/GameFramework/Animation/ASkeleton.h>
 #include <Engine/Runtime/GameFramework/Animation/ASkinnedMesh.h>
@@ -217,6 +218,11 @@ namespace Engine
                    "Assets/Editor/Shader/screen_quad_vertex.glsl",
                    "Assets/Editor/Shader/deffered/addition.glsl",
                    "Path");
+
+        LoadShader("ChunkGBuffer",
+                   "Assets/Editor/Shader/chunk/gbuffer_vertex.vs",
+                   "Assets/Editor/Shader/chunk/gbuffer_fragment.fs",
+                   "Path");
     }
 
     void UWorld::Initialize()
@@ -343,7 +349,7 @@ namespace Engine
             RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
             RenderCommand::Clear();
 
-            const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 100.0f);
+            const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 800.0f);
             const glm::vec3 lightPositon    = trans.GetPosition();
             const glm::vec3 lightDirection  = light.GetDirectionRef();
             const glm::mat4 lightView =
@@ -577,7 +583,7 @@ namespace Engine
                 int dirctionallight_num = 0;
                 for (auto [entity, name, trans, light] : dirctionallight_view.each())
                 {
-                    const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 100.0f);
+                    const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 800.0f);
                     const glm::vec3 lightPositon    = trans.GetPosition();
                     const glm::vec3 lightDirection  = light.GetDirectionRef();
                     const glm::mat4 lightView =
@@ -687,7 +693,7 @@ namespace Engine
                 int dirctionallight_num = 0;
                 for (auto [entity, name, trans, light] : dirctionallight_view.each())
                 {
-                    const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 100.0f);
+                    const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 800.0f);
                     const glm::vec3 lightPositon    = trans.GetPosition();
                     const glm::vec3 lightDirection  = light.GetDirectionRef();
                     const glm::mat4 lightView =
@@ -1005,6 +1011,7 @@ namespace Engine
         auto pointlight_view     = m_Registry.view<UTagComponent, UTransformComponent, UPointLightComponent>();
         auto skinnedmesh_view    = m_Registry.view<UTagComponent, UTransformComponent, USkinnedMeshComponent>();
         auto motionmatching_view = m_Registry.view<UTagComponent, UTransformComponent, UMotionMatchingComponent>();
+        auto chunk_view          = m_Registry.view<UTagComponent, UTransformComponent, UChunkComponent>();
 
         auto [currentX, currentY] = Input::GetMousePostion();
 
@@ -1133,6 +1140,12 @@ namespace Engine
         {
             motionmatching.Update0(nowTime, timeStep);
         }
+
+        // Update Chunk
+        for (auto [entity, name, trans, chunk] : chunk_view.each())
+        {
+            chunk.TickLogic(timeStep);
+        }
     }
 
     void UWorld::TickRender(float timeStep)
@@ -1150,6 +1163,7 @@ namespace Engine
         auto trajectory_view      = m_Registry.view<UTagComponent, UTransformComponent, UTrajectoryComponent>();
         auto skinnedmesh_view     = m_Registry.view<UTagComponent, UTransformComponent, USkinnedMeshComponent>();
         auto motionmatching_view  = m_Registry.view<UTagComponent, UTransformComponent, UMotionMatchingComponent>();
+        auto chunk_view           = m_Registry.view<UTagComponent, UTransformComponent, UChunkComponent>();
 
         m_FrameRenderBuffer_skybox->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
         m_FrameRenderBuffer_DirectLighting_diffuse->SetViewPort(m_FrameRenderBuffer->GetWidth(),
@@ -1272,7 +1286,7 @@ namespace Engine
             RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
             RenderCommand::Clear();
 
-            const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 100.0f);
+            const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 800.0f);
             const glm::vec3 lightPositon    = trans.GetPosition();
             const glm::vec3 lightDirection  = light.GetDirectionRef();
             const glm::mat4 lightView =
@@ -1303,6 +1317,8 @@ namespace Engine
         }
 
         // Render to GeometryBuffer
+        glEnable(GL_CULL_FACE);
+
         m_MainCamera->GetCamera().SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
         m_MainCamera->GetCamera().RecalculateProjectionMatrix();
 
@@ -1355,6 +1371,42 @@ namespace Engine
                     shader->UnBind();
                 }
             }
+        }
+
+        // draw chunk
+        for (auto [entity, name, trans, chunk] : chunk_view.each())
+        {
+            glm::vec3 cameraPosition = actor_mainCamera->GetTransformComponent().GetPosition();
+            glm::vec3 chunkPosition  = trans.GetPosition() + glm::vec3(16.0f, 16.0f, 16.0f);
+
+            if (glm::length(cameraPosition - chunkPosition) > 128.0f)
+            {
+                continue;
+            }
+
+            auto shader = m_ShaderLibrary.Get("ChunkGBuffer");
+            shader->Bind();
+
+            shader->SetMat4("u_MProjection", m_PMatrix);
+            shader->SetMat4("u_MView", m_VMatrix);
+            shader->SetMat4("u_MTransform", trans.GetTransform());
+
+            const Texture2D& texture = chunk.GetTextureRef();
+
+            shader->SetBool("useAlbedoMap", true);
+            shader->SetInt("albedoMap", 0);
+            texture.Bind(0);
+
+            const VertexArray& vertexArray = chunk.GetVertexArrayRef();
+            vertexArray.Bind();
+
+            glDrawArrays(GL_TRIANGLES, 0, chunk.GetVertexCount());
+
+            texture.UnBind(0);
+
+            vertexArray.UnBind();
+
+            shader->UnBind();
         }
 
         // draw skinned mesh
@@ -1418,6 +1470,7 @@ namespace Engine
         }
 
         m_GeometryBuffer->UnBind();
+        glDisable(GL_CULL_FACE);
 
         // Render to SSAOBuffer
         m_MainCamera->GetCamera().SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
@@ -1559,7 +1612,7 @@ namespace Engine
             int dirctionallight_num = 0;
             for (auto [entity, name, trans, light] : dirctionallight_view.each())
             {
-                const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 100.0f);
+                const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 800.0f);
                 const glm::vec3 lightPositon    = trans.GetPosition();
                 const glm::vec3 lightDirection  = light.GetDirectionRef();
                 const glm::mat4 lightView =
@@ -1666,7 +1719,7 @@ namespace Engine
             int dirctionallight_num = 0;
             for (auto [entity, name, trans, light] : dirctionallight_view.each())
             {
-                const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 100.0f);
+                const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 800.0f);
                 const glm::vec3 lightPositon    = trans.GetPosition();
                 const glm::vec3 lightDirection  = light.GetDirectionRef();
                 const glm::mat4 lightView =

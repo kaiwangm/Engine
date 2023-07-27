@@ -87,7 +87,7 @@ namespace Engine
             }
         }
 
-        m_VertexBuffers.push_back(buffer);
+        // m_VertexBuffers.push_back(buffer);
         glBindVertexArray(0);
     }
 
