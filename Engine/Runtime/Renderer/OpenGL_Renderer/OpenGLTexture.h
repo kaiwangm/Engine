@@ -32,12 +32,7 @@ namespace Engine
     {
     public:
         OpenGLCubeMap(const std::string& path);
-        virtual ~OpenGLCubeMap()
-        {
-            glDeleteTextures(1, &m_CubeMap);
-            glDeleteTextures(1, &m_Irradiance);
-            glDeleteTextures(1, &m_Prefilter);
-        }
+        virtual ~OpenGLCubeMap();
 
         virtual void  Bind(const uint32_t& slot) const override;
         virtual void  UnBind(const uint32_t& slot) const override;
@@ -55,5 +50,12 @@ namespace Engine
         std::string m_Path;
         GLuint      m_CubeMap, m_Irradiance, m_Prefilter;
         GLuint      m_BrdfLut;
+
+    public:
+        std::vector<glm::vec3>                sh_data;
+
+        virtual void                          ComputeIrradianceTexture() override;
+        virtual void                          ComputeSphereHarmonicsParameters() override;
+        virtual const std::vector<glm::vec3>& GetSphereHarmonicsParametersRef() const override { return sh_data; }
     };
 } // namespace Engine

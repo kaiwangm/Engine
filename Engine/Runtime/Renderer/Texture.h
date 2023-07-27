@@ -29,7 +29,11 @@ namespace Engine
     class CubeMap : public Texture
     {
     public:
-        static Ref<CubeMap> Create(const std::string& path);
+        static Ref<CubeMap> Create(const std::string& path = "");
+
+        virtual void  Bind(const uint32_t& slot) const   = 0;
+        virtual void  UnBind(const uint32_t& slot) const = 0;
+        virtual void* GetTextureID() const               = 0;
 
         virtual void BindIrradianceTexture(const uint32_t& slot) const = 0;
         virtual void BindPrefilterTexture(const uint32_t& slot) const  = 0;
@@ -38,5 +42,9 @@ namespace Engine
         virtual void* GetIrradianceTextureID() const = 0;
         virtual void* GetPrefilterTextureID() const  = 0;
         virtual void* GetBrdfLutTextureID() const    = 0;
+
+        virtual void                          ComputeIrradianceTexture()              = 0;
+        virtual void                          ComputeSphereHarmonicsParameters()      = 0;
+        virtual const std::vector<glm::vec3>& GetSphereHarmonicsParametersRef() const = 0;
     };
 } // namespace Engine

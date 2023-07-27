@@ -212,11 +212,783 @@ namespace Engine
                    "Assets/Editor/Shader/screen_quad_vertex.glsl",
                    "Assets/Editor/Shader/deffered/identity.glsl",
                    "Path");
-        
+
         LoadShader("Addition",
                    "Assets/Editor/Shader/screen_quad_vertex.glsl",
                    "Assets/Editor/Shader/deffered/addition.glsl",
                    "Path");
+    }
+
+    void UWorld::Initialize()
+    {
+        auto actor_view           = m_Registry.view<UTagComponent, UTransformComponent>();
+        auto camrea_view          = m_Registry.view<UTagComponent, UTransformComponent, UCameraComponent>();
+        auto model_view           = m_Registry.view<UTagComponent, UTransformComponent, UStaticMeshComponent>();
+        auto pointcloud_view      = m_Registry.view<UTagComponent, UTransformComponent, UPointCloudComponent>();
+        auto pointlight_view      = m_Registry.view<UTagComponent, UTransformComponent, UPointLightComponent>();
+        auto dirctionallight_view = m_Registry.view<UTagComponent, UTransformComponent, UDirectionalLightComponent>();
+        auto skybox_view          = m_Registry.view<UTagComponent, UTransformComponent, USkyboxComponent>();
+        auto skeleton_view        = m_Registry.view<UTagComponent, UTransformComponent, USkeletonComponent>();
+        auto pawn_view            = m_Registry.view<UTagComponent, UTransformComponent, UPawnComponent>();
+        auto trajectory_view      = m_Registry.view<UTagComponent, UTransformComponent, UTrajectoryComponent>();
+        auto skinnedmesh_view     = m_Registry.view<UTagComponent, UTransformComponent, USkinnedMeshComponent>();
+        auto motionmatching_view  = m_Registry.view<UTagComponent, UTransformComponent, UMotionMatchingComponent>();
+
+        Ref<GeometryBuffer>    m_GeometryBuffer_Baking                                 = GeometryBuffer::Create();
+        Ref<FrameRenderBuffer> m_FrameRenderBuffer_skybox_Baking                       = FrameRenderBuffer::Create();
+        Ref<FrameRenderBuffer> m_FrameRenderBuffer_DirectLighting_diffuse_Baking       = FrameRenderBuffer::Create();
+        Ref<FrameRenderBuffer> m_FrameRenderBuffer_DirectLighting_specular_Baking      = FrameRenderBuffer::Create();
+        Ref<FrameRenderBuffer> m_FrameRenderBuffer_EnvironmentLighting_diffuse_Baking  = FrameRenderBuffer::Create();
+        Ref<FrameRenderBuffer> m_FrameRenderBuffer_EnvironmentLighting_specular_Baking = FrameRenderBuffer::Create();
+        Ref<SSAOBuffer>        m_SSAOBuffer_Baking                                     = SSAOBuffer::Create();
+        Ref<FrameRenderBuffer> m_FrameRenderBuffer_ssr_Baking                          = FrameRenderBuffer::Create();
+        Ref<FrameRenderBuffer> m_FrameRenderBuffer_ssr_blur_Baking                     = FrameRenderBuffer::Create();
+        Ref<FrameRenderBuffer> m_FrameRenderBuffer_Baking                              = FrameRenderBuffer::Create();
+
+        int cubeMapSize = 512;
+
+        m_GeometryBuffer_Baking->SetViewPort(cubeMapSize, cubeMapSize);
+        m_FrameRenderBuffer_skybox_Baking->SetViewPort(cubeMapSize, cubeMapSize);
+        m_FrameRenderBuffer_DirectLighting_diffuse_Baking->SetViewPort(cubeMapSize, cubeMapSize);
+        m_FrameRenderBuffer_DirectLighting_specular_Baking->SetViewPort(cubeMapSize, cubeMapSize);
+        m_FrameRenderBuffer_EnvironmentLighting_diffuse_Baking->SetViewPort(cubeMapSize, cubeMapSize);
+        m_FrameRenderBuffer_EnvironmentLighting_specular_Baking->SetViewPort(cubeMapSize, cubeMapSize);
+        m_SSAOBuffer_Baking->SetViewPort(cubeMapSize, cubeMapSize);
+        m_FrameRenderBuffer_ssr_Baking->SetViewPort(cubeMapSize, cubeMapSize);
+        m_FrameRenderBuffer_ssr_blur_Baking->SetViewPort(cubeMapSize, cubeMapSize);
+        m_FrameRenderBuffer_Baking->SetViewPort(cubeMapSize, cubeMapSize);
+
+        // set point light cube shadow map viewport
+        for (auto [entity, name, trans, light] : pointlight_view.each())
+        {
+            light.SetShadowCubeMapViewPort(3072, 3072);
+        }
+
+        // set directional light shadow map viewport
+        for (auto [entity, name, trans, light] : dirctionallight_view.each())
+        {
+            light.SetShadowMapViewPort(3072, 3072);
+        }
+
+        // Get Main SkyBox
+        for (auto [entity, name, trans, skybox] : skybox_view.each())
+        {
+            m_MainSkybox = static_cast<ASkybox*>(skybox.GetOwner());
+        }
+
+        // Render to point light ShadowCubeMap
+        for (auto [entity, name, trans, light] : pointlight_view.each())
+        {
+            ShadowCubeMapBuffer&                 shadowCubeMapBuffer = light.GetShadowCubeMapBufferRef();
+            std::array<std::function<void()>, 6> renderFuncs {
+                std::bind(&ShadowCubeMapBuffer::BindTop, &shadowCubeMapBuffer),
+                std::bind(&ShadowCubeMapBuffer::BindBottom, &shadowCubeMapBuffer),
+                std::bind(&ShadowCubeMapBuffer::BindLeft, &shadowCubeMapBuffer),
+                std::bind(&ShadowCubeMapBuffer::BindRight, &shadowCubeMapBuffer),
+                std::bind(&ShadowCubeMapBuffer::BindFront, &shadowCubeMapBuffer),
+                std::bind(&ShadowCubeMapBuffer::BindBack, &shadowCubeMapBuffer),
+            };
+
+            glm::vec3                lightPosition      = trans.GetPosition();
+            glm::mat4                projectionMatrices = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+            std::array<glm::mat4, 6> viewMatrices       = {
+                glm::lookAt(lightPosition, lightPosition + glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
+                glm::lookAt(lightPosition, lightPosition + glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)),
+                glm::lookAt(lightPosition, lightPosition + glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+                glm::lookAt(lightPosition, lightPosition + glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+                glm::lookAt(lightPosition, lightPosition + glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+                glm::lookAt(lightPosition, lightPosition + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+            };
+
+            for (int i = 0; i < 6; ++i)
+            {
+                const std::function<void()>& bindFunc = renderFuncs[i];
+                bindFunc();
+
+                RenderCommand::SetViewPort(0, 0, 3072, 3072);
+                RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+                RenderCommand::Clear();
+
+                // use a range-for
+                for (auto [entity, name, trans, model] : model_view.each())
+                {
+                    const auto meshes = model.GetStaticMesh().m_Meshes;
+                    for (const auto& mesh : meshes)
+                    {
+                        auto shader = m_ShaderLibrary.Get("ShadowMap");
+                        shader->Bind();
+
+                        shader->SetMat4("u_MLightSpace", projectionMatrices * viewMatrices[i]);
+                        shader->SetMat4("u_MTransform", trans.GetTransform());
+
+                        mesh.m_VertexArray->Bind();
+                        RenderCommand::DrawIndexed(mesh.m_VertexArray);
+                        mesh.m_VertexArray->UnBind();
+
+                        shader->UnBind();
+                    }
+                }
+
+                shadowCubeMapBuffer.UnBind();
+            }
+        }
+
+        // Render to directional light ShadowMap
+        for (auto [entity, name, trans, light] : dirctionallight_view.each())
+        {
+            ShadowMapBuffer& shadowMapBuffer = light.GetShadowMapBufferRef();
+            shadowMapBuffer.Bind();
+
+            RenderCommand::SetViewPort(0, 0, 3072, 3072);
+            RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+            RenderCommand::Clear();
+
+            const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 100.0f);
+            const glm::vec3 lightPositon    = trans.GetPosition();
+            const glm::vec3 lightDirection  = light.GetDirectionRef();
+            const glm::mat4 lightView =
+                glm::lookAt(lightPositon, lightPositon + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
+            const glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+
+            // use a range-for
+            for (auto [entity, name, trans, model] : model_view.each())
+            {
+                const auto meshes = model.GetStaticMesh().m_Meshes;
+                for (const auto& mesh : meshes)
+                {
+                    auto shader = m_ShaderLibrary.Get("ShadowMap");
+                    shader->Bind();
+
+                    shader->SetMat4("u_MLightSpace", lightSpaceMatrix);
+                    shader->SetMat4("u_MTransform", trans.GetTransform());
+
+                    mesh.m_VertexArray->Bind();
+                    RenderCommand::DrawIndexed(mesh.m_VertexArray);
+                    mesh.m_VertexArray->UnBind();
+
+                    shader->UnBind();
+                }
+            }
+
+            shadowMapBuffer.UnBind();
+        }
+
+        glm::vec3 probePosition = glm::vec3(2.3f, 2.7f, 0.0f);
+
+        glm::mat4                projectionMatrices = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 100.0f);
+        std::array<glm::mat4, 6> viewMatrices       = {
+            glm::lookAt(probePosition, probePosition + glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+            glm::lookAt(probePosition, probePosition + glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+            glm::lookAt(probePosition, probePosition + glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
+            glm::lookAt(probePosition, probePosition + glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)),
+            glm::lookAt(probePosition, probePosition + glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+            glm::lookAt(probePosition, probePosition + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+        };
+
+        Ref<CubeMap>                                                   cubeMap = CubeMap::Create();
+        typedef std::array<std::array<std::array<float, 3>, 512>, 512> cube_image;
+        std::vector<cube_image>                                        cubeMapData(6);
+
+        for (int i = 0; i < 6; ++i)
+        {
+            // Render to GeometryBuffer
+            m_VMatrix  = viewMatrices[i];
+            m_PMatrix  = projectionMatrices;
+            m_VPMatrix = m_PMatrix * m_VMatrix;
+
+            m_GeometryBuffer_Baking->Bind();
+            RenderCommand::SetViewPort(0, 0, cubeMapSize, cubeMapSize);
+
+            RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+            RenderCommand::Clear();
+
+            // use a range-for
+            for (auto [entity, name, trans, model] : model_view.each())
+            {
+                AStaticMesh* staticMesh_actor = static_cast<AStaticMesh*>(model.GetOwner());
+                MMaterial*   material         = static_cast<MMaterial*>(staticMesh_actor->GetMaterial());
+                std::string  materialType     = material->GetMaterialType();
+
+                if (staticMesh_actor->GetVisible() == false)
+                {
+                    continue;
+                }
+
+                if (materialType == "BasicPbr")
+                {
+                    const auto meshes = model.GetStaticMesh().m_Meshes;
+                    for (const auto& mesh : meshes)
+                    {
+                        auto shader = m_ShaderLibrary.Get("GBuffer");
+                        shader->Bind();
+
+                        MBasicPbr* material_basicPbr = static_cast<MBasicPbr*>(material);
+                        material_basicPbr->BindAllMap(shader);
+
+                        shader->Bind();
+                        shader->SetMat4("u_MProjection", m_PMatrix);
+                        shader->SetMat4("u_MView", m_VMatrix);
+                        shader->SetMat4("u_MTransform", trans.GetTransform());
+                        shader->UnBind();
+
+                        Renderer::Submit(mesh.m_VertexArray, shader, m_VPMatrix, trans.GetTransform());
+
+                        material_basicPbr->UnBindAllMap(shader);
+
+                        shader->UnBind();
+                    }
+                }
+            }
+
+            m_GeometryBuffer_Baking->UnBind();
+
+            // Render to SSAOBuffer
+
+            m_VMatrix  = viewMatrices[i];
+            m_PMatrix  = projectionMatrices;
+            m_VPMatrix = m_PMatrix * m_VMatrix;
+
+            m_SSAOBuffer_Baking->Bind();
+            RenderCommand::SetViewPort(0, 0, cubeMapSize, cubeMapSize);
+
+            RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+            RenderCommand::Clear();
+
+            auto computeAO_shader = m_ShaderLibrary.Get("ComputeAO");
+            computeAO_shader->Bind();
+
+            computeAO_shader->SetInt("g_ViewPosition", 0);
+            m_GeometryBuffer_Baking->BindViewPositionTexture(0);
+            computeAO_shader->SetInt("g_ViewNormal", 1);
+            m_GeometryBuffer_Baking->BindViewNormalTexture(1);
+            computeAO_shader->SetInt("g_Depth", 2);
+            m_GeometryBuffer_Baking->BindDepthTexture(2);
+
+            computeAO_shader->SetInt("texNoise", 3);
+            m_SSAOBuffer_Baking->BindNoiseTexture(3);
+
+            std::vector<glm::vec3>& kernel = m_SSAOBuffer_Baking->GetSSAOKernel();
+            for (unsigned int i = 0; i < kernel.size(); ++i)
+            {
+                computeAO_shader->SetFloat3("samples[" + std::to_string(i) + "]", kernel[i]);
+            }
+            computeAO_shader->SetMat4("projection", m_PMatrix);
+
+            computeAO_shader->SetFloat("radius", m_SSAOBuffer_Baking->GetRadiusRef());
+            computeAO_shader->SetFloat("bias", m_SSAOBuffer_Baking->GetBiasRef());
+            computeAO_shader->SetFloat("power", m_SSAOBuffer_Baking->GetPowerRef());
+
+            computeAO_shader->SetFloat("screenWidth", cubeMapSize);
+            computeAO_shader->SetFloat("screenHeight", cubeMapSize);
+
+            computeAO_shader->Bind();
+            RenderCommand::RenderToQuad();
+
+            m_SSAOBuffer_Baking->UnBindTexture(3);
+
+            m_GeometryBuffer_Baking->UnBindTexture(2);
+            m_GeometryBuffer_Baking->UnBindTexture(1);
+            m_GeometryBuffer_Baking->UnBindTexture(0);
+
+            computeAO_shader->UnBind();
+
+            m_SSAOBuffer_Baking->UnBind();
+
+            // Render to Skybox
+
+            m_VMatrix  = viewMatrices[i];
+            m_PMatrix  = projectionMatrices;
+            m_VPMatrix = m_PMatrix * m_VMatrix;
+
+            // skybox shading
+            {
+                m_FrameRenderBuffer_skybox_Baking->Bind();
+                RenderCommand::SetViewPort(0, 0, cubeMapSize, cubeMapSize);
+
+                RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+                RenderCommand::Clear();
+
+                if (m_RenderSkybox)
+                {
+                    // draw skybox
+                    // use a range-for
+                    for (auto [entity, name, trans, skybox] : skybox_view.each())
+                    {
+                        auto shader = m_ShaderLibrary.Get("Skybox");
+                        Renderer::SetShaderUniform(shader, "mipLevel", m_VisPrePrefilterMipLevel);
+
+                        auto vpmat = m_PMatrix * glm::mat4(glm::mat3(m_VMatrix));
+                        skybox.Draw(shader, vpmat);
+                    }
+                }
+
+                m_FrameRenderBuffer_skybox_Baking->UnBind();
+            }
+
+            // DirectLighting_diffuse Shading
+            {
+                m_FrameRenderBuffer_DirectLighting_diffuse_Baking->Bind();
+                RenderCommand::SetViewPort(0, 0, cubeMapSize, cubeMapSize);
+
+                RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+                RenderCommand::Clear();
+
+                auto deferred_shader = m_ShaderLibrary.Get("DirectLighting_diffuse");
+                deferred_shader->Bind();
+
+                deferred_shader->SetInt("g_ViewPosition", 0);
+                m_GeometryBuffer_Baking->BindViewPositionTexture(0);
+                deferred_shader->SetInt("g_ViewNormal", 1);
+                m_GeometryBuffer_Baking->BindViewNormalTexture(1);
+                deferred_shader->SetInt("g_Albedo", 2);
+                m_GeometryBuffer_Baking->BindAlbedoTexture(2);
+                deferred_shader->SetInt("g_Depth", 3);
+                m_GeometryBuffer_Baking->BindDepthTexture(3);
+                deferred_shader->SetInt("g_Roughness", 4);
+                m_GeometryBuffer_Baking->BindRoughnessTexture(4);
+                deferred_shader->SetInt("g_Metallic", 5);
+                m_GeometryBuffer_Baking->BindMetallicTexture(5);
+                deferred_shader->SetInt("g_WorldPosition", 6);
+                m_GeometryBuffer_Baking->BindWorldPositionTexture(6);
+                deferred_shader->SetInt("g_WorldNormal", 7);
+                m_GeometryBuffer_Baking->BindWorldNormalTexture(7);
+                deferred_shader->SetInt("g_AO", 8);
+                m_SSAOBuffer_Baking->BindSSAOTexture(8);
+
+                int ligth_num = 0;
+                for (auto [entity, name, trans, light] : pointlight_view.each())
+                {
+                    deferred_shader->SetFloat3("pointLightPositions[" + std::to_string(ligth_num) + "]",
+                                               trans.GetPosition());
+                    deferred_shader->SetFloat3("pointLightColors[" + std::to_string(ligth_num) + "]",
+                                               light.GetColorRef());
+                    deferred_shader->SetFloat("pointLightIntensities[" + std::to_string(ligth_num) + "]",
+                                              light.GetIntensityRef());
+
+                    deferred_shader->SetInt("pointShadowCubeMaps[" + std::to_string(ligth_num) + "]", 50 + ligth_num);
+                    light.GetShadowCubeMapBufferRef().BindTexture(50 + ligth_num);
+                    deferred_shader->SetFloat("pointShadowCubeMapsNearPlane[" + std::to_string(ligth_num) + "]", 0.1f);
+                    deferred_shader->SetFloat("pointShadowCubeMapsFarPlane[" + std::to_string(ligth_num) + "]", 10.0f);
+
+                    ligth_num++;
+                }
+                deferred_shader->SetInt("numPointLights", ligth_num);
+
+                int dirctionallight_num = 0;
+                for (auto [entity, name, trans, light] : dirctionallight_view.each())
+                {
+                    const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 100.0f);
+                    const glm::vec3 lightPositon    = trans.GetPosition();
+                    const glm::vec3 lightDirection  = light.GetDirectionRef();
+                    const glm::mat4 lightView =
+                        glm::lookAt(lightPositon, lightPositon + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
+                    const glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+
+                    deferred_shader->SetFloat3("directionalLightDirections[" + std::to_string(dirctionallight_num) +
+                                                   "]",
+                                               light.GetDirectionRef());
+                    deferred_shader->SetFloat3("directionalLightColors[" + std::to_string(dirctionallight_num) + "]",
+                                               light.GetColorRef());
+                    deferred_shader->SetFloat("directionalLightIntensities[" + std::to_string(dirctionallight_num) +
+                                                  "]",
+                                              light.GetIntensityRef());
+                    deferred_shader->SetMat4("directionalLightMatrices[" + std::to_string(dirctionallight_num) + "]",
+                                             lightSpaceMatrix);
+                    deferred_shader->SetInt("directionalShadowMaps[" + std::to_string(dirctionallight_num) + "]",
+                                            150 + dirctionallight_num);
+
+                    light.GetShadowMapBufferRef().BindTexture(150 + dirctionallight_num);
+
+                    dirctionallight_num++;
+                }
+                deferred_shader->SetInt("numDirectionalLights", dirctionallight_num);
+                deferred_shader->SetFloat("PCSS_FilterRadius", m_PCSS_FilterRadius);
+
+                glm::vec3 camPos = glm::vec3(glm::inverse(m_VMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+                deferred_shader->SetFloat3("camPos", camPos);
+
+                auto sky_cubeMap = m_MainSkybox->GetSkyboxComponent().GetCubeMap();
+
+                deferred_shader->SetInt("irradianceMap", 15);
+                sky_cubeMap->BindIrradianceTexture(15);
+                deferred_shader->SetInt("prefilterMap", 16);
+                sky_cubeMap->BindPrefilterTexture(16);
+                deferred_shader->SetInt("brdfLUT", 17);
+                sky_cubeMap->BindBrdfLutTexture(17);
+
+                RenderCommand::RenderToQuad();
+
+                sky_cubeMap->UnBind(17);
+                sky_cubeMap->UnBind(16);
+                sky_cubeMap->UnBind(15);
+
+                m_SSAOBuffer_Baking->UnBindTexture(8);
+                m_GeometryBuffer_Baking->UnBindTexture(7);
+                m_GeometryBuffer_Baking->UnBindTexture(6);
+                m_GeometryBuffer_Baking->UnBindTexture(5);
+                m_GeometryBuffer_Baking->UnBindTexture(4);
+                m_GeometryBuffer_Baking->UnBindTexture(3);
+                m_GeometryBuffer_Baking->UnBindTexture(2);
+                m_GeometryBuffer_Baking->UnBindTexture(1);
+                m_GeometryBuffer_Baking->UnBindTexture(0);
+
+                deferred_shader->UnBind();
+                m_FrameRenderBuffer_DirectLighting_diffuse_Baking->UnBind();
+            }
+            // DirectLighting_specular Shading
+            {
+                m_FrameRenderBuffer_DirectLighting_specular_Baking->Bind();
+                RenderCommand::SetViewPort(0, 0, cubeMapSize, cubeMapSize);
+
+                RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+                RenderCommand::Clear();
+
+                auto deferred_shader = m_ShaderLibrary.Get("DirectLighting_specular");
+                deferred_shader->Bind();
+
+                deferred_shader->SetInt("g_ViewPosition", 0);
+                m_GeometryBuffer_Baking->BindViewPositionTexture(0);
+                deferred_shader->SetInt("g_ViewNormal", 1);
+                m_GeometryBuffer_Baking->BindViewNormalTexture(1);
+                deferred_shader->SetInt("g_Albedo", 2);
+                m_GeometryBuffer_Baking->BindAlbedoTexture(2);
+                deferred_shader->SetInt("g_Depth", 3);
+                m_GeometryBuffer_Baking->BindDepthTexture(3);
+                deferred_shader->SetInt("g_Roughness", 4);
+                m_GeometryBuffer_Baking->BindRoughnessTexture(4);
+                deferred_shader->SetInt("g_Metallic", 5);
+                m_GeometryBuffer_Baking->BindMetallicTexture(5);
+                deferred_shader->SetInt("g_WorldPosition", 6);
+                m_GeometryBuffer_Baking->BindWorldPositionTexture(6);
+                deferred_shader->SetInt("g_WorldNormal", 7);
+                m_GeometryBuffer_Baking->BindWorldNormalTexture(7);
+                deferred_shader->SetInt("g_AO", 8);
+                m_SSAOBuffer_Baking->BindSSAOTexture(8);
+
+                int ligth_num = 0;
+                for (auto [entity, name, trans, light] : pointlight_view.each())
+                {
+                    deferred_shader->SetFloat3("pointLightPositions[" + std::to_string(ligth_num) + "]",
+                                               trans.GetPosition());
+                    deferred_shader->SetFloat3("pointLightColors[" + std::to_string(ligth_num) + "]",
+                                               light.GetColorRef());
+                    deferred_shader->SetFloat("pointLightIntensities[" + std::to_string(ligth_num) + "]",
+                                              light.GetIntensityRef());
+
+                    deferred_shader->SetInt("pointShadowCubeMaps[" + std::to_string(ligth_num) + "]", 50 + ligth_num);
+                    light.GetShadowCubeMapBufferRef().BindTexture(50 + ligth_num);
+                    deferred_shader->SetFloat("pointShadowCubeMapsNearPlane[" + std::to_string(ligth_num) + "]", 0.1f);
+                    deferred_shader->SetFloat("pointShadowCubeMapsFarPlane[" + std::to_string(ligth_num) + "]", 10.0f);
+
+                    ligth_num++;
+                }
+                deferred_shader->SetInt("numPointLights", ligth_num);
+
+                int dirctionallight_num = 0;
+                for (auto [entity, name, trans, light] : dirctionallight_view.each())
+                {
+                    const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 100.0f);
+                    const glm::vec3 lightPositon    = trans.GetPosition();
+                    const glm::vec3 lightDirection  = light.GetDirectionRef();
+                    const glm::mat4 lightView =
+                        glm::lookAt(lightPositon, lightPositon + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
+                    const glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+
+                    deferred_shader->SetFloat3("directionalLightDirections[" + std::to_string(dirctionallight_num) +
+                                                   "]",
+                                               light.GetDirectionRef());
+                    deferred_shader->SetFloat3("directionalLightColors[" + std::to_string(dirctionallight_num) + "]",
+                                               light.GetColorRef());
+                    deferred_shader->SetFloat("directionalLightIntensities[" + std::to_string(dirctionallight_num) +
+                                                  "]",
+                                              light.GetIntensityRef());
+                    deferred_shader->SetMat4("directionalLightMatrices[" + std::to_string(dirctionallight_num) + "]",
+                                             lightSpaceMatrix);
+                    deferred_shader->SetInt("directionalShadowMaps[" + std::to_string(dirctionallight_num) + "]",
+                                            150 + dirctionallight_num);
+
+                    light.GetShadowMapBufferRef().BindTexture(150 + dirctionallight_num);
+
+                    dirctionallight_num++;
+                }
+                deferred_shader->SetInt("numDirectionalLights", dirctionallight_num);
+                deferred_shader->SetFloat("PCSS_FilterRadius", m_PCSS_FilterRadius);
+
+                glm::vec3 camPos = glm::vec3(glm::inverse(m_VMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+                deferred_shader->SetFloat3("camPos", camPos);
+
+                auto sky_cubeMap = m_MainSkybox->GetSkyboxComponent().GetCubeMap();
+
+                deferred_shader->SetInt("irradianceMap", 15);
+                sky_cubeMap->BindIrradianceTexture(15);
+                deferred_shader->SetInt("prefilterMap", 16);
+                sky_cubeMap->BindPrefilterTexture(16);
+                deferred_shader->SetInt("brdfLUT", 17);
+                sky_cubeMap->BindBrdfLutTexture(17);
+
+                RenderCommand::RenderToQuad();
+
+                sky_cubeMap->UnBind(17);
+                sky_cubeMap->UnBind(16);
+                sky_cubeMap->UnBind(15);
+
+                m_SSAOBuffer_Baking->UnBindTexture(8);
+                m_GeometryBuffer_Baking->UnBindTexture(7);
+                m_GeometryBuffer_Baking->UnBindTexture(6);
+                m_GeometryBuffer_Baking->UnBindTexture(5);
+                m_GeometryBuffer_Baking->UnBindTexture(4);
+                m_GeometryBuffer_Baking->UnBindTexture(3);
+                m_GeometryBuffer_Baking->UnBindTexture(2);
+                m_GeometryBuffer_Baking->UnBindTexture(1);
+                m_GeometryBuffer_Baking->UnBindTexture(0);
+
+                deferred_shader->UnBind();
+                m_FrameRenderBuffer_DirectLighting_specular_Baking->UnBind();
+            }
+            // EnvironmentLighting_diffuse Shading
+            {
+                m_FrameRenderBuffer_EnvironmentLighting_diffuse_Baking->Bind();
+                RenderCommand::SetViewPort(0, 0, cubeMapSize, cubeMapSize);
+
+                RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+                RenderCommand::Clear();
+
+                auto deferred_shader = m_ShaderLibrary.Get("EnvironmentLighting_diffuse");
+                deferred_shader->Bind();
+
+                deferred_shader->SetInt("g_ViewPosition", 0);
+                m_GeometryBuffer_Baking->BindViewPositionTexture(0);
+                deferred_shader->SetInt("g_ViewNormal", 1);
+                m_GeometryBuffer_Baking->BindViewNormalTexture(1);
+                deferred_shader->SetInt("g_Albedo", 2);
+                m_GeometryBuffer_Baking->BindAlbedoTexture(2);
+                deferred_shader->SetInt("g_Depth", 3);
+                m_GeometryBuffer_Baking->BindDepthTexture(3);
+                deferred_shader->SetInt("g_Roughness", 4);
+                m_GeometryBuffer_Baking->BindRoughnessTexture(4);
+                deferred_shader->SetInt("g_Metallic", 5);
+                m_GeometryBuffer_Baking->BindMetallicTexture(5);
+                deferred_shader->SetInt("g_WorldPosition", 6);
+                m_GeometryBuffer_Baking->BindWorldPositionTexture(6);
+                deferred_shader->SetInt("g_WorldNormal", 7);
+                m_GeometryBuffer_Baking->BindWorldNormalTexture(7);
+                deferred_shader->SetInt("g_AO", 8);
+                m_SSAOBuffer_Baking->BindSSAOTexture(8);
+
+                int ligth_num = 0;
+                for (auto [entity, name, trans, light] : pointlight_view.each())
+                {
+                    deferred_shader->SetFloat3("pointLightPositions[" + std::to_string(ligth_num) + "]",
+                                               trans.GetPosition());
+                    deferred_shader->SetFloat3("pointLightColors[" + std::to_string(ligth_num) + "]",
+                                               light.GetColorRef());
+
+                    ligth_num++;
+                }
+                deferred_shader->SetInt("numPointLights", ligth_num);
+
+                glm::vec3 camPos = glm::vec3(glm::inverse(m_VMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+                deferred_shader->SetFloat3("camPos", camPos);
+
+                auto sky_cubeMap = m_MainSkybox->GetSkyboxComponent().GetCubeMap();
+
+                // deferred_shader->SetInt("irradianceMap", 15);
+                // sky_cubeMap->BindIrradianceTexture(15);
+                // const auto& sphericlaHarmonicsParameters = sky_cubeMap->GetSphereHarmonicsParametersRef();
+                // for (int i = 0; i < 9; ++i)
+                // {
+                //     deferred_shader->SetFloat3("sphericlaHarmonicsParameters[" + std::to_string(i) + "]",
+                //                                sphericlaHarmonicsParameters[i]);
+                // }
+
+                deferred_shader->SetInt("prefilterMap", 16);
+                sky_cubeMap->BindPrefilterTexture(16);
+                deferred_shader->SetInt("brdfLUT", 17);
+                sky_cubeMap->BindBrdfLutTexture(17);
+
+                RenderCommand::RenderToQuad();
+
+                sky_cubeMap->UnBind(17);
+                sky_cubeMap->UnBind(16);
+                sky_cubeMap->UnBind(15);
+
+                m_SSAOBuffer_Baking->UnBindTexture(8);
+                m_GeometryBuffer_Baking->UnBindTexture(7);
+                m_GeometryBuffer_Baking->UnBindTexture(6);
+                m_GeometryBuffer_Baking->UnBindTexture(5);
+                m_GeometryBuffer_Baking->UnBindTexture(4);
+                m_GeometryBuffer_Baking->UnBindTexture(3);
+                m_GeometryBuffer_Baking->UnBindTexture(2);
+                m_GeometryBuffer_Baking->UnBindTexture(1);
+                m_GeometryBuffer_Baking->UnBindTexture(0);
+
+                deferred_shader->UnBind();
+                m_FrameRenderBuffer_EnvironmentLighting_diffuse_Baking->UnBind();
+            }
+            // EnvironmentLighting_specular Shading
+            {
+                m_FrameRenderBuffer_EnvironmentLighting_specular_Baking->Bind();
+                RenderCommand::SetViewPort(0, 0, cubeMapSize, cubeMapSize);
+
+                RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+                RenderCommand::Clear();
+
+                m_FrameRenderBuffer_EnvironmentLighting_specular_Baking->UnBind();
+            }
+
+            // ssr
+            {
+                glDisable(GL_DEPTH_TEST);
+                m_FrameRenderBuffer_ssr_Baking->Bind();
+                RenderCommand::SetViewPort(0, 0, cubeMapSize, cubeMapSize);
+                RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+                RenderCommand::Clear();
+
+                // auto ssr_shader = m_ShaderLibrary.Get("ScreenSpaceReflection");
+                // ssr_shader->Bind();
+
+                // ssr_shader->SetInt("g_DirectLightinging_diffuse", 0);
+                // m_FrameRenderBuffer_DirectLighting_diffuse_Baking->BindTexture(0);
+                // ssr_shader->SetInt("g_DirectLightinging_specular", 1);
+                // m_FrameRenderBuffer_DirectLighting_specular_Baking->BindTexture(1);
+                // ssr_shader->SetInt("g_EnvironmentLighting_diffuse", 2);
+                // m_FrameRenderBuffer_EnvironmentLighting_diffuse_Baking->BindTexture(2);
+                // ssr_shader->SetInt("g_EnvironmentLighting_specular", 3);
+                // m_FrameRenderBuffer_EnvironmentLighting_specular_Baking->BindTexture(3);
+                // ssr_shader->SetInt("g_ViewPosition", 4);
+                // m_GeometryBuffer_Baking->BindViewPositionTexture(4);
+                // ssr_shader->SetInt("g_ViewNormal", 5);
+                // m_GeometryBuffer_Baking->BindViewNormalTexture(5);
+                // ssr_shader->SetInt("g_Depth", 6);
+                // m_GeometryBuffer_Baking->BindDepthTexture(6);
+                // ssr_shader->SetInt("g_Metallic", 7);
+                // m_GeometryBuffer_Baking->BindMetallicTexture(7);
+                // ssr_shader->SetInt("g_WorldPosition", 8);
+                // m_GeometryBuffer_Baking->BindWorldPositionTexture(8);
+                // ssr_shader->SetInt("g_Roughness", 9);
+                // m_GeometryBuffer_Baking->BindRoughnessTexture(9);
+
+                // ssr_shader->SetFloat("rayStep", m_SSR_settings.rayStep);
+                // ssr_shader->SetFloat("minRayStep", m_SSR_settings.minRayStep);
+                // ssr_shader->SetFloat("maxSteps", m_SSR_settings.maxSteps);
+                // ssr_shader->SetInt("numBinarySearchSteps", m_SSR_settings.numBinarySearchSteps);
+                // ssr_shader->SetFloat("reflectionSpecularFalloffExponent",
+                //                      m_SSR_settings.reflectionSpecularFalloffExponent);
+                // ssr_shader->SetBool("debug", m_SSR_settings.debug);
+                // ssr_shader->SetFloat("refBias", m_SSR_settings.refBias);
+
+                // ssr_shader->SetMat4("u_MProjection", m_PMatrix);
+                // ssr_shader->SetMat4("u_MView", m_VMatrix);
+                // ssr_shader->SetMat4("u_MInvProjection", glm::inverse(m_PMatrix));
+                // ssr_shader->SetMat4("u_MInvView", glm::inverse(m_VMatrix));
+
+                // RenderCommand::RenderToQuad();
+
+                // m_GeometryBuffer_Baking->UnBindTexture(9);
+                // m_GeometryBuffer_Baking->UnBindTexture(8);
+                // m_GeometryBuffer_Baking->UnBindTexture(7);
+                // m_GeometryBuffer_Baking->UnBindTexture(6);
+                // m_GeometryBuffer_Baking->UnBindTexture(5);
+                // m_GeometryBuffer_Baking->UnBindTexture(4);
+                // m_FrameRenderBuffer_EnvironmentLighting_specular_Baking->UnBindTexture(3);
+                // m_FrameRenderBuffer_EnvironmentLighting_diffuse_Baking->UnBindTexture(2);
+                // m_FrameRenderBuffer_DirectLighting_specular_Baking->UnBindTexture(1);
+                // m_FrameRenderBuffer_DirectLighting_diffuse_Baking->UnBindTexture(0);
+
+                // ssr_shader->UnBind();
+                Renderer::EndScene(m_FrameRenderBuffer_ssr_Baking);
+                glEnable(GL_DEPTH_TEST);
+            }
+            // blur ssr
+            {
+                glDisable(GL_DEPTH_TEST);
+                m_FrameRenderBuffer_ssr_blur_Baking->Bind();
+                RenderCommand::SetViewPort(0, 0, cubeMapSize, cubeMapSize);
+                RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+                RenderCommand::Clear();
+
+                // auto blur_shader = m_ShaderLibrary.Get("GaussianBlur");
+                // blur_shader->Bind();
+
+                // blur_shader->SetInt("g_Color", 0);
+                // m_FrameRenderBuffer_ssr_Baking->BindTexture(0);
+                // blur_shader->SetFloat2("screenSize", glm::vec2(cubeMapSize, cubeMapSize) / 1.0f);
+
+                // RenderCommand::RenderToQuad();
+
+                // m_FrameRenderBuffer_ssr_Baking->UnBindTexture(0);
+
+                // blur_shader->UnBind();
+                Renderer::EndScene(m_FrameRenderBuffer_ssr_blur_Baking);
+                glEnable(GL_DEPTH_TEST);
+            }
+
+            // composite
+            {
+                glDisable(GL_DEPTH_TEST);
+                m_FrameRenderBuffer_Baking->Bind();
+                RenderCommand::SetViewPort(0, 0, cubeMapSize, cubeMapSize);
+                RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+                RenderCommand::Clear();
+
+                auto composite_shader = m_ShaderLibrary.Get("Composite");
+                composite_shader->Bind();
+
+                composite_shader->SetInt("g_DirectLightinging_diffuse", 0);
+                m_FrameRenderBuffer_DirectLighting_diffuse_Baking->BindTexture(0);
+                composite_shader->SetInt("g_DirectLightinging_specular", 1);
+                m_FrameRenderBuffer_DirectLighting_specular_Baking->BindTexture(1);
+                composite_shader->SetInt("g_EnvironmentLighting_diffuse", 2);
+                m_FrameRenderBuffer_EnvironmentLighting_diffuse_Baking->BindTexture(2);
+                composite_shader->SetInt("g_EnvironmentLighting_specular", 3);
+                m_FrameRenderBuffer_EnvironmentLighting_specular_Baking->BindTexture(3);
+                composite_shader->SetInt("g_Skybox", 4);
+                m_FrameRenderBuffer_skybox_Baking->BindTexture(4);
+                composite_shader->SetInt("g_ScreenSpaceReflection", 5);
+                m_FrameRenderBuffer_ssr_blur_Baking->BindTexture(5);
+                composite_shader->SetInt("g_AO", 6);
+                m_SSAOBuffer_Baking->BindSSAOTexture(6);
+
+                RenderCommand::RenderToQuad();
+
+                m_SSAOBuffer_Baking->UnBindTexture(6);
+                m_FrameRenderBuffer_ssr_blur_Baking->UnBindTexture(5);
+                m_FrameRenderBuffer_skybox_Baking->UnBindTexture(4);
+                m_FrameRenderBuffer_EnvironmentLighting_specular_Baking->UnBindTexture(3);
+                m_FrameRenderBuffer_EnvironmentLighting_diffuse_Baking->UnBindTexture(2);
+                m_FrameRenderBuffer_DirectLighting_specular_Baking->UnBindTexture(1);
+                m_FrameRenderBuffer_DirectLighting_diffuse_Baking->UnBindTexture(0);
+
+                composite_shader->UnBind();
+                Renderer::EndScene(m_FrameRenderBuffer_Baking);
+                glEnable(GL_DEPTH_TEST);
+            }
+
+            {
+                // copy to cubeMapData
+                glBindTexture(GL_TEXTURE_2D, (GLuint)(size_t)m_FrameRenderBuffer_Baking->GetTextureID());
+                glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, cubeMapData[i].data());
+                glBindTexture(GL_TEXTURE_2D, 0);
+
+                glBindTexture(GL_TEXTURE_CUBE_MAP, (GLuint)(size_t)cubeMap->GetTextureID());
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+                             0,
+                             GL_RGB16F,
+                             cubeMapSize,
+                             cubeMapSize,
+                             0,
+                             GL_RGB,
+                             GL_FLOAT,
+                             cubeMapData[i].data());
+                glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+                glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+            }
+        }
+
+        cubeMap->ComputeIrradianceTexture();
+        cubeMap->ComputeSphereHarmonicsParameters();
+
+        sphereHarmonicsParameters_a = cubeMap->GetSphereHarmonicsParametersRef();
     }
 
     void UWorld::TickLogic(float timeStep, float nowTime, bool isWindowFocused)
@@ -365,6 +1137,7 @@ namespace Engine
 
     void UWorld::TickRender(float timeStep)
     {
+        // Initialize();
         auto actor_view           = m_Registry.view<UTagComponent, UTransformComponent>();
         auto camrea_view          = m_Registry.view<UTagComponent, UTransformComponent, UCameraComponent>();
         auto model_view           = m_Registry.view<UTagComponent, UTransformComponent, UStaticMeshComponent>();
@@ -434,7 +1207,8 @@ namespace Engine
         // Render to point light ShadowCubeMap
         for (auto [entity, name, trans, light] : pointlight_view.each())
         {
-            ShadowCubeMapBuffer&                 shadowCubeMapBuffer = light.GetShadowCubeMapBufferRef();
+            ShadowCubeMapBuffer& shadowCubeMapBuffer = light.GetShadowCubeMapBufferRef();
+            // Y+ Y- X- X+ Z+ Z-
             std::array<std::function<void()>, 6> renderFuncs {
                 std::bind(&ShadowCubeMapBuffer::BindTop, &shadowCubeMapBuffer),
                 std::bind(&ShadowCubeMapBuffer::BindBottom, &shadowCubeMapBuffer),
@@ -700,7 +1474,7 @@ namespace Engine
 
         m_SSAOBuffer->UnBind();
 
-        // Render to m_FrameRenderBuffer_DirectLighting_diffuse
+        // Render to Skybox
         m_MainCamera->GetCamera().SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
         m_MainCamera->GetCamera().RecalculateProjectionMatrix();
 
@@ -727,7 +1501,6 @@ namespace Engine
                     Renderer::SetShaderUniform(shader, "mipLevel", m_VisPrePrefilterMipLevel);
 
                     auto vpmat = m_PMatrix * glm::mat4(glm::mat3(m_VMatrix));
-                    skybox.Tick(timeStep);
                     skybox.Draw(shader, vpmat);
                 }
             }
@@ -995,8 +1768,15 @@ namespace Engine
 
             auto sky_cubeMap = m_MainSkybox->GetSkyboxComponent().GetCubeMap();
 
-            deferred_shader->SetInt("irradianceMap", 15);
-            sky_cubeMap->BindIrradianceTexture(15);
+            // deferred_shader->SetInt("irradianceMap", 15);
+            // sky_cubeMap->BindIrradianceTexture(15);
+            const auto& sphericlaHarmonicsParameters = sky_cubeMap->GetSphereHarmonicsParametersRef();
+            for (int i = 0; i < 9; ++i)
+            {
+                deferred_shader->SetFloat3("sphericlaHarmonicsParameters[" + std::to_string(i) + "]",
+                                           sphereHarmonicsParameters_a[i]);
+            }
+
             deferred_shader->SetInt("prefilterMap", 16);
             sky_cubeMap->BindPrefilterTexture(16);
             deferred_shader->SetInt("brdfLUT", 17);
@@ -1316,7 +2096,7 @@ namespace Engine
             glEnable(GL_DEPTH_TEST);
         }
         // upsample and addition
-        for(int i=5;i>=0;--i)
+        for (int i = 5; i >= 0; --i)
         {
             glDisable(GL_DEPTH_TEST);
             m_FrameRenderBuffer_highLight_upSampled[i]->Bind();
@@ -1373,7 +2153,7 @@ namespace Engine
 
             addition_shader->SetInt("g_ImageA", 0);
             m_FrameRenderBuffer->BindTexture(0);
-            
+
             addition_shader->SetInt("g_ImageB", 1);
             m_FrameRenderBuffer_highLight_upSampled[0]->BindTexture(1);
 

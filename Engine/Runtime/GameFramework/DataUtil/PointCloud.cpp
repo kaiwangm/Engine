@@ -27,6 +27,7 @@ namespace Engine
         }
 
         int numPoints = pointcloud->points.size();
+        m_NumPoints = numPoints;
 
         m_vertices = std::vector<std::array<float, 3>>(numPoints);
         m_colors   = std::vector<std::array<uint8_t, 3>>(numPoints);

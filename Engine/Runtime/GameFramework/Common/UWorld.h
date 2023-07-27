@@ -43,6 +43,8 @@ namespace Engine
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_shadowMapViewport;
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_shadowCubeMapViewport;
 
+        std::vector<glm::vec3> sphereHarmonicsParameters_a;
+
         const char* viewport_items[18] = {
             "ViewPosition",
             "ViewNormal",
@@ -104,6 +106,7 @@ namespace Engine
 
     public:
         UWorld();
+        void Initialize();
 
         template<class T, class... Args>
         T& AddActor(const std::string& name, Args... args)
