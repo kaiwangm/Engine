@@ -264,13 +264,13 @@ namespace Engine
 
                     std::array<float, dimRawPawn> samplePawn {};
                     {
-                        samplePawn[0]                    = 0.0f;
-                        samplePawn[1]                    = 0.0f;
-                        samplePawn[2]                    = 0.0f;
-                        samplePawn[3]                    = nowPose[0][3];
-                        samplePawn[4]                    = nowPose[0][4];
-                        samplePawn[5]                    = nowPose[0][5];
-                        samplePawn[6]                    = nowPose[0][6];
+                        samplePawn[0] = 0.0f;
+                        samplePawn[1] = 0.0f;
+                        samplePawn[2] = 0.0f;
+                        samplePawn[3] = nowPose[0][3];
+                        samplePawn[4] = nowPose[0][4];
+                        samplePawn[5] = nowPose[0][5];
+                        samplePawn[6] = nowPose[0][6];
                     }
                     data_raw_pawn.push_back(samplePawn);
                 }

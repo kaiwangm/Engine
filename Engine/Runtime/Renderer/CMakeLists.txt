@@ -12,20 +12,20 @@ add_library(
 )
 
 target_link_libraries(
-    Renderer 
-    PRIVATE 
+    Renderer
+    PRIVATE
     glm::glm
 )
 
-IF (ENGINE_OPENGL_USE)
+IF(ENGINE_OPENGL_USE)
     add_subdirectory(OpenGL_Renderer)
     target_link_libraries(
-    Renderer 
-    PRIVATE 
-    Core 
-    OpenGL_Renderer
-    GameFramework
+        Renderer
+        PRIVATE
+        Core
+        OpenGL_Renderer
+        GameFramework
     )
-ENDIF ()
+ENDIF()
 
 target_include_directories(Renderer INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})

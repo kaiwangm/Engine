@@ -8,15 +8,15 @@ add_library(
 )
 
 target_link_libraries(
-    Gui_OpenGL_Imgui 
-    PRIVATE 
-    Core 
+    Gui_OpenGL_Imgui
+    PRIVATE
+    Core
 )
 
 target_link_libraries(
-    Gui_OpenGL_Imgui  
-    PRIVATE 
-    imgui::imgui 
-    glad::glad 
-    glfw 
+    Gui_OpenGL_Imgui
+    PRIVATE
+    imgui::imgui
+    glad::glad
+    glfw
 )

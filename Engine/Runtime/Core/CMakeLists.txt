@@ -6,9 +6,9 @@ add_library(
 )
 
 target_link_libraries(
-    Core 
-    PRIVATE 
-    spdlog::spdlog 
+    Core
+    PRIVATE
+    spdlog::spdlog
     spdlog::spdlog_header_only
 )
 

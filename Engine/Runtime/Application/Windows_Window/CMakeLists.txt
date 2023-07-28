@@ -7,15 +7,15 @@ add_library(
 )
 
 target_link_libraries(
-    Windows_Window 
-    PRIVATE 
-    Core 
+    Windows_Window
+    PRIVATE
+    Core
     Renderer
 )
 
 target_link_libraries(
-    Windows_Window 
-    PRIVATE 
+    Windows_Window
+    PRIVATE
     glm::glm
 )
 

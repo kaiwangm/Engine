@@ -10,16 +10,16 @@ add_library(
 )
 
 target_link_libraries(
-    Gui 
-    PRIVATE 
-    Core 
+    Gui
+    PRIVATE
+    Core
     Renderer
 )
 
 target_link_libraries(
-    Gui 
-    PRIVATE 
-    imgui::imgui 
+    Gui
+    PRIVATE
+    imgui::imgui
     imguizmo::imguizmo
     unofficial::nativefiledialog::nfd
 )

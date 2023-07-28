@@ -16,7 +16,8 @@ namespace Engine
         std::string m_MaterialType;
 
     public:
-        MMaterial(const std::string& name, const std::string& materialType) : m_Name(name), m_MaterialType(materialType) {}
+        MMaterial(const std::string& name, const std::string& materialType) : m_Name(name), m_MaterialType(materialType)
+        {}
         MMaterial() {}
         virtual ~MMaterial() {}
         virtual void Bind(const Ref<Shader> shader)   = 0;

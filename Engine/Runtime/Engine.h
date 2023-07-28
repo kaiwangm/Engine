@@ -34,11 +34,13 @@
 
 #ifdef ENGINE_USE_ENTRYPOINT
 #pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
-namespace Engine {
-extern Scope<Application> CreateApplication(int argc, char** argv);
+namespace Engine
+{
+    extern Scope<Application> CreateApplication(int argc, char** argv);
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv)
+{
     auto app = Engine::CreateApplication(argc, argv);
     app->Run();
 
@@ -47,41 +49,3 @@ int main(int argc, char **argv) {
 #endif
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

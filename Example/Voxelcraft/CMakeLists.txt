@@ -11,7 +11,6 @@ target_link_libraries(Voxelcraft PRIVATE Engine)
 # $<TARGET_FILE_DIR:Engine>
 # $<TARGET_FILE_DIR:Editor>
 # )
-
 add_custom_command(
     TARGET Voxelcraft POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory

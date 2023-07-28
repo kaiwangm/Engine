@@ -43,8 +43,5 @@ namespace Engine
         return y;
     }
 
-    void WindowsInput::HideCursorImpl()
-    {
-        ImGui::SetMouseCursor(ImGuiMouseCursor_None);
-    }
+    void WindowsInput::HideCursorImpl() { ImGui::SetMouseCursor(ImGuiMouseCursor_None); }
 } // namespace Engine

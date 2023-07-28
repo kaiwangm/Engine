@@ -9,7 +9,8 @@ namespace Engine
     public:
         Ref<Camera> m_Camera;
 
-        UCameraComponent(const Ref<Camera> camera) : m_Camera(camera) {
+        UCameraComponent(const Ref<Camera> camera) : m_Camera(camera)
+        {
             m_Position = glm::vec3(0.0f);
             m_Rotation = glm::vec3(0.0f);
             m_Scale    = glm::vec3(1.0f);

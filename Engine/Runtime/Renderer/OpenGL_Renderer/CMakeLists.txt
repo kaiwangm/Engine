@@ -13,12 +13,12 @@ add_library(
 
 target_link_libraries(
     OpenGL_Renderer
-    PRIVATE 
+    PRIVATE
     Core
 )
 
 target_link_libraries(
-    OpenGL_Renderer 
-    PRIVATE 
+    OpenGL_Renderer
+    PRIVATE
     glm::glm
 )

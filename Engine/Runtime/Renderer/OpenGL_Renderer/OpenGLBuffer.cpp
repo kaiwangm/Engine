@@ -225,37 +225,43 @@ namespace Engine
     void OpenGLShadowCubeMapBuffer::BindTop() const
     {
         glBindFramebuffer(GL_FRAMEBUFFER, m_FrameBuffer_RendererID);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_Y, m_Texture_RendererID, 0);
+        glFramebufferTexture2D(
+            GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_Y, m_Texture_RendererID, 0);
     }
 
     void OpenGLShadowCubeMapBuffer::BindBottom() const
     {
         glBindFramebuffer(GL_FRAMEBUFFER, m_FrameBuffer_RendererID);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, m_Texture_RendererID, 0);
+        glFramebufferTexture2D(
+            GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, m_Texture_RendererID, 0);
     }
 
     void OpenGLShadowCubeMapBuffer::BindLeft() const
     {
         glBindFramebuffer(GL_FRAMEBUFFER, m_FrameBuffer_RendererID);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_NEGATIVE_X, m_Texture_RendererID, 0);
+        glFramebufferTexture2D(
+            GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_NEGATIVE_X, m_Texture_RendererID, 0);
     }
 
     void OpenGLShadowCubeMapBuffer::BindRight() const
     {
         glBindFramebuffer(GL_FRAMEBUFFER, m_FrameBuffer_RendererID);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_X, m_Texture_RendererID, 0);
+        glFramebufferTexture2D(
+            GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_X, m_Texture_RendererID, 0);
     }
 
     void OpenGLShadowCubeMapBuffer::BindFront() const
     {
         glBindFramebuffer(GL_FRAMEBUFFER, m_FrameBuffer_RendererID);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_Z, m_Texture_RendererID, 0);
+        glFramebufferTexture2D(
+            GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_Z, m_Texture_RendererID, 0);
     }
 
     void OpenGLShadowCubeMapBuffer::BindBack() const
     {
         glBindFramebuffer(GL_FRAMEBUFFER, m_FrameBuffer_RendererID);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, m_Texture_RendererID, 0);
+        glFramebufferTexture2D(
+            GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, m_Texture_RendererID, 0);
     }
 
     void OpenGLShadowCubeMapBuffer::UnBind() const { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
@@ -279,8 +285,8 @@ namespace Engine
                              GL_FLOAT,
                              NULL);
             }
-            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);     // GL_NEAREST
-            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);     // GL_NEAREST
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST); // GL_NEAREST
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST); // GL_NEAREST
             // glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER); // GL_CLAMP_TO_BORDER
             // glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER); // GL_CLAMP_TO_BORDER
             // glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER); // GL_CLAMP_TO_BORDER
@@ -298,7 +304,7 @@ namespace Engine
         }
 
         return;
-    } 
+    }
 
     void* OpenGLShadowCubeMapBuffer::GetTextureID() const { return (void*)(uint64_t)m_Texture_RendererID; }
 

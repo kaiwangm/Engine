@@ -17,7 +17,7 @@ namespace Engine
             return instance;
         }
         virtual ~PublicSingleton() noexcept {}
-        PublicSingleton(const PublicSingleton&) = delete;
+        PublicSingleton(const PublicSingleton&)            = delete;
         PublicSingleton& operator=(const PublicSingleton&) = delete;
     };
 } // namespace Engine

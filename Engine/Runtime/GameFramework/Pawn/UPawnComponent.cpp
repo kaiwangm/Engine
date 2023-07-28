@@ -591,10 +591,10 @@ namespace Engine
         cameraComponent.SetRotation(orientation);
 
         // update skinnedMesh
-        UMotionMatchingComponent& motionMatchingComponent = aPawn->GetMotionMatchingComponentRef();
-        ozz::vector<ozz::math::Float4x4> nowModels = motionMatchingComponent.GetNowAnimationClipModels();
+        UMotionMatchingComponent&        motionMatchingComponent = aPawn->GetMotionMatchingComponentRef();
+        ozz::vector<ozz::math::Float4x4> nowModels               = motionMatchingComponent.GetNowAnimationClipModels();
         // skinnedMeshComponent.SetModels(nowModels);
-        
+
         skinnedMeshComponent.Update(trajectoryComponent.GetSearchResult().nowRatio);
         skinnedMeshComponent.SetModels(nowModels);
     }

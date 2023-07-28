@@ -270,8 +270,10 @@ namespace Engine
     private:
         TrajectoryPointArray m_TrajectoryPointArray_Back;
         TrajectoryPointArray m_TrajectoryPointArray_Forward;
-        KnnResult            m_SearchResult{
-            0, 0.0f, 0.0f,
+        KnnResult            m_SearchResult {
+            0,
+            0.0f,
+            0.0f,
         };
 
     public:

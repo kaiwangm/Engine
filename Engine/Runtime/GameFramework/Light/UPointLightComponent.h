@@ -25,6 +25,9 @@ namespace Engine
         float&     GetIntensityRef() { return m_Intensity; }
 
         ShadowCubeMapBuffer& GetShadowCubeMapBufferRef() { return *m_ShadowCubeMapBuffer; }
-        void SetShadowCubeMapViewPort(const uint32_t width, const uint32_t height) { m_ShadowCubeMapBuffer->SetViewPort(width, height); }
+        void                 SetShadowCubeMapViewPort(const uint32_t width, const uint32_t height)
+        {
+            m_ShadowCubeMapBuffer->SetViewPort(width, height);
+        }
     };
 } // namespace Engine

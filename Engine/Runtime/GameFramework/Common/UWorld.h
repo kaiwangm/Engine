@@ -29,16 +29,16 @@ namespace Engine
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_EnvironmentLighting_specular;
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_playground;
 
-        Ref<FrameRenderBuffer> m_FrameRenderBuffer_ssr;
-        Ref<FrameRenderBuffer> m_FrameRenderBuffer_ssr_blur;
-        Ref<FrameRenderBuffer> m_FrameRenderBuffer_exposure;
-        Ref<FrameRenderBuffer> m_FrameRenderBuffer;
-        Ref<FrameRenderBuffer> m_FrameRenderBuffer_highLight;
+        Ref<FrameRenderBuffer>                m_FrameRenderBuffer_ssr;
+        Ref<FrameRenderBuffer>                m_FrameRenderBuffer_ssr_blur;
+        Ref<FrameRenderBuffer>                m_FrameRenderBuffer_exposure;
+        Ref<FrameRenderBuffer>                m_FrameRenderBuffer;
+        Ref<FrameRenderBuffer>                m_FrameRenderBuffer_highLight;
         std::array<Ref<FrameRenderBuffer>, 7> m_FrameRenderBuffer_highLight_downSampled;
         std::array<Ref<FrameRenderBuffer>, 6> m_FrameRenderBuffer_highLight_blur;
         std::array<Ref<FrameRenderBuffer>, 6> m_FrameRenderBuffer_highLight_upSampled;
-        Ref<FrameRenderBuffer> m_FrameRenderBuffer_bloom;
-        Ref<FrameRenderBuffer> m_FrameRenderBuffer_fxaa;
+        Ref<FrameRenderBuffer>                m_FrameRenderBuffer_bloom;
+        Ref<FrameRenderBuffer>                m_FrameRenderBuffer_fxaa;
 
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_bufferViewport;
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_shadowMapViewport;
@@ -95,7 +95,7 @@ namespace Engine
             float refBias                           = 0.001f;
         } m_SSR_settings;
 
-        float m_Bloom_Intensity = 0.08f;
+        float m_Bloom_Intensity   = 0.08f;
         float m_PCSS_FilterRadius = 1.0f;
 
         entt::entity entity_selected = entt::null;

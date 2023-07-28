@@ -15,11 +15,7 @@ namespace Engine
             m_Mesh = m_World->RegisterComponents<UPointCloudComponent>(m_EntityHandle);
             m_Mesh->SetOwner(this);
         }
-        APointCloud(UWorld*            world,
-                    entt::entity       handle,
-                    const std::string& name,
-                    const std::string& path
-                    ) :
+        APointCloud(UWorld* world, entt::entity handle, const std::string& name, const std::string& path) :
             AActor(world, handle, name)
         {
             m_Mesh = m_World->RegisterComponents<UPointCloudComponent>(m_EntityHandle, path);

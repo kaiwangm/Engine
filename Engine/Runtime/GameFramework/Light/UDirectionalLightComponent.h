@@ -15,7 +15,8 @@ namespace Engine
         Ref<ShadowMapBuffer> m_ShadowMapBuffer;
 
     public:
-        UDirectionalLightComponent() : m_Color(1.0f), m_Intensity(1.0f) {
+        UDirectionalLightComponent() : m_Color(1.0f), m_Intensity(1.0f)
+        {
             m_ShadowMapBuffer = ShadowMapBuffer::Create();
         }
         void SetColor(const glm::vec3& color) { m_Color = color; }
@@ -27,6 +28,9 @@ namespace Engine
         float&     GetIntensityRef() { return m_Intensity; }
 
         ShadowMapBuffer& GetShadowMapBufferRef() { return *m_ShadowMapBuffer; }
-        void SetShadowMapViewPort(const uint32_t width, const uint32_t height) { m_ShadowMapBuffer->SetViewPort(width, height); }
+        void             SetShadowMapViewPort(const uint32_t width, const uint32_t height)
+        {
+            m_ShadowMapBuffer->SetViewPort(width, height);
+        }
     };
 } // namespace Engine
