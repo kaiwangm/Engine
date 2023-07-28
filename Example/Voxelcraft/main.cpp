@@ -119,26 +119,26 @@ namespace Engine
 
             auto light0 = m_World->AddActor<APointLight>("point light_0");
             light0.GetTransformComponent().SetPosition(glm::vec3 {0.0f, 1.5f, 1.5f});
-            light0.GetPointLightComponentRef().SetIntensity(30.0f);
+            light0.GetPointLightComponentRef().SetIntensity(15.0f);
 
             auto light1 = m_World->AddActor<APointLight>("point light_1");
             light1.GetTransformComponent().SetPosition(glm::vec3 {1.0f, 1.5f, 1.5f});
-            light1.GetPointLightComponentRef().SetIntensity(30.0f);
+            light1.GetPointLightComponentRef().SetIntensity(15.0f);
 
             auto light2 = m_World->AddActor<APointLight>("point light_2");
             light2.GetTransformComponent().SetPosition(glm::vec3 {0.0f, 2.5f, 1.5f});
-            light2.GetPointLightComponentRef().SetIntensity(30.0f);
+            light2.GetPointLightComponentRef().SetIntensity(15.0f);
 
             auto light3 = m_World->AddActor<APointLight>("point light_3");
             light3.GetTransformComponent().SetPosition(glm::vec3 {1.0f, 2.5f, 1.5f});
-            light3.GetPointLightComponentRef().SetIntensity(30.0f);
+            light3.GetPointLightComponentRef().SetIntensity(15.0f);
 
             auto sky_light = m_World->AddActor<ADirectionalLight>("sky light");
             sky_light.GetTransformComponent().SetPosition(glm::vec3 {30.0f, 30.0f, 30.0f});
 
             sky_light.GetDirectionalLightComponentRef().SetColor(glm::vec3 {0.72f, 0.54f, 0.50f});
             sky_light.GetDirectionalLightComponentRef().SetDirection(glm::vec3 {-0.623f, -0.157f, -0.766f});
-            sky_light.GetDirectionalLightComponentRef().SetIntensity(30.0f);
+            sky_light.GetDirectionalLightComponentRef().SetIntensity(15.0f);
 
             // auto pointcloud =
             //     m_World->AddActor<APointCloud>("pointcloud",
@@ -146,14 +146,16 @@ namespace Engine
             // pointcloud.GetTransformComponent().SetPosition(glm::vec3 {0.0f, 0.0f, 0.0f});
             // pointcloud.GetTransformComponent().SetScale(glm::vec3 {0.01f, 0.01f, 0.01f});
 
-            for (int i = -10; i < 10; i++)
-            {
-                for (int j = -10; j < 10; j++)
-                {
-                    auto chunk = m_World->AddActor<AChunk>(fmt::format("chunk_{0}_{1}", i, j));
-                    chunk.GetTransformComponent().SetPosition(glm::vec3 {i * 32.0f, -35.0f, j * 32.0f});
-                }
-            }
+            // for (int i = -10; i < 10; i++)
+            // {
+            //     for (int j = -10; j < 10; j++)
+            //     {
+            //         auto chunk = m_World->AddActor<AChunk>(fmt::format("chunk_{0}_{1}", i, j));
+            //         chunk.GetTransformComponent().SetPosition(glm::vec3 {i * 32.0f, -35.0f, j * 32.0f});
+            //     }
+            // }
+
+            auto chunkworld = m_World->AddActor<AChunkArrayWorld>("chunkworld");
 
             m_Callbacks["Open"] = std::function<void()>([&]() {
                 std::string filepath = OpenFile();

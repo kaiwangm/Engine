@@ -9,11 +9,12 @@ namespace Engine
 {
     class UChunkComponent final : public UComponent
     {
-    private:
+    public:
         constexpr static uint32_t ChunkSize   = 32;
         constexpr static uint32_t ChunkArea   = ChunkSize * ChunkSize;
         constexpr static uint32_t ChunkVolume = ChunkSize * ChunkSize * ChunkSize;
 
+    private:
         struct Vertex
         {
             glm::vec3 Position;
@@ -35,7 +36,7 @@ namespace Engine
             {6, ShaderDataType::Int, "a_FaceIndex"},
         };
 
-        uint32_t            m_Chunks[ChunkSize][ChunkSize][ChunkSize];
+        uint32_t            m_Voxels[ChunkSize][ChunkSize][ChunkSize];
         std::vector<Vertex> m_Vertices;
         bool                m_IsDirty = false;
 
@@ -43,6 +44,21 @@ namespace Engine
         static Ref<Texture2D> m_Texture;
 
     private:
+        UChunkComponent* m_TopChunkPointer    = nullptr;
+        UChunkComponent* m_BottomChunkPointer = nullptr;
+        UChunkComponent* m_LeftChunkPointer   = nullptr;
+        UChunkComponent* m_RightChunkPointer  = nullptr;
+        UChunkComponent* m_FrontChunkPointer  = nullptr;
+        UChunkComponent* m_BackChunkPointer   = nullptr;
+
+    public:
+        void SetTopChunkPointer(UChunkComponent* chunk) { m_TopChunkPointer = chunk; }
+        void SetBottomChunkPointer(UChunkComponent* chunk) { m_BottomChunkPointer = chunk; }
+        void SetLeftChunkPointer(UChunkComponent* chunk) { m_LeftChunkPointer = chunk; }
+        void SetRightChunkPointer(UChunkComponent* chunk) { m_RightChunkPointer = chunk; }
+        void SetFrontChunkPointer(UChunkComponent* chunk) { m_FrontChunkPointer = chunk; }
+        void SetBackChunkPointer(UChunkComponent* chunk) { m_BackChunkPointer = chunk; }
+
         void BuildVertexData()
         {
             static const glm::vec3 vertices[8] = {
@@ -73,7 +89,7 @@ namespace Engine
                 {
                     for (uint32_t z = 0; z < ChunkSize; z++)
                     {
-                        uint32_t voxel_if = m_Chunks[x][y][z];
+                        uint32_t voxel_if = m_Voxels[x][y][z];
                         if (voxel_if == 0)
                         {
                             continue;
@@ -139,7 +155,7 @@ namespace Engine
                     Vertex vertex;
                     vertex.Position = vertices[vertices_id[i * 2][j]] + vertices_bias[i];
                     vertex.MaterialIndex =
-                        m_Chunks[(int)vertices_bias[i].x][(int)vertices_bias[i].y][(int)vertices_bias[i].z];
+                        m_Voxels[(int)vertices_bias[i].x][(int)vertices_bias[i].y][(int)vertices_bias[i].z];
                     vertex.FaceIndex = faces_id[i * 2];
 
                     if (vertex.FaceIndex == 0)
@@ -198,7 +214,7 @@ namespace Engine
                     Vertex vertex;
                     vertex.Position = vertices[vertices_id[i * 2 + 1][j]] + vertices_bias[i];
                     vertex.MaterialIndex =
-                        m_Chunks[(int)vertices_bias[i].x][(int)vertices_bias[i].y][(int)vertices_bias[i].z];
+                        m_Voxels[(int)vertices_bias[i].x][(int)vertices_bias[i].y][(int)vertices_bias[i].z];
                     vertex.FaceIndex = faces_id[i * 2 + 1];
 
                     if (vertex.FaceIndex == 0)
@@ -275,22 +291,12 @@ namespace Engine
                 {
                     for (uint32_t z = 0; z < ChunkSize; z++)
                     {
-                        // rand() % 2
-                        m_Chunks[x][y][z] = 3;
+                        m_Voxels[x][y][z] = 0;
                     }
                 }
             }
 
-            for (uint32_t x = 0; x < ChunkSize; x++)
-            {
-                for (uint32_t z = 0; z < ChunkSize; z++)
-                {
-                    m_Chunks[x][ChunkSize - 1][z] = rand() % 6;
-                }
-            }
-
             m_VertexArray = VertexArray::Create();
-            BuildVertexData();
         }
 
         ~UChunkComponent() {}
@@ -299,10 +305,53 @@ namespace Engine
         {
             if (x < 0 || y < 0 || z < 0 || x >= ChunkSize || y >= ChunkSize || z >= ChunkSize)
             {
+                if (x < 0)
+                {
+                    if (m_LeftChunkPointer != nullptr)
+                    {
+                        return m_LeftChunkPointer->isVoid(x + ChunkSize, y, z);
+                    }
+                }
+                else if (x >= ChunkSize)
+                {
+                    if (m_RightChunkPointer != nullptr)
+                    {
+                        return m_RightChunkPointer->isVoid(x - ChunkSize, y, z);
+                    }
+                }
+                else if (y < 0)
+                {
+                    if (m_BottomChunkPointer != nullptr)
+                    {
+                        return m_BottomChunkPointer->isVoid(x, y + ChunkSize, z);
+                    }
+                }
+                else if (y >= ChunkSize)
+                {
+                    if (m_TopChunkPointer != nullptr)
+                    {
+                        return m_TopChunkPointer->isVoid(x, y - ChunkSize, z);
+                    }
+                }
+                else if (z < 0)
+                {
+                    if (m_FrontChunkPointer != nullptr)
+                    {
+                        return m_FrontChunkPointer->isVoid(x, y, z + ChunkSize);
+                    }
+                }
+                else if (z >= ChunkSize)
+                {
+                    if (m_BackChunkPointer != nullptr)
+                    {
+                        return m_BackChunkPointer->isVoid(x, y, z - ChunkSize);
+                    }
+                }
+
                 return true;
             }
 
-            return m_Chunks[x][y][z] == 0;
+            return m_Voxels[x][y][z] == 0;
         }
 
         void TickLogic(float deltaTime)
@@ -317,5 +366,68 @@ namespace Engine
         uint32_t     GetVertexCount() const { return m_Vertices.size(); }
         VertexArray& GetVertexArrayRef() const { return *m_VertexArray; }
         Texture2D&   GetTextureRef() const { return *m_Texture; }
+
+        uint32_t* GetVoxelPtr(int x, int y, int z)
+        {
+            if (x < 0 || y < 0 || z < 0 || x >= ChunkSize || y >= ChunkSize || z >= ChunkSize)
+            {
+                return nullptr;
+            }
+
+            return &m_Voxels[x][y][z];
+        }
+
+        void SetDirty() { m_IsDirty = true; }
+
+        void SetVoxel(int x, int y, int z, uint32_t voxel)
+        {
+            if (x < 0 || y < 0 || z < 0 || x >= ChunkSize || y >= ChunkSize || z >= ChunkSize)
+            {
+                return;
+            }
+
+            m_Voxels[x][y][z] = voxel;
+            m_IsDirty         = true;
+
+            if (m_LeftChunkPointer != nullptr)
+            {
+                m_LeftChunkPointer->SetDirty();
+            }
+
+            if (m_RightChunkPointer != nullptr)
+            {
+                m_RightChunkPointer->SetDirty();
+            }
+
+            if (m_BottomChunkPointer != nullptr)
+            {
+                m_BottomChunkPointer->SetDirty();
+            }
+
+            if (m_TopChunkPointer != nullptr)
+            {
+                m_TopChunkPointer->SetDirty();
+            }
+
+            if (m_FrontChunkPointer != nullptr)
+            {
+                m_FrontChunkPointer->SetDirty();
+            }
+
+            if (m_BackChunkPointer != nullptr)
+            {
+                m_BackChunkPointer->SetDirty();
+            }
+        }
+
+        uint32_t GetVoxel(int x, int y, int z) const
+        {
+            if (x < 0 || y < 0 || z < 0 || x >= ChunkSize || y >= ChunkSize || z >= ChunkSize)
+            {
+                return 0;
+            }
+
+            return m_Voxels[x][y][z];
+        }
     };
 }; // namespace Engine

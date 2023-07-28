@@ -11,6 +11,8 @@ namespace Engine
 
         static bool IsMouseButtonPressed(int keycode) { return s_Instance->IsMouseButtonPressedImpl(keycode); }
 
+        static bool IsMouseButtonReleased(int keycode) { return !s_Instance->IsMouseButtonPressedImpl(keycode); }
+
         static std::pair<float, float> GetMousePostion() { return s_Instance->GetMousePostionImpl(); }
 
         static float GetMouseX() { return s_Instance->GetMouseXImpl(); }

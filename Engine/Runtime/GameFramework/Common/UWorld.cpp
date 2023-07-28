@@ -10,7 +10,7 @@
 #include <Engine/Runtime/GameFramework/Common/UComponent.h>
 #include <Engine/Runtime/GameFramework/Camera/UCameraComponent.h>
 #include <Engine/Runtime/GameFramework/StaticMesh/AStaticMesh.h>
-#include <Engine/Runtime/GameFramework/StaticMesh/UChunkComponent.h>
+#include <Engine/Runtime/GameFramework/StaticMesh/UChunkArrayWorldComponent.h>
 #include <Engine/Runtime/GameFramework/StaticMesh/APointCloud.h>
 #include <Engine/Runtime/GameFramework/Animation/ASkeleton.h>
 #include <Engine/Runtime/GameFramework/Animation/ASkinnedMesh.h>
@@ -1007,14 +1007,14 @@ namespace Engine
         float m_CameraTranslationSpeedMouse = 0.5;
         float m_CameraRotationSpeed         = 0.15;
 
-        auto camrea_view         = m_Registry.view<UTagComponent, UTransformComponent, UCameraComponent>();
-        auto pawn_view           = m_Registry.view<UTagComponent, UTransformComponent, UPawnComponent>();
-        auto skeleton_view       = m_Registry.view<UTagComponent, UTransformComponent, USkeletonComponent>();
-        auto trajectory_view     = m_Registry.view<UTagComponent, UTransformComponent, UTrajectoryComponent>();
-        auto pointlight_view     = m_Registry.view<UTagComponent, UTransformComponent, UPointLightComponent>();
-        auto skinnedmesh_view    = m_Registry.view<UTagComponent, UTransformComponent, USkinnedMeshComponent>();
-        auto motionmatching_view = m_Registry.view<UTagComponent, UTransformComponent, UMotionMatchingComponent>();
-        auto chunk_view          = m_Registry.view<UTagComponent, UTransformComponent, UChunkComponent>();
+        auto camrea_view          = m_Registry.view<UTagComponent, UTransformComponent, UCameraComponent>();
+        auto pawn_view            = m_Registry.view<UTagComponent, UTransformComponent, UPawnComponent>();
+        auto skeleton_view        = m_Registry.view<UTagComponent, UTransformComponent, USkeletonComponent>();
+        auto trajectory_view      = m_Registry.view<UTagComponent, UTransformComponent, UTrajectoryComponent>();
+        auto pointlight_view      = m_Registry.view<UTagComponent, UTransformComponent, UPointLightComponent>();
+        auto skinnedmesh_view     = m_Registry.view<UTagComponent, UTransformComponent, USkinnedMeshComponent>();
+        auto motionmatching_view  = m_Registry.view<UTagComponent, UTransformComponent, UMotionMatchingComponent>();
+        auto chunkarrayworld_view = m_Registry.view<UTagComponent, UTransformComponent, UChunkArrayWorldComponent>();
 
         auto [currentX, currentY] = Input::GetMousePostion();
 
@@ -1027,6 +1027,11 @@ namespace Engine
         lastX = currentX;
         lastY = currentY;
 
+        static enum class InteractionMode {
+            Editor,
+            FirstPerson,
+        } interactionMode = InteractionMode::Editor;
+
         // use a range-for
         for (auto [entity, name, trans, camera] : camrea_view.each())
         {
@@ -1038,23 +1043,38 @@ namespace Engine
             AActor*  actor   = static_cast<AActor*>(camera.GetOwner());
             ACamera* aCamera = static_cast<ACamera*>(actor);
 
-            if (isWindowFocused && actor->GetIsControlled() && aCamera->GetIsViewportCamera())
+            if (Input::IsKeyPressed(GLFW_KEY_F))
             {
-                const glm::vec3 front =
-                    -glm::normalize(glm::rotate(glm::quat(trans.GetRotation()), glm::vec3(0.0f, 0.0f, 1.0f)));
-                const glm::vec3 right =
-                    glm::normalize(glm::rotate(glm::quat(trans.GetRotation()), glm::vec3(1.0f, 0.0f, 0.0f)));
-                const glm::vec3 up(0.0f, 1.0f, 0.0f);
+                ImGui::SetMouseCursor(ImGuiMouseCursor_None);
+                ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NoMouse;
+                glfwSetInputMode(glfwGetCurrentContext(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-                if (Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_2))
+                interactionMode = InteractionMode::FirstPerson;
+                Log::Info("FirstPerson");
+            }
+            else if (Input::IsKeyPressed(GLFW_KEY_ESCAPE))
+            {
+                glfwSetInputMode(glfwGetCurrentContext(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+                ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NoMouse;
+                ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
+
+                interactionMode = InteractionMode::Editor;
+                Log::Info("Editor");
+            }
+
+            const glm::vec3 front =
+                -glm::normalize(glm::rotate(glm::quat(trans.GetRotation()), glm::vec3(0.0f, 0.0f, 1.0f)));
+            const glm::vec3 right =
+                glm::normalize(glm::rotate(glm::quat(trans.GetRotation()), glm::vec3(1.0f, 0.0f, 0.0f)));
+            const glm::vec3 up(0.0f, 1.0f, 0.0f);
+
+            if (interactionMode == InteractionMode::Editor)
+            {
+                if (isWindowFocused && actor->GetIsControlled() && aCamera->GetIsViewportCamera())
                 {
-                    // imgui lock mouse
-                    // ImGui::GetIO().WantCaptureMouse = true;
-                    // ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NoMouse;
 
-                    ImGui::SetMouseCursor(ImGuiMouseCursor_None);
-
-                    if (Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_1))
+                    if (Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_1) &&
+                        Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_2))
                     {
                         auto newPosition = trans.GetPosition();
                         newPosition -= deltaY * glm::normalize(glm::vec3(0.0f, 1.0f, 0.0f)) *
@@ -1064,7 +1084,7 @@ namespace Engine
 
                         trans.SetPosition(newPosition);
                     }
-                    else
+                    else if (Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_2))
                     {
                         auto newRotation = trans.GetRotation();
 
@@ -1074,7 +1094,21 @@ namespace Engine
                         trans.SetRotation(newRotation);
                     }
                 }
+            }
+            else if (interactionMode == InteractionMode::FirstPerson)
+            {
+                auto newRotation = trans.GetRotation();
 
+                newRotation.y -= deltaX * m_CameraRotationSpeed * timeStep;
+                newRotation.x -= deltaY * m_CameraRotationSpeed * timeStep;
+
+                trans.SetRotation(newRotation);
+            }
+
+            if (interactionMode == InteractionMode::FirstPerson || interactionMode == InteractionMode::Editor &&
+                                                                       isWindowFocused && actor->GetIsControlled() &&
+                                                                       aCamera->GetIsViewportCamera())
+            {
                 if (Input::IsKeyPressed(GLFW_KEY_A))
                 {
                     auto newPosition = trans.GetPosition() - right * m_CameraTranslationSpeed * timeStep;
@@ -1111,9 +1145,11 @@ namespace Engine
         AActor*   actor_mainCamera = static_cast<AActor*>(m_MainCamera->GetOwner());
         glm::mat4 cameraTransform =
             actor_mainCamera->GetTransformComponent().GetTransform() * m_MainCamera->GetTransform();
+        glm::vec3 cameraPosition    = actor_mainCamera->GetTransformComponent().GetPosition();
+        glm::vec3 cameraFrontVector = -glm::normalize(glm::rotate(
+            glm::quat(actor_mainCamera->GetTransformComponent().GetRotation()), glm::vec3(0.0f, 0.0f, 1.0f)));
 
         // Update Trajectory
-
         for (auto [entity, name, trans, trajectory] : trajectory_view.each())
         {
             trajectory.TickLogic(timeStep, cameraTransform);
@@ -1144,10 +1180,57 @@ namespace Engine
             motionmatching.Update0(nowTime, timeStep);
         }
 
-        // Update Chunk
-        for (auto [entity, name, trans, chunk] : chunk_view.each())
+        // Update ChunkWorld
+        for (auto [entity, name, trans, world] : chunkarrayworld_view.each())
         {
-            chunk.TickLogic(timeStep);
+            world.TickLogic(timeStep);
+
+            static bool  button01Released = true;
+            static bool  button02Released = true;
+            static float lastClickTime    = 0.0f;
+            if (Input::IsMouseButtonReleased(GLFW_MOUSE_BUTTON_1))
+            {
+                button01Released = true;
+            }
+            if (Input::IsMouseButtonReleased(GLFW_MOUSE_BUTTON_2))
+            {
+                button02Released = true;
+            }
+
+            if (interactionMode == InteractionMode::FirstPerson)
+            {
+                if (Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_1))
+                {
+                    if (nowTime - lastClickTime > 0.1f && button01Released)
+                    {
+                        std::vector<UChunkArrayWorldComponent::IntersectResult> intersectedVoxelArray =
+                            world.IntersectRay(cameraPosition, cameraFrontVector, 10.0f);
+                        if (intersectedVoxelArray.size() > 0)
+                        {
+                            world.ExcavateVoxel(intersectedVoxelArray[0]);
+
+                            lastClickTime    = nowTime;
+                            button01Released = false;
+                        }
+                    }
+                }
+
+                if (Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_2))
+                {
+                    if (nowTime - lastClickTime > 0.1f && button02Released)
+                    {
+                        std::vector<UChunkArrayWorldComponent::IntersectResult> intersectedVoxelArray =
+                            world.IntersectRay(cameraPosition, cameraFrontVector, 10.0f);
+                        if (intersectedVoxelArray.size() > 0)
+                        {
+                            world.PlaceVoxel(intersectedVoxelArray[0], 3);
+
+                            lastClickTime    = nowTime;
+                            button02Released = false;
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -1166,7 +1249,7 @@ namespace Engine
         auto trajectory_view      = m_Registry.view<UTagComponent, UTransformComponent, UTrajectoryComponent>();
         auto skinnedmesh_view     = m_Registry.view<UTagComponent, UTransformComponent, USkinnedMeshComponent>();
         auto motionmatching_view  = m_Registry.view<UTagComponent, UTransformComponent, UMotionMatchingComponent>();
-        auto chunk_view           = m_Registry.view<UTagComponent, UTransformComponent, UChunkComponent>();
+        auto chunkarrayworld_view = m_Registry.view<UTagComponent, UTransformComponent, UChunkArrayWorldComponent>();
 
         m_FrameRenderBuffer_skybox->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
         m_FrameRenderBuffer_DirectLighting_diffuse->SetViewPort(m_FrameRenderBuffer->GetWidth(),
@@ -1294,28 +1377,41 @@ namespace Engine
                         }
                     }
 
-                    // draw chunk
-                    for (auto [entity, name, trans, chunk] : chunk_view.each())
+                    // draw chunks
+                    for (auto [entity, name, trans, world] : chunkarrayworld_view.each())
                     {
-                        glm::vec3 chunkPosition = trans.GetPosition() + glm::vec3(16.0f, 16.0f, 16.0f);
-
-                        if (glm::length(lightPosition - chunkPosition) > 64.0f)
-                        {
-                            continue;
-                        }
-
                         auto shader = m_ShaderLibrary.Get("ShadowMap");
                         shader->Bind();
 
-                        shader->SetMat4("u_MLightSpace", projectionMatrices * viewMatrices[i]);
-                        shader->SetMat4("u_MTransform", trans.GetTransform());
+                        for (int x = 0; x < world.GetWorldSizeX(); ++x)
+                        {
+                            for (int y = 0; y < world.GetWorldSizeY(); ++y)
+                            {
+                                for (int z = 0; z < world.GetWorldSizeZ(); ++z)
+                                {
+                                    const UChunkArrayWorldComponent::Chunk& chunk = world.GetChunkRef(x, y, z);
 
-                        const VertexArray& vertexArray = chunk.GetVertexArrayRef();
-                        vertexArray.Bind();
+                                    glm::vec3 chunkPosition = chunk.position + glm::vec3(16.0f, 16.0f, 16.0f);
 
-                        glDrawArrays(GL_TRIANGLES, 0, chunk.GetVertexCount());
+                                    if (glm::length(lightPosition - chunkPosition) > 64.0f ||
+                                        chunk.component == nullptr)
+                                    {
+                                        continue;
+                                    }
 
-                        vertexArray.UnBind();
+                                    shader->SetMat4("u_MLightSpace", projectionMatrices * viewMatrices[i]);
+                                    glm::mat4 model = glm::translate(glm::mat4(1.0f), chunk.position);
+                                    shader->SetMat4("u_MTransform", trans.GetTransform() * model);
+
+                                    const VertexArray& vertexArray = chunk.component->GetVertexArrayRef();
+                                    vertexArray.Bind();
+
+                                    glDrawArrays(GL_TRIANGLES, 0, chunk.component->GetVertexCount());
+
+                                    vertexArray.UnBind();
+                                }
+                            }
+                        }
 
                         shader->UnBind();
                     }
@@ -1367,28 +1463,40 @@ namespace Engine
                     }
                 }
 
-                // draw chunk
-                for (auto [entity, name, trans, chunk] : chunk_view.each())
+                // draw chunks
+                for (auto [entity, name, trans, world] : chunkarrayworld_view.each())
                 {
-                    glm::vec3 chunkPosition = trans.GetPosition() + glm::vec3(16.0f, 16.0f, 16.0f);
-
-                    if (glm::length(lightPosition - chunkPosition) > 128.0f)
-                    {
-                        continue;
-                    }
-
                     auto shader = m_ShaderLibrary.Get("ShadowMap");
                     shader->Bind();
 
-                    shader->SetMat4("u_MLightSpace", lightSpaceMatrix);
-                    shader->SetMat4("u_MTransform", trans.GetTransform());
+                    for (int x = 0; x < world.GetWorldSizeX(); ++x)
+                    {
+                        for (int y = 0; y < world.GetWorldSizeY(); ++y)
+                        {
+                            for (int z = 0; z < world.GetWorldSizeZ(); ++z)
+                            {
+                                const UChunkArrayWorldComponent::Chunk& chunk = world.GetChunkRef(x, y, z);
 
-                    const VertexArray& vertexArray = chunk.GetVertexArrayRef();
-                    vertexArray.Bind();
+                                glm::vec3 chunkPosition = chunk.position + glm::vec3(16.0f, 16.0f, 16.0f);
 
-                    glDrawArrays(GL_TRIANGLES, 0, chunk.GetVertexCount());
+                                if (glm::length(lightPosition - chunkPosition) > 128.0f || chunk.component == nullptr)
+                                {
+                                    continue;
+                                }
 
-                    vertexArray.UnBind();
+                                shader->SetMat4("u_MLightSpace", lightSpaceMatrix);
+                                glm::mat4 model = glm::translate(glm::mat4(1.0f), chunk.position);
+                                shader->SetMat4("u_MTransform", trans.GetTransform() * model);
+
+                                const VertexArray& vertexArray = chunk.component->GetVertexArrayRef();
+                                vertexArray.Bind();
+
+                                glDrawArrays(GL_TRIANGLES, 0, chunk.component->GetVertexCount());
+
+                                vertexArray.UnBind();
+                            }
+                        }
+                    }
 
                     shader->UnBind();
                 }
@@ -1445,38 +1553,50 @@ namespace Engine
             }
         }
 
-        // draw chunk
-        for (auto [entity, name, trans, chunk] : chunk_view.each())
+        // draw chunks
+        for (auto [entity, name, trans, world] : chunkarrayworld_view.each())
         {
             glm::vec3 cameraPosition = actor_mainCamera->GetTransformComponent().GetPosition();
-            glm::vec3 chunkPosition  = trans.GetPosition() + glm::vec3(16.0f, 16.0f, 16.0f);
-
-            if (glm::length(cameraPosition - chunkPosition) > 128.0f)
-            {
-                continue;
-            }
-
-            auto shader = m_ShaderLibrary.Get("ChunkGBuffer");
+            auto      shader         = m_ShaderLibrary.Get("ChunkGBuffer");
             shader->Bind();
 
-            shader->SetMat4("u_MProjection", m_PMatrix);
-            shader->SetMat4("u_MView", m_VMatrix);
-            shader->SetMat4("u_MTransform", trans.GetTransform());
+            for (int x = 0; x < world.GetWorldSizeX(); ++x)
+            {
+                for (int y = 0; y < world.GetWorldSizeY(); ++y)
+                {
+                    for (int z = 0; z < world.GetWorldSizeZ(); ++z)
+                    {
+                        const UChunkArrayWorldComponent::Chunk& chunk = world.GetChunkRef(x, y, z);
 
-            const Texture2D& texture = chunk.GetTextureRef();
+                        glm::vec3 chunkPosition = chunk.position + glm::vec3(16.0f, 16.0f, 16.0f);
 
-            shader->SetBool("useAlbedoMap", true);
-            shader->SetInt("albedoMap", 0);
-            texture.Bind(0);
+                        if (glm::length(cameraPosition - chunkPosition) > 128.0f || chunk.component == nullptr)
+                        {
+                            continue;
+                        }
 
-            const VertexArray& vertexArray = chunk.GetVertexArrayRef();
-            vertexArray.Bind();
+                        shader->SetMat4("u_MProjection", m_PMatrix);
+                        shader->SetMat4("u_MView", m_VMatrix);
 
-            glDrawArrays(GL_TRIANGLES, 0, chunk.GetVertexCount());
+                        glm::mat4 model = glm::translate(glm::mat4(1.0f), chunk.position);
+                        shader->SetMat4("u_MTransform", trans.GetTransform() * model);
 
-            texture.UnBind(0);
+                        const Texture2D& texture = chunk.component->GetTextureRef();
 
-            vertexArray.UnBind();
+                        shader->SetBool("useAlbedoMap", true);
+                        shader->SetInt("albedoMap", 0);
+                        texture.Bind(0);
+
+                        const VertexArray& vertexArray = chunk.component->GetVertexArrayRef();
+                        vertexArray.Bind();
+
+                        glDrawArrays(GL_TRIANGLES, 0, chunk.component->GetVertexCount());
+                        texture.UnBind(0);
+
+                        vertexArray.UnBind();
+                    }
+                }
+            }
 
             shader->UnBind();
         }
