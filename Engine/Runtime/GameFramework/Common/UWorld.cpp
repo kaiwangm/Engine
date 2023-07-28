@@ -52,6 +52,7 @@ namespace Engine
             m_FrameRenderBuffer_highLight_upSampled[i] = FrameRenderBuffer::Create();
         }
         m_FrameRenderBuffer_bloom = FrameRenderBuffer::Create();
+        m_FrameRenderBuffer_fxaa  = FrameRenderBuffer::Create();
 
         m_FrameRenderBuffer_bufferViewport        = FrameRenderBuffer::Create();
         m_FrameRenderBuffer_shadowMapViewport     = FrameRenderBuffer::Create();
@@ -139,7 +140,7 @@ namespace Engine
 
         LoadShader("Exposure",
                    "Assets/Editor/Shader/screen_quad_vertex.glsl",
-                   "Assets/Editor/Shader/deffered/exposure.glsl",
+                   "Assets/Editor/Shader/deffered/exposure.fs",
                    "Path");
 
         LoadShader("Pawn", "Assets/Editor/Shader/pawn_vertex.glsl", "Assets/Editor/Shader/pawn_fragment.glsl", "Path");
@@ -156,12 +157,12 @@ namespace Engine
 
         LoadShader("ScreenSpaceReflection",
                    "Assets/Editor/Shader/screen_quad_vertex.glsl",
-                   "Assets/Editor/Shader/deffered/ssr.glsl",
+                   "Assets/Editor/Shader/deffered/ssr.fs",
                    "Path");
 
         LoadShader("GaussianBlur",
                    "Assets/Editor/Shader/screen_quad_vertex.glsl",
-                   "Assets/Editor/Shader/deffered/gaussian_blur.glsl",
+                   "Assets/Editor/Shader/deffered/gaussian_blur.fs",
                    "Path");
 
         LoadShader("Screen",
@@ -191,7 +192,7 @@ namespace Engine
 
         LoadShader("Composite",
                    "Assets/Editor/Shader/screen_quad_vertex.glsl",
-                   "Assets/Editor/Shader/deffered/composite.glsl",
+                   "Assets/Editor/Shader/deffered/composite.fs",
                    "Path");
 
         LoadShader("ShadowMap",
@@ -211,18 +212,20 @@ namespace Engine
 
         LoadShader("Identity",
                    "Assets/Editor/Shader/screen_quad_vertex.glsl",
-                   "Assets/Editor/Shader/deffered/identity.glsl",
+                   "Assets/Editor/Shader/deffered/identity.fs",
                    "Path");
 
         LoadShader("Addition",
                    "Assets/Editor/Shader/screen_quad_vertex.glsl",
-                   "Assets/Editor/Shader/deffered/addition.glsl",
+                   "Assets/Editor/Shader/deffered/addition.fs",
                    "Path");
 
         LoadShader("ChunkGBuffer",
                    "Assets/Editor/Shader/chunk/gbuffer_vertex.vs",
                    "Assets/Editor/Shader/chunk/gbuffer_fragment.fs",
                    "Path");
+
+        LoadShader("FXAA", "Assets/Editor/Shader/deffered/fxaa.vs", "Assets/Editor/Shader/deffered/fxaa.fs", "Path");
     }
 
     void UWorld::Initialize()
@@ -350,10 +353,10 @@ namespace Engine
             RenderCommand::Clear();
 
             const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 800.0f);
-            const glm::vec3 lightPositon    = trans.GetPosition();
+            const glm::vec3 lightPosition   = trans.GetPosition();
             const glm::vec3 lightDirection  = light.GetDirectionRef();
             const glm::mat4 lightView =
-                glm::lookAt(lightPositon, lightPositon + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
+                glm::lookAt(lightPosition, lightPosition + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
             const glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
             // use a range-for
@@ -584,10 +587,10 @@ namespace Engine
                 for (auto [entity, name, trans, light] : dirctionallight_view.each())
                 {
                     const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 800.0f);
-                    const glm::vec3 lightPositon    = trans.GetPosition();
+                    const glm::vec3 lightPosition   = trans.GetPosition();
                     const glm::vec3 lightDirection  = light.GetDirectionRef();
                     const glm::mat4 lightView =
-                        glm::lookAt(lightPositon, lightPositon + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
+                        glm::lookAt(lightPosition, lightPosition + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
                     const glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
                     deferred_shader->SetFloat3("directionalLightDirections[" + std::to_string(dirctionallight_num) +
@@ -694,10 +697,10 @@ namespace Engine
                 for (auto [entity, name, trans, light] : dirctionallight_view.each())
                 {
                     const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 800.0f);
-                    const glm::vec3 lightPositon    = trans.GetPosition();
+                    const glm::vec3 lightPosition   = trans.GetPosition();
                     const glm::vec3 lightDirection  = light.GetDirectionRef();
                     const glm::mat4 lightView =
-                        glm::lookAt(lightPositon, lightPositon + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
+                        glm::lookAt(lightPosition, lightPosition + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
                     const glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
                     deferred_shader->SetFloat3("directionalLightDirections[" + std::to_string(dirctionallight_num) +
@@ -1195,6 +1198,7 @@ namespace Engine
                                                                     m_FrameRenderBuffer->GetHeight() / (32 << i));
         }
         m_FrameRenderBuffer_bloom->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
+        m_FrameRenderBuffer_fxaa->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
 
         m_SSAOBuffer->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
         m_FrameRenderBuffer_shadowMapViewport->SetViewPort(256, 256);
@@ -1218,39 +1222,130 @@ namespace Engine
             m_MainSkybox = static_cast<ASkybox*>(skybox.GetOwner());
         }
 
-        // Render to point light ShadowCubeMap
-        for (auto [entity, name, trans, light] : pointlight_view.each())
+        m_MainCamera->GetCamera().SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
+        m_MainCamera->GetCamera().RecalculateProjectionMatrix();
+
+        AActor* actor_mainCamera = static_cast<AActor*>(m_MainCamera->GetOwner());
+
+        m_VMatrix =
+            glm::inverse(actor_mainCamera->GetTransformComponent().GetTransform() * m_MainCamera->GetTransform());
+        m_PMatrix  = m_MainCamera->GetCamera().GetProjectionMatrix();
+        m_VPMatrix = m_PMatrix * m_VMatrix;
+
         {
-            ShadowCubeMapBuffer& shadowCubeMapBuffer = light.GetShadowCubeMapBufferRef();
-            // Y+ Y- X- X+ Z+ Z-
-            std::array<std::function<void()>, 6> renderFuncs {
-                std::bind(&ShadowCubeMapBuffer::BindTop, &shadowCubeMapBuffer),
-                std::bind(&ShadowCubeMapBuffer::BindBottom, &shadowCubeMapBuffer),
-                std::bind(&ShadowCubeMapBuffer::BindLeft, &shadowCubeMapBuffer),
-                std::bind(&ShadowCubeMapBuffer::BindRight, &shadowCubeMapBuffer),
-                std::bind(&ShadowCubeMapBuffer::BindFront, &shadowCubeMapBuffer),
-                std::bind(&ShadowCubeMapBuffer::BindBack, &shadowCubeMapBuffer),
-            };
-
-            glm::vec3                lightPosition      = trans.GetPosition();
-            glm::mat4                projectionMatrices = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
-            std::array<glm::mat4, 6> viewMatrices       = {
-                glm::lookAt(lightPosition, lightPosition + glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
-                glm::lookAt(lightPosition, lightPosition + glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)),
-                glm::lookAt(lightPosition, lightPosition + glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
-                glm::lookAt(lightPosition, lightPosition + glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
-                glm::lookAt(lightPosition, lightPosition + glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
-                glm::lookAt(lightPosition, lightPosition + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
-            };
-
-            for (int i = 0; i < 6; ++i)
+            glCullFace(GL_FRONT);
+            // Render to point light ShadowCubeMap
+            for (auto [entity, name, trans, light] : pointlight_view.each())
             {
-                const std::function<void()>& bindFunc = renderFuncs[i];
-                bindFunc();
+                ShadowCubeMapBuffer& shadowCubeMapBuffer = light.GetShadowCubeMapBufferRef();
+                // Y+ Y- X- X+ Z+ Z-
+                std::array<std::function<void()>, 6> renderFuncs {
+                    std::bind(&ShadowCubeMapBuffer::BindTop, &shadowCubeMapBuffer),
+                    std::bind(&ShadowCubeMapBuffer::BindBottom, &shadowCubeMapBuffer),
+                    std::bind(&ShadowCubeMapBuffer::BindLeft, &shadowCubeMapBuffer),
+                    std::bind(&ShadowCubeMapBuffer::BindRight, &shadowCubeMapBuffer),
+                    std::bind(&ShadowCubeMapBuffer::BindFront, &shadowCubeMapBuffer),
+                    std::bind(&ShadowCubeMapBuffer::BindBack, &shadowCubeMapBuffer),
+                };
+
+                glm::vec3                lightPosition      = trans.GetPosition();
+                glm::mat4                projectionMatrices = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+                std::array<glm::mat4, 6> viewMatrices       = {
+                    glm::lookAt(
+                        lightPosition, lightPosition + glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
+                    glm::lookAt(
+                        lightPosition, lightPosition + glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)),
+                    glm::lookAt(
+                        lightPosition, lightPosition + glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+                    glm::lookAt(
+                        lightPosition, lightPosition + glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+                    glm::lookAt(
+                        lightPosition, lightPosition + glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+                    glm::lookAt(
+                        lightPosition, lightPosition + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+                };
+
+                for (int i = 0; i < 6; ++i)
+                {
+                    const std::function<void()>& bindFunc = renderFuncs[i];
+                    bindFunc();
+
+                    RenderCommand::SetViewPort(0, 0, 3072, 3072);
+                    RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+                    RenderCommand::Clear();
+
+                    // use a range-for
+                    for (auto [entity, name, trans, model] : model_view.each())
+                    {
+                        const auto meshes = model.GetStaticMesh().m_Meshes;
+                        for (const auto& mesh : meshes)
+                        {
+                            auto shader = m_ShaderLibrary.Get("ShadowMap");
+                            shader->Bind();
+
+                            shader->SetMat4("u_MLightSpace", projectionMatrices * viewMatrices[i]);
+                            shader->SetMat4("u_MTransform", trans.GetTransform());
+
+                            mesh.m_VertexArray->Bind();
+                            RenderCommand::DrawIndexed(mesh.m_VertexArray);
+                            mesh.m_VertexArray->UnBind();
+
+                            shader->UnBind();
+                        }
+                    }
+
+                    // draw chunk
+                    for (auto [entity, name, trans, chunk] : chunk_view.each())
+                    {
+                        glm::vec3 chunkPosition = trans.GetPosition() + glm::vec3(16.0f, 16.0f, 16.0f);
+
+                        if (glm::length(lightPosition - chunkPosition) > 64.0f)
+                        {
+                            continue;
+                        }
+
+                        auto shader = m_ShaderLibrary.Get("ShadowMap");
+                        shader->Bind();
+
+                        shader->SetMat4("u_MLightSpace", projectionMatrices * viewMatrices[i]);
+                        shader->SetMat4("u_MTransform", trans.GetTransform());
+
+                        const VertexArray& vertexArray = chunk.GetVertexArrayRef();
+                        vertexArray.Bind();
+
+                        glDrawArrays(GL_TRIANGLES, 0, chunk.GetVertexCount());
+
+                        vertexArray.UnBind();
+
+                        shader->UnBind();
+                    }
+
+                    shadowCubeMapBuffer.UnBind();
+                }
+            }
+            glCullFace(GL_BACK);
+        }
+
+        // Render to directional light ShadowMap
+        {
+            glCullFace(GL_FRONT);
+            for (auto [entity, name, trans, light] : dirctionallight_view.each())
+            {
+                ShadowMapBuffer& shadowMapBuffer = light.GetShadowMapBufferRef();
+                shadowMapBuffer.Bind();
 
                 RenderCommand::SetViewPort(0, 0, 3072, 3072);
                 RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
                 RenderCommand::Clear();
+
+                const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 800.0f);
+                glm::vec3       cameraPosition  = actor_mainCamera->GetTransformComponent().GetPosition();
+                cameraPosition.y                = 0.0f;
+                const glm::vec3 lightPosition   = cameraPosition + trans.GetPosition();
+                const glm::vec3 lightDirection  = light.GetDirectionRef();
+                const glm::mat4 lightView =
+                    glm::lookAt(lightPosition, lightPosition + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
+                const glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
                 // use a range-for
                 for (auto [entity, name, trans, model] : model_view.each())
@@ -1261,7 +1356,7 @@ namespace Engine
                         auto shader = m_ShaderLibrary.Get("ShadowMap");
                         shader->Bind();
 
-                        shader->SetMat4("u_MLightSpace", projectionMatrices * viewMatrices[i]);
+                        shader->SetMat4("u_MLightSpace", lightSpaceMatrix);
                         shader->SetMat4("u_MTransform", trans.GetTransform());
 
                         mesh.m_VertexArray->Bind();
@@ -1272,62 +1367,39 @@ namespace Engine
                     }
                 }
 
-                shadowCubeMapBuffer.UnBind();
-            }
-        }
-
-        // Render to directional light ShadowMap
-        for (auto [entity, name, trans, light] : dirctionallight_view.each())
-        {
-            ShadowMapBuffer& shadowMapBuffer = light.GetShadowMapBufferRef();
-            shadowMapBuffer.Bind();
-
-            RenderCommand::SetViewPort(0, 0, 3072, 3072);
-            RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
-            RenderCommand::Clear();
-
-            const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 800.0f);
-            const glm::vec3 lightPositon    = trans.GetPosition();
-            const glm::vec3 lightDirection  = light.GetDirectionRef();
-            const glm::mat4 lightView =
-                glm::lookAt(lightPositon, lightPositon + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
-            const glm::mat4 lightSpaceMatrix = lightProjection * lightView;
-
-            // use a range-for
-            for (auto [entity, name, trans, model] : model_view.each())
-            {
-                const auto meshes = model.GetStaticMesh().m_Meshes;
-                for (const auto& mesh : meshes)
+                // draw chunk
+                for (auto [entity, name, trans, chunk] : chunk_view.each())
                 {
+                    glm::vec3 chunkPosition = trans.GetPosition() + glm::vec3(16.0f, 16.0f, 16.0f);
+
+                    if (glm::length(lightPosition - chunkPosition) > 128.0f)
+                    {
+                        continue;
+                    }
+
                     auto shader = m_ShaderLibrary.Get("ShadowMap");
                     shader->Bind();
 
                     shader->SetMat4("u_MLightSpace", lightSpaceMatrix);
                     shader->SetMat4("u_MTransform", trans.GetTransform());
 
-                    mesh.m_VertexArray->Bind();
-                    RenderCommand::DrawIndexed(mesh.m_VertexArray);
-                    mesh.m_VertexArray->UnBind();
+                    const VertexArray& vertexArray = chunk.GetVertexArrayRef();
+                    vertexArray.Bind();
+
+                    glDrawArrays(GL_TRIANGLES, 0, chunk.GetVertexCount());
+
+                    vertexArray.UnBind();
 
                     shader->UnBind();
                 }
-            }
 
-            shadowMapBuffer.UnBind();
+                shadowMapBuffer.UnBind();
+            }
+            glCullFace(GL_BACK);
         }
 
         // Render to GeometryBuffer
         glEnable(GL_CULL_FACE);
-
-        m_MainCamera->GetCamera().SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
-        m_MainCamera->GetCamera().RecalculateProjectionMatrix();
-
-        AActor* actor_mainCamera = static_cast<AActor*>(m_MainCamera->GetOwner());
-
-        m_VMatrix =
-            glm::inverse(actor_mainCamera->GetTransformComponent().GetTransform() * m_MainCamera->GetTransform());
-        m_PMatrix  = m_MainCamera->GetCamera().GetProjectionMatrix();
-        m_VPMatrix = m_PMatrix * m_VMatrix;
 
         m_GeometryBuffer->Bind();
         RenderCommand::SetViewPort(0, 0, m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
@@ -1613,10 +1685,12 @@ namespace Engine
             for (auto [entity, name, trans, light] : dirctionallight_view.each())
             {
                 const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 800.0f);
-                const glm::vec3 lightPositon    = trans.GetPosition();
+                glm::vec3       cameraPosition  = actor_mainCamera->GetTransformComponent().GetPosition();
+                cameraPosition.y                = 0.0f;
+                const glm::vec3 lightPosition   = cameraPosition + trans.GetPosition();
                 const glm::vec3 lightDirection  = light.GetDirectionRef();
                 const glm::mat4 lightView =
-                    glm::lookAt(lightPositon, lightPositon + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
+                    glm::lookAt(lightPosition, lightPosition + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
                 const glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
                 deferred_shader->SetFloat3("directionalLightDirections[" + std::to_string(dirctionallight_num) + "]",
@@ -1720,10 +1794,12 @@ namespace Engine
             for (auto [entity, name, trans, light] : dirctionallight_view.each())
             {
                 const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 800.0f);
-                const glm::vec3 lightPositon    = trans.GetPosition();
+                glm::vec3       cameraPosition  = actor_mainCamera->GetTransformComponent().GetPosition();
+                cameraPosition.y                = 0.0f;
+                const glm::vec3 lightPosition   = cameraPosition + trans.GetPosition();
                 const glm::vec3 lightDirection  = light.GetDirectionRef();
                 const glm::mat4 lightView =
-                    glm::lookAt(lightPositon, lightPositon + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
+                    glm::lookAt(lightPosition, lightPosition + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
                 const glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
                 deferred_shader->SetFloat3("directionalLightDirections[" + std::to_string(dirctionallight_num) + "]",
@@ -2246,6 +2322,31 @@ namespace Engine
             glEnable(GL_DEPTH_TEST);
         }
 
+        // FXAA
+        {
+            glDisable(GL_DEPTH_TEST);
+            m_FrameRenderBuffer_fxaa->Bind();
+            RenderCommand::SetViewPort(0, 0, m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
+            RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+            RenderCommand::Clear();
+
+            auto fxaa_shader = m_ShaderLibrary.Get("FXAA");
+            fxaa_shader->Bind();
+
+            fxaa_shader->SetInt("g_Color", 0);
+            m_FrameRenderBuffer_exposure->BindTexture(0);
+            fxaa_shader->SetFloat2("resolution",
+                                   glm::vec2(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight()));
+
+            RenderCommand::RenderToQuad();
+
+            m_FrameRenderBuffer_exposure->UnBindTexture(0);
+
+            fxaa_shader->UnBind();
+            Renderer::EndScene(m_FrameRenderBuffer_fxaa);
+            glEnable(GL_DEPTH_TEST);
+        }
+
         // forward
         // Point Cloud
         m_FrameRenderBuffer->Bind();
@@ -2484,11 +2585,11 @@ namespace Engine
         screen_shader->Bind();
 
         screen_shader->SetInt("g_Color", 0);
-        m_FrameRenderBuffer_exposure->BindTexture(0);
+        m_FrameRenderBuffer_fxaa->BindTexture(0);
 
         RenderCommand::RenderToQuad();
 
-        m_FrameRenderBuffer_exposure->UnBindTexture(0);
+        m_FrameRenderBuffer_fxaa->UnBindTexture(0);
 
         screen_shader->UnBind();
         Renderer::EndScene(m_FrameRenderBuffer);

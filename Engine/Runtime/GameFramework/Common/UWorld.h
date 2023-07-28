@@ -38,6 +38,7 @@ namespace Engine
         std::array<Ref<FrameRenderBuffer>, 6> m_FrameRenderBuffer_highLight_blur;
         std::array<Ref<FrameRenderBuffer>, 6> m_FrameRenderBuffer_highLight_upSampled;
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_bloom;
+        Ref<FrameRenderBuffer> m_FrameRenderBuffer_fxaa;
 
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_bufferViewport;
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_shadowMapViewport;
