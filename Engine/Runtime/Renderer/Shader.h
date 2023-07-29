@@ -27,6 +27,11 @@ namespace Engine
                                   const std::string& vertexSrc,
                                   const std::string& fragmentSrc,
                                   const std::string& mode);
+        static Ref<Shader> Create(const std::string& name,
+                                  const std::string& vertexSrc,
+                                  const std::string& geometrySrc,
+                                  const std::string& fragmentSrc,
+                                  const std::string& mode);
         const std::string& GetName() const { return m_Name; }
 
     private:
@@ -39,6 +44,11 @@ namespace Engine
         void               Add(const Ref<Shader>& shader);
         const Ref<Shader>& Load(const std::string& name,
                                 const std::string& vertexSrc,
+                                const std::string& fragmentSrc,
+                                const std::string& mode);
+        const Ref<Shader>& Load(const std::string& name,
+                                const std::string& vertexSrc,
+                                const std::string& geometrySrc,
                                 const std::string& fragmentSrc,
                                 const std::string& mode);
         const Ref<Shader>& Get(const std::string& name);

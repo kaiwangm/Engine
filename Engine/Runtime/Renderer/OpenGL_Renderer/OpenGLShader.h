@@ -11,6 +11,11 @@ namespace Engine
                      const std::string& vertexSrc,
                      const std::string& fragmentSrc,
                      const std::string& mode);
+        OpenGLShader(const std::string& name,
+                     const std::string& vertexSrc,
+                     const std::string& geometrySrc,
+                     const std::string& fragmentSrc,
+                     const std::string& mode);
 
         virtual ~OpenGLShader();
 
@@ -30,6 +35,9 @@ namespace Engine
 
     private:
         void        Compile(const std::string& vertexShaderSource, const std::string& fragmentShaderSource);
+        void        Compile(const std::string& vertexShaderSource,
+                            const std::string& geometryShaderSource,
+                            const std::string& fragmentShaderSource);
         std::string ReadFile(const std::string& shaderPath);
 
         GLuint m_RendererID;

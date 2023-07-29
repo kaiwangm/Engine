@@ -200,5 +200,25 @@ namespace Engine
                 m_AOMap->UnBind(4);
             }
         }
+
+        void BindAlbedo(const Ref<Shader> shader, uint32_t slot)
+        {
+            shader->SetFloat3("in_albedo", m_Albedo);
+            shader->SetBool("useAlbedoMap", m_UseAlbedoMap);
+            shader->SetInt("albedoMap", slot);
+
+            if (m_UseAlbedoMap == true)
+            {
+                m_AlbedoMap->Bind(slot);
+            }
+        }
+
+        void UnBindAlbedo(const Ref<Shader> shader, uint32_t slot)
+        {
+            if (m_UseAlbedoMap == true)
+            {
+                m_AlbedoMap->UnBind(slot);
+            }
+        }
     };
 } // namespace Engine

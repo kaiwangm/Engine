@@ -28,6 +28,28 @@ namespace Engine
         GLuint      m_TextureID;
     };
 
+    class OpenGLTexture3D : public Texture3D
+    {
+    public:
+        OpenGLTexture3D();
+        OpenGLTexture3D(const uint32_t& width, const uint32_t& height, const uint32_t& depth);
+        virtual ~OpenGLTexture3D() { glDeleteTextures(1, &m_TextureID); }
+
+        virtual uint32_t GetWidth() const override { return m_Width; }
+        virtual uint32_t GetHeight() const override { return m_Height; }
+        virtual uint32_t GetDepth() const override { return m_Depth; }
+        virtual uint32_t GetChannels() const override { return m_Channels; }
+
+        virtual void Bind(const uint32_t& slot) const override;
+        virtual void UnBind(const uint32_t& slot) const override;
+
+        virtual void* GetTextureID() const override;
+
+    private:
+        uint32_t    m_Width, m_Height, m_Depth, m_Channels;
+        GLuint      m_TextureID;
+    };
+
     class OpenGLCubeMap : public CubeMap
     {
     public:

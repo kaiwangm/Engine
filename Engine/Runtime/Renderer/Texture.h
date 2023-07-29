@@ -26,6 +26,18 @@ namespace Engine
         virtual void Load(void* data, uint32_t width, uint32_t height) = 0;
     };
 
+    class Texture3D : public Texture
+    {
+    public:
+        static Ref<Texture3D> Create();
+        static Ref<Texture3D> Create(const uint32_t& width, const uint32_t& height, const uint32_t& depth);
+
+        virtual uint32_t GetWidth() const    = 0;
+        virtual uint32_t GetHeight() const   = 0;
+        virtual uint32_t GetDepth() const    = 0;
+        virtual uint32_t GetChannels() const = 0;
+    };
+
     class CubeMap : public Texture
     {
     public:

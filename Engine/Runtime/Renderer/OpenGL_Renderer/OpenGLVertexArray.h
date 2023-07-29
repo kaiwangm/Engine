@@ -19,7 +19,8 @@ namespace Engine
         virtual const Ref<IndexBuffer>& GetIndexBuffer() const override { return m_IndexBuffer; };
 
     private:
-        GLuint           m_RendererID;
-        Ref<IndexBuffer> m_IndexBuffer;
+        GLuint            m_RendererID;
+        Ref<VertexBuffer> m_VertexBuffer;
+        Ref<IndexBuffer>  m_IndexBuffer;
     };
 } // namespace Engine

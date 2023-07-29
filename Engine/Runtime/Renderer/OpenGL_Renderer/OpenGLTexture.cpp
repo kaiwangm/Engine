@@ -185,6 +185,29 @@ namespace Engine
 
     void* OpenGLTexture2D::GetTextureID() const { return (void*)(uint64_t)m_TextureID; }
 
+    OpenGLTexture3D::OpenGLTexture3D() { glCreateTextures(GL_TEXTURE_3D, 1, &m_TextureID); }
+
+    OpenGLTexture3D::OpenGLTexture3D(const uint32_t& width, const uint32_t& height, const uint32_t& depth)
+        : m_Width(width), m_Height(height), m_Depth(depth)
+    {
+        glCreateTextures(GL_TEXTURE_3D, 1, &m_TextureID);
+        glTextureStorage3D(m_TextureID, 1, GL_RGBA8, m_Width, m_Height, m_Depth);
+
+        glTextureParameteri(m_TextureID, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTextureParameteri(m_TextureID, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTextureParameteri(m_TextureID, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(m_TextureID, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(m_TextureID, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+        // glTextureSubImage3D(m_TextureID, 0, 0, 0, 0, m_Width, m_Height, m_Depth, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    }
+
+    void OpenGLTexture3D::Bind(const uint32_t& slot) const { glBindTextureUnit(slot, m_TextureID); }
+
+    void OpenGLTexture3D::UnBind(const uint32_t& slot) const { glBindTextureUnit(slot, 0); }
+
+    void* OpenGLTexture3D::GetTextureID() const { return (void*)(uint64_t)m_TextureID; }
+
     OpenGLCubeMap::OpenGLCubeMap(const std::string& path) : m_Path(path)
     {
         if (path == "")
