@@ -34,6 +34,7 @@ namespace Engine
         m_FrameRenderBuffer_DirectLighting_specular      = FrameRenderBuffer::Create();
         m_FrameRenderBuffer_EnvironmentLighting_diffuse  = FrameRenderBuffer::Create();
         m_FrameRenderBuffer_EnvironmentLighting_specular = FrameRenderBuffer::Create();
+        m_FrameRenderBuffer_VoxelGI                      = FrameRenderBuffer::Create();
         m_FrameRenderBuffer_playground                   = FrameRenderBuffer::Create();
 
         m_FrameRenderBuffer_ssr       = FrameRenderBuffer::Create();
@@ -58,9 +59,12 @@ namespace Engine
         m_FrameRenderBuffer_shadowMapViewport     = FrameRenderBuffer::Create();
         m_FrameRenderBuffer_shadowCubeMapViewport = FrameRenderBuffer::Create();
 
+        m_FrameRenderBuffer_VoxelGIViewport = FrameRenderBuffer::Create();
+
         // GeometryBuffer
-        m_GeometryBuffer = GeometryBuffer::Create();
-        m_SSAOBuffer     = SSAOBuffer::Create();
+        m_GeometryBuffer       = GeometryBuffer::Create();
+        m_SSAOBuffer           = SSAOBuffer::Create();
+        m_VoxelGI_VoxelTexture = Texture3D::Create(64, 64, 64);
 
         LoadShader("TextureShader", "Assets/Editor/Shader/vertex.glsl", "Assets/Editor/Shader/fragment.glsl", "Path");
         LoadShader("Animated",
@@ -226,6 +230,22 @@ namespace Engine
                    "Path");
 
         LoadShader("FXAA", "Assets/Editor/Shader/deffered/fxaa.vs", "Assets/Editor/Shader/deffered/fxaa.fs", "Path");
+
+        LoadShader("VoxelGI_Voxelization",
+                   "Assets/Editor/Shader/voxelgi/voxelization.vs",
+                   "Assets/Editor/Shader/voxelgi/voxelization.gs",
+                   "Assets/Editor/Shader/voxelgi/voxelization.fs",
+                   "Path");
+
+        LoadShader("VoxelGI_Visualization",
+                   "Assets/Editor/Shader/voxelgi/visualization.vs",
+                   "Assets/Editor/Shader/voxelgi/visualization.fs",
+                   "Path");
+
+        LoadShader("VoxelGI_Conetracing",
+                   "Assets/Editor/Shader/screen_quad_vertex.glsl",
+                   "Assets/Editor/Shader/voxelgi/conetracing.fs",
+                   "Path");
     }
 
     void UWorld::Initialize()
@@ -1260,6 +1280,7 @@ namespace Engine
                                                                      m_FrameRenderBuffer->GetHeight());
         m_FrameRenderBuffer_EnvironmentLighting_specular->SetViewPort(m_FrameRenderBuffer->GetWidth(),
                                                                       m_FrameRenderBuffer->GetHeight());
+        m_FrameRenderBuffer_VoxelGI->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
         m_FrameRenderBuffer_playground->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
 
         m_FrameRenderBuffer_ssr->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
@@ -1282,6 +1303,8 @@ namespace Engine
         }
         m_FrameRenderBuffer_bloom->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
         m_FrameRenderBuffer_fxaa->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
+        m_FrameRenderBuffer_VoxelGIViewport->SetViewPort(m_FrameRenderBuffer->GetWidth(),
+                                                         m_FrameRenderBuffer->GetHeight());
 
         m_SSAOBuffer->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
         m_FrameRenderBuffer_shadowMapViewport->SetViewPort(256, 256);
@@ -1315,6 +1338,7 @@ namespace Engine
         m_PMatrix  = m_MainCamera->GetCamera().GetProjectionMatrix();
         m_VPMatrix = m_PMatrix * m_VMatrix;
 
+        // Generate ShadowMap
         {
             glCullFace(GL_FRONT);
             // Render to point light ShadowCubeMap
@@ -1504,6 +1528,120 @@ namespace Engine
                 shadowMapBuffer.UnBind();
             }
             glCullFace(GL_BACK);
+        }
+
+        // VoxelGI_VoxelTexture
+        {
+            glViewport(0, 0, 64, 64);
+            glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+            glDisable(GL_CULL_FACE);
+            glDisable(GL_DEPTH_TEST);
+            glDisable(GL_BLEND);
+
+            glBindTexture(GL_TEXTURE_3D, (GLuint)(size_t)m_VoxelGI_VoxelTexture->GetTextureID());
+            glClearTexImage((GLuint)(size_t)m_VoxelGI_VoxelTexture->GetTextureID(),
+                            0,
+                            GL_RGBA,
+                            GL_FLOAT,
+                            glm::value_ptr(glm::vec4(0.0f)));
+            glBindTexture(GL_TEXTURE_3D, 0);
+
+            for (auto [entity, name, trans, model] : model_view.each())
+            {
+                AStaticMesh* staticMesh_actor = static_cast<AStaticMesh*>(model.GetOwner());
+                MMaterial*   material         = static_cast<MMaterial*>(staticMesh_actor->GetMaterial());
+                std::string  materialType     = material->GetMaterialType();
+
+                const auto meshes = model.GetStaticMesh().m_Meshes;
+                for (const auto& mesh : meshes)
+                {
+                    auto shader = m_ShaderLibrary.Get("VoxelGI_Voxelization");
+                    shader->Bind();
+
+                    shader->SetMat4("M", trans.GetTransform());
+                    shader->SetFloat3("u_scene_voxel_scale", glm::vec3(1.0f) / 10.0f);
+                    shader->SetInt("u_tex_voxelgrid", 0);
+                    glActiveTexture(GL_TEXTURE0);
+                    m_VoxelGI_VoxelTexture->Bind(0);
+                    glBindImageTexture(0,
+                                       (GLuint)(size_t)m_VoxelGI_VoxelTexture->GetTextureID(),
+                                       0,
+                                       GL_TRUE,
+                                       0,
+                                       GL_WRITE_ONLY,
+                                       GL_RGBA16F);
+
+                    if (materialType == "BasicPbr")
+                    {
+                        MBasicPbr* material_basicPbr = static_cast<MBasicPbr*>(material);
+                        shader->SetInt("u_tex_diffuse", 1);
+                        material_basicPbr->BindAlbedo(shader, 1);
+                    }
+
+                    int ligth_num = 0;
+                    for (auto [lightEntity, lightName, lightTrans, light] : pointlight_view.each())
+                    {
+                        shader->SetFloat3("pointLightPositions[" + std::to_string(ligth_num) + "]",
+                                          lightTrans.GetPosition());
+                        shader->SetFloat3("pointLightColors[" + std::to_string(ligth_num) + "]", light.GetColorRef());
+                        shader->SetFloat("pointLightIntensities[" + std::to_string(ligth_num) + "]",
+                                         light.GetIntensityRef());
+
+                        shader->SetInt("pointShadowCubeMaps[" + std::to_string(ligth_num) + "]", 50 + ligth_num);
+                        light.GetShadowCubeMapBufferRef().BindTexture(50 + ligth_num);
+                        shader->SetFloat("pointShadowCubeMapsNearPlane[" + std::to_string(ligth_num) + "]", 0.1f);
+                        shader->SetFloat("pointShadowCubeMapsFarPlane[" + std::to_string(ligth_num) + "]", 10.0f);
+
+                        ligth_num++;
+                    }
+                    shader->SetInt("numPointLights", ligth_num);
+
+                    int dirctionallight_num = 0;
+                    for (auto [lightEntity, lightName, lightTrans, light] : dirctionallight_view.each())
+                    {
+                        const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 800.0f);
+                        glm::vec3       cameraPosition  = actor_mainCamera->GetTransformComponent().GetPosition();
+                        cameraPosition.y                = 0.0f;
+                        const glm::vec3 lightPosition   = cameraPosition + lightTrans.GetPosition();
+                        const glm::vec3 lightDirection  = light.GetDirectionRef();
+                        const glm::mat4 lightView =
+                            glm::lookAt(lightPosition, lightPosition + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
+                        const glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+
+                        shader->SetFloat3("directionalLightDirections[" + std::to_string(dirctionallight_num) + "]",
+                                          light.GetDirectionRef());
+                        shader->SetFloat3("directionalLightColors[" + std::to_string(dirctionallight_num) + "]",
+                                          light.GetColorRef());
+                        shader->SetFloat("directionalLightIntensities[" + std::to_string(dirctionallight_num) + "]",
+                                         light.GetIntensityRef());
+                        shader->SetMat4("directionalLightMatrices[" + std::to_string(dirctionallight_num) + "]",
+                                        lightSpaceMatrix);
+                        shader->SetInt("directionalShadowMaps[" + std::to_string(dirctionallight_num) + "]",
+                                       150 + dirctionallight_num);
+
+                        light.GetShadowMapBufferRef().BindTexture(150 + dirctionallight_num);
+
+                        dirctionallight_num++;
+                    }
+                    shader->SetInt("numDirectionalLights", dirctionallight_num);
+                    shader->SetFloat("PCSS_FilterRadius", m_PCSS_FilterRadius);
+
+                    mesh.m_VertexArray->Bind();
+                    RenderCommand::DrawIndexed(mesh.m_VertexArray);
+                    mesh.m_VertexArray->UnBind();
+
+                    shader->UnBind();
+                }
+            }
+
+            // generate mipmap
+            glBindTexture(GL_TEXTURE_3D, (GLuint)(size_t)m_VoxelGI_VoxelTexture->GetTextureID());
+            glGenerateMipmap(GL_TEXTURE_3D);
+            glBindTexture(GL_TEXTURE_3D, 0);
+
+            glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+            glEnable(GL_DEPTH_TEST);
+            glEnable(GL_BLEND);
         }
 
         // Render to GeometryBuffer
@@ -2122,6 +2260,58 @@ namespace Engine
             deferred_shader->UnBind();
             m_FrameRenderBuffer_EnvironmentLighting_specular->UnBind();
         }
+        // VoxelGI
+        {
+            m_FrameRenderBuffer_VoxelGI->Bind();
+            RenderCommand::SetViewPort(0, 0, m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
+
+            RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+            RenderCommand::Clear();
+
+            auto voxelGI_shader = m_ShaderLibrary.Get("VoxelGI_Conetracing");
+            voxelGI_shader->Bind();
+
+            voxelGI_shader->SetInt("u_tex_voxelgrid", 0);
+            m_VoxelGI_VoxelTexture->Bind(0);
+            voxelGI_shader->SetInt("g_WorldPosition", 1);
+            m_GeometryBuffer->BindWorldPositionTexture(1);
+            voxelGI_shader->SetInt("g_WorldNormal", 2);
+            m_GeometryBuffer->BindWorldNormalTexture(2);
+            voxelGI_shader->SetInt("g_Albedo", 3);
+            m_GeometryBuffer->BindAlbedoTexture(3);
+            voxelGI_shader->SetInt("g_Metallic", 4);
+            m_GeometryBuffer->BindMetallicTexture(4);
+
+            glm::vec3 cameraPosition = actor_mainCamera->GetTransformComponent().GetPosition();
+            voxelGI_shader->SetFloat3("u_camera_world_position", cameraPosition);
+            voxelGI_shader->SetFloat3("u_scene_voxel_scale", glm::vec3(1.0f) / 10.0f);
+
+            voxelGI_shader->SetFloat("settings.diffuse.aperture", 0.577f);
+            voxelGI_shader->SetFloat("settings.diffuse.sampling_factor", 0.119f);
+            voxelGI_shader->SetFloat("settings.diffuse.distance_offset", 0.081f);
+            voxelGI_shader->SetFloat("settings.diffuse.max_distance", 2.0f);
+            voxelGI_shader->SetFloat("settings.diffuse.result_intensity", 1.0f);
+
+            voxelGI_shader->SetFloat("settings.specular.aperture", 0.027f);
+            voxelGI_shader->SetFloat("settings.specular.sampling_factor", 0.146f);
+            voxelGI_shader->SetFloat("settings.specular.distance_offset", 0.081f);
+            voxelGI_shader->SetFloat("settings.specular.max_distance", 2.0f);
+            voxelGI_shader->SetFloat("settings.specular.result_intensity", 1.0f);
+
+            voxelGI_shader->SetInt("settings.voxel_grid_resolution", 64);
+            voxelGI_shader->SetInt("settings.max_mipmap_level", 6);
+
+            RenderCommand::RenderToQuad();
+
+            m_GeometryBuffer->UnBindTexture(4);
+            m_GeometryBuffer->UnBindTexture(3);
+            m_GeometryBuffer->UnBindTexture(2);
+            m_GeometryBuffer->UnBindTexture(1);
+            m_VoxelGI_VoxelTexture->UnBind(0);
+
+            voxelGI_shader->UnBind();
+            m_FrameRenderBuffer_VoxelGI->UnBind();
+        }
 
         // ssr
         {
@@ -2235,6 +2425,8 @@ namespace Engine
             m_FrameRenderBuffer_ssr_blur->BindTexture(5);
             composite_shader->SetInt("g_AO", 6);
             m_SSAOBuffer->BindSSAOTexture(6);
+            composite_shader->SetInt("g_VoxelGI", 7);
+            m_FrameRenderBuffer_VoxelGI->BindTexture(7);
 
             RenderCommand::RenderToQuad();
 
@@ -2562,6 +2754,41 @@ namespace Engine
 
         Renderer::EndScene(m_FrameRenderBuffer);
 
+        // Render to VoxelGIViewport
+        if (viewport_items[m_ViewportGBufferMap] == "VoxelGI_VoxelTexture")
+        {
+            glDisable(GL_DEPTH_TEST);
+            m_FrameRenderBuffer_VoxelGIViewport->Bind();
+            RenderCommand::SetViewPort(0,
+                                       0,
+                                       m_FrameRenderBuffer_VoxelGIViewport->GetWidth(),
+                                       m_FrameRenderBuffer_VoxelGIViewport->GetHeight());
+
+            RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+            RenderCommand::Clear();
+
+            auto shader = m_ShaderLibrary.Get("VoxelGI_Visualization");
+            shader->Bind();
+
+            shader->SetInt("g_VoxelTexture", 0);
+            m_VoxelGI_VoxelTexture->Bind(0);
+
+            shader->SetInt("g_WorldPosition", 1);
+            m_GeometryBuffer->BindWorldPositionTexture(1);
+
+            shader->SetFloat3("u_scene_voxel_scale", glm::vec3(1.0f) / 10.0f);
+            shader->SetFloat3("u_CameraPosition", actor_mainCamera->GetTransformComponent().GetPosition());
+
+            RenderCommand::RenderToQuad();
+
+            m_GeometryBuffer->UnBindTexture(1);
+            m_VoxelGI_VoxelTexture->UnBind(0);
+
+            shader->UnBind();
+            Renderer::EndScene(m_FrameRenderBuffer_VoxelGIViewport);
+            glEnable(GL_DEPTH_TEST);
+        }
+
         // Render GBuffer Viewport
         m_FrameRenderBuffer_bufferViewport->Bind();
         RenderCommand::SetViewPort(
@@ -2571,24 +2798,9 @@ namespace Engine
         RenderCommand::Clear();
 
         std::string gbuffer_shader_name[] = {
-            "VisPosition",
-            "VisNormal",
-            "VisAlbedo",
-            "VisDepth",
-            "VisAO",
-            "VisRoughness",
-            "VisMetallic",
-            "VisPosition",
-            "VisNormal",
-            "Screen",
-            "Screen",
-            "Screen",
-            "Screen",
-            "Screen",
-            "Screen",
-            "Screen",
-            "Screen",
-            "Screen",
+            "VisPosition", "VisNormal", "VisAlbedo", "VisDepth", "VisAO",  "VisRoughness", "VisMetallic",
+            "VisPosition", "VisNormal", "Screen",    "Screen",   "Screen", "Screen",       "Screen",
+            "Screen",      "Screen",    "Screen",    "Screen",   "Screen", "Screen",
         };
 
         const std::string viewport_buffer_name    = viewport_items[m_ViewportGBufferMap];
@@ -2685,6 +2897,16 @@ namespace Engine
         {
             gbuffer_viewport_shader->SetInt("g_Color", 0);
             m_FrameRenderBuffer_exposure->BindTexture(0);
+        }
+        if (viewport_buffer_name == "VoxelGI_VoxelTexture")
+        {
+            gbuffer_viewport_shader->SetInt("g_Color", 0);
+            m_FrameRenderBuffer_VoxelGIViewport->BindTexture(0);
+        }
+        if (viewport_buffer_name == "VoxelGI")
+        {
+            gbuffer_viewport_shader->SetInt("g_Color", 0);
+            m_FrameRenderBuffer_VoxelGI->BindTexture(0);
         }
 
         RenderCommand::RenderToQuad();

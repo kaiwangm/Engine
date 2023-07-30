@@ -27,6 +27,7 @@ namespace Engine
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_DirectLighting_specular;
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_EnvironmentLighting_diffuse;
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_EnvironmentLighting_specular;
+        Ref<FrameRenderBuffer> m_FrameRenderBuffer_VoxelGI;
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_playground;
 
         Ref<FrameRenderBuffer>                m_FrameRenderBuffer_ssr;
@@ -44,9 +45,11 @@ namespace Engine
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_shadowMapViewport;
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_shadowCubeMapViewport;
 
+        Ref<FrameRenderBuffer> m_FrameRenderBuffer_VoxelGIViewport;
+
         std::vector<glm::vec3> sphereHarmonicsParameters_a;
 
-        const char* viewport_items[18] = {
+        const char* viewport_items[20] = {
             "ViewPosition",
             "ViewNormal",
             "Albedo",
@@ -65,10 +68,13 @@ namespace Engine
             "ScreenSpaceReflection_Blur",
             "Bloom",
             "Exposure",
+            "VoxelGI_VoxelTexture",
+            "VoxelGI",
         };
 
         Ref<GeometryBuffer> m_GeometryBuffer;
         Ref<SSAOBuffer>     m_SSAOBuffer;
+        Ref<Texture3D>      m_VoxelGI_VoxelTexture;
 
         glm::vec4 m_BackGroundColor {0.0f, 0.0f, 0.0f, 1.0f};
 
@@ -132,6 +138,15 @@ namespace Engine
                         const std::string& mode)
         {
             m_ShaderLibrary.Load(name, vertexSrc, fragmentSrc, mode);
+        }
+
+        void LoadShader(const std::string& name,
+                        const std::string& vertexSrc,
+                        const std::string& geometrySrc,
+                        const std::string& fragmentSrc,
+                        const std::string& mode)
+        {
+            m_ShaderLibrary.Load(name, vertexSrc, geometrySrc, fragmentSrc, mode);
         }
 
         void TickLogic(float timeStep, float nowTime, bool isWindowFocused);

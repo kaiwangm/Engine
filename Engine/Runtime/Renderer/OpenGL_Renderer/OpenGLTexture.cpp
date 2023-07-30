@@ -187,17 +187,36 @@ namespace Engine
 
     OpenGLTexture3D::OpenGLTexture3D() { glCreateTextures(GL_TEXTURE_3D, 1, &m_TextureID); }
 
-    OpenGLTexture3D::OpenGLTexture3D(const uint32_t& width, const uint32_t& height, const uint32_t& depth)
-        : m_Width(width), m_Height(height), m_Depth(depth)
+    OpenGLTexture3D::OpenGLTexture3D(const uint32_t& width, const uint32_t& height, const uint32_t& depth) :
+        m_Width(width), m_Height(height), m_Depth(depth)
     {
-        glCreateTextures(GL_TEXTURE_3D, 1, &m_TextureID);
-        glTextureStorage3D(m_TextureID, 1, GL_RGBA8, m_Width, m_Height, m_Depth);
+        GLfloat* data = new GLfloat[width * height * depth * 4];
+        // fill data
+        for (uint32_t i = 0; i < width * height * depth * 4; i += 4)
+        {
+            data[i]     = 1.0f;
+            data[i + 1] = 1.0f;
+            data[i + 2] = 1.0f;
+            data[i + 3] = 1.0f;
+        }
 
-        glTextureParameteri(m_TextureID, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glCreateTextures(GL_TEXTURE_3D, 1, &m_TextureID);
+        glBindTexture(GL_TEXTURE_3D, m_TextureID);
+        // glTextureStorage3D(m_TextureID, 1, GL_RGBA16F, m_Width, m_Height, m_Depth);
+
+        glTextureParameteri(m_TextureID, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+        glTextureParameteri(m_TextureID, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+        glTextureParameteri(m_TextureID, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
+        glTextureParameteri(m_TextureID, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTextureParameteri(m_TextureID, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTextureParameteri(m_TextureID, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTextureParameteri(m_TextureID, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTextureParameteri(m_TextureID, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+        glTexStorage3D(GL_TEXTURE_3D, std::log2(width), GL_RGBA16F, width, height, depth);
+        glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, width, height, depth, GL_RGBA, GL_FLOAT, data);
+        glGenerateMipmap(GL_TEXTURE_3D);
+
+        glBindTexture(GL_TEXTURE_3D, 0);
+
+        delete[] data;
 
         // glTextureSubImage3D(m_TextureID, 0, 0, 0, 0, m_Width, m_Height, m_Depth, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
     }
@@ -217,8 +236,7 @@ namespace Engine
             for (unsigned int i = 0; i < 6; ++i)
             {
                 // note that we store each face with 16 bit floating point values
-                glTexImage2D(
-                    GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, 512, 512, 0, GL_RGB, GL_FLOAT, nullptr);
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, 512, 512, 0, GL_RGB, GL_FLOAT, nullptr);
             }
             glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);

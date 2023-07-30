@@ -70,6 +70,10 @@ namespace Engine
         std::vector<uint32_t> indices;
         // std::vector<Texture> textures;
 
+        Log::Info(fmt::format("Mesh Name: {0}", amesh->mName.C_Str()));
+        Log::Info(fmt::format("Mesh NumVertices: {0}", amesh->mNumVertices));
+        Log::Info(fmt::format("Mesh NumFaces: {0}", amesh->mNumFaces));
+
         for (unsigned int i = 0; i < amesh->mNumVertices; i++)
         {
             vertices.push_back(amesh->mVertices[i].x);
