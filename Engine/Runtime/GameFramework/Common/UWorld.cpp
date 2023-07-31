@@ -64,7 +64,9 @@ namespace Engine
         // GeometryBuffer
         m_GeometryBuffer       = GeometryBuffer::Create();
         m_SSAOBuffer           = SSAOBuffer::Create();
-        m_VoxelGI_VoxelTexture = Texture3D::Create(64, 64, 64);
+        m_VoxelGI_VoxelTexture = Texture3D::Create(m_VoxelGI_settings.voxel_grid_resolution,
+                                                   m_VoxelGI_settings.voxel_grid_resolution,
+                                                   m_VoxelGI_settings.voxel_grid_resolution);
 
         LoadShader("TextureShader", "Assets/Editor/Shader/vertex.glsl", "Assets/Editor/Shader/fragment.glsl", "Path");
         LoadShader("Animated",
@@ -1532,7 +1534,7 @@ namespace Engine
 
         // VoxelGI_VoxelTexture
         {
-            glViewport(0, 0, 64, 64);
+            glViewport(0, 0, m_VoxelGI_settings.voxel_grid_resolution, m_VoxelGI_settings.voxel_grid_resolution);
             glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
             glDisable(GL_CULL_FACE);
             glDisable(GL_DEPTH_TEST);
@@ -1559,7 +1561,7 @@ namespace Engine
                     shader->Bind();
 
                     shader->SetMat4("M", trans.GetTransform());
-                    shader->SetFloat3("u_scene_voxel_scale", glm::vec3(1.0f) / 10.0f);
+                    shader->SetFloat3("u_scene_voxel_scale", m_VoxelGI_settings.scene_voxel_scale);
                     shader->SetInt("u_tex_voxelgrid", 0);
                     glActiveTexture(GL_TEXTURE0);
                     m_VoxelGI_VoxelTexture->Bind(0);
@@ -2284,22 +2286,23 @@ namespace Engine
 
             glm::vec3 cameraPosition = actor_mainCamera->GetTransformComponent().GetPosition();
             voxelGI_shader->SetFloat3("u_camera_world_position", cameraPosition);
-            voxelGI_shader->SetFloat3("u_scene_voxel_scale", glm::vec3(1.0f) / 10.0f);
+            voxelGI_shader->SetFloat3("u_scene_voxel_scale", m_VoxelGI_settings.scene_voxel_scale);
 
-            voxelGI_shader->SetFloat("settings.diffuse.aperture", 0.577f);
-            voxelGI_shader->SetFloat("settings.diffuse.sampling_factor", 0.119f);
-            voxelGI_shader->SetFloat("settings.diffuse.distance_offset", 0.081f);
-            voxelGI_shader->SetFloat("settings.diffuse.max_distance", 2.0f);
-            voxelGI_shader->SetFloat("settings.diffuse.result_intensity", 1.0f);
+            voxelGI_shader->SetFloat("settings.diffuse.aperture", m_VoxelGI_settings.diffuse.aperture);
+            voxelGI_shader->SetFloat("settings.diffuse.sampling_factor", m_VoxelGI_settings.diffuse.sampling_factor);
+            voxelGI_shader->SetFloat("settings.diffuse.distance_offset", m_VoxelGI_settings.diffuse.distance_offset);
+            voxelGI_shader->SetFloat("settings.diffuse.max_distance", m_VoxelGI_settings.diffuse.max_distance);
+            voxelGI_shader->SetFloat("settings.diffuse.result_intensity", m_VoxelGI_settings.diffuse.result_intensity);
 
-            voxelGI_shader->SetFloat("settings.specular.aperture", 0.027f);
-            voxelGI_shader->SetFloat("settings.specular.sampling_factor", 0.146f);
-            voxelGI_shader->SetFloat("settings.specular.distance_offset", 0.081f);
-            voxelGI_shader->SetFloat("settings.specular.max_distance", 2.0f);
-            voxelGI_shader->SetFloat("settings.specular.result_intensity", 1.0f);
+            voxelGI_shader->SetFloat("settings.specular.aperture", m_VoxelGI_settings.specular.aperture);
+            voxelGI_shader->SetFloat("settings.specular.sampling_factor", m_VoxelGI_settings.specular.sampling_factor);
+            voxelGI_shader->SetFloat("settings.specular.distance_offset", m_VoxelGI_settings.specular.distance_offset);
+            voxelGI_shader->SetFloat("settings.specular.max_distance", m_VoxelGI_settings.specular.max_distance);
+            voxelGI_shader->SetFloat("settings.specular.result_intensity",
+                                     m_VoxelGI_settings.specular.result_intensity);
 
-            voxelGI_shader->SetInt("settings.voxel_grid_resolution", 64);
-            voxelGI_shader->SetInt("settings.max_mipmap_level", 6);
+            voxelGI_shader->SetInt("settings.voxel_grid_resolution", m_VoxelGI_settings.voxel_grid_resolution);
+            voxelGI_shader->SetInt("settings.max_mipmap_level", m_VoxelGI_settings.max_mipmap_level);
 
             RenderCommand::RenderToQuad();
 
@@ -2776,7 +2779,7 @@ namespace Engine
             shader->SetInt("g_WorldPosition", 1);
             m_GeometryBuffer->BindWorldPositionTexture(1);
 
-            shader->SetFloat3("u_scene_voxel_scale", glm::vec3(1.0f) / 10.0f);
+            shader->SetFloat3("u_scene_voxel_scale", m_VoxelGI_settings.scene_voxel_scale);
             shader->SetFloat3("u_CameraPosition", actor_mainCamera->GetTransformComponent().GetPosition());
 
             RenderCommand::RenderToQuad();
@@ -2945,17 +2948,39 @@ namespace Engine
 
         Gui::Text("General");
         Gui::SliderFloat("Exposure", m_Exposure, 0.0f, 3.0f);
-        Gui::SliderFloat("Bloom Intensity", m_Bloom_Intensity, 0.0f, 1.0f);
-        ImGui::SliderFloat("PCSS FilterRadius", &m_PCSS_FilterRadius, 0.0f, 30.0f);
         Gui::ColorEdit4("Background Color", m_BackGroundColor);
         ImGui::Checkbox("Render Skybox", &m_RenderSkybox);
         ImGui::Checkbox("Render Grid", &m_RenderGrid);
         ImGui::Checkbox("Render Gizmo", &m_RenderGizmo);
+        ImGui::Combo("Viewport Map", &m_ViewportGBufferMap, viewport_items, IM_ARRAYSIZE(viewport_items));
 
         ImGui::Separator();
 
-        Gui::Text("Buffer Viewport");
-        ImGui::Combo("Viewport Map", &m_ViewportGBufferMap, viewport_items, IM_ARRAYSIZE(viewport_items));
+        Gui::Text("Voxel-Based Global Illumination (VXGI)");
+        ImGui::SliderInt("Voxel Grid Resolution", &m_VoxelGI_settings.voxel_grid_resolution, 1, 256);
+        ImGui::SliderInt("Max Mipmap Level", &m_VoxelGI_settings.max_mipmap_level, 1, 10);
+        ImGui::SliderFloat3("Scene Voxel Scale", &m_VoxelGI_settings.scene_voxel_scale[0], 0.0f, 1.0f);
+        ImGui::SliderFloat("Diffuse Aperture", &m_VoxelGI_settings.diffuse.aperture, 0.0f, 1.0f);
+        ImGui::SliderFloat("Diffuse Sampling Factor", &m_VoxelGI_settings.diffuse.sampling_factor, 0.01f, 1.0f);
+        ImGui::SliderFloat("Diffuse Distance Offset", &m_VoxelGI_settings.diffuse.distance_offset, 0.0f, 1.0f);
+        ImGui::SliderFloat("Diffuse Max Distance", &m_VoxelGI_settings.diffuse.max_distance, 0.0f, 5.0f);
+        ImGui::SliderFloat("Diffuse Result Intensity", &m_VoxelGI_settings.diffuse.result_intensity, 0.0f, 10.0f);
+        ImGui::SliderFloat("Specular Aperture", &m_VoxelGI_settings.specular.aperture, 0.0f, 1.0f);
+        ImGui::SliderFloat("Specular Sampling Factor", &m_VoxelGI_settings.specular.sampling_factor, 0.01f, 1.0f);
+        ImGui::SliderFloat("Specular Distance Offset", &m_VoxelGI_settings.specular.distance_offset, 0.0f, 1.0f);
+        ImGui::SliderFloat("Specular Max Distance", &m_VoxelGI_settings.specular.max_distance, 0.0f, 5.0f);
+        ImGui::SliderFloat("Specular Result Intensity", &m_VoxelGI_settings.specular.result_intensity, 0.0f, 10.0f);
+
+        ImGui::Separator();
+
+        Gui::Text("Percentage-Closer Soft Shadows (PCSS)");
+        ImGui::SliderFloat("FilterRadius", &m_PCSS_FilterRadius, 0.0f, 30.0f);
+
+        ImGui::Separator();
+
+        Gui::Text("Bloom");
+        ImGui::SliderFloat("FilterRadius", &m_PCSS_FilterRadius, 0.0f, 30.0f);
+        Gui::SliderFloat("Intensity", m_Bloom_Intensity, 0.0f, 1.0f);
 
         ImGui::Separator();
 
@@ -2967,13 +2992,13 @@ namespace Engine
         ImGui::Separator();
 
         Gui::Text("Screen Space Reflection (SSR)");
+        ImGui::Checkbox("Debug", &m_SSR_settings.debug);
         ImGui::SliderFloat("Ray Step", &m_SSR_settings.rayStep, 0.001f, 1.0f);
         ImGui::SliderFloat("Min Ray Step", &m_SSR_settings.minRayStep, 0.001f, 1.0f);
         ImGui::SliderFloat("Max Steps", &m_SSR_settings.maxSteps, 1.0f, 1800.0f);
         ImGui::SliderInt("Num Binary Search Steps", &m_SSR_settings.numBinarySearchSteps, 1, 20);
         ImGui::SliderFloat(
             "Reflection Specular Falloff Exponent", &m_SSR_settings.reflectionSpecularFalloffExponent, 0.0f, 10.0f);
-        ImGui::Checkbox("Debug", &m_SSR_settings.debug);
         ImGui::SliderFloat("Ref Bias", &m_SSR_settings.refBias, -10.0f, 10.0f);
 
         Gui::End();

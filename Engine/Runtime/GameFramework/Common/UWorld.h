@@ -92,17 +92,35 @@ namespace Engine
 
         struct ScreenSpaceReflection
         {
+            bool  debug                             = false;
             float rayStep                           = 0.01f;
             float minRayStep                        = 0.1f;
             float maxSteps                          = 500.0f;
             int   numBinarySearchSteps              = 5;
             float reflectionSpecularFalloffExponent = 1.0f;
-            bool  debug                             = false;
             float refBias                           = 0.001f;
         } m_SSR_settings;
 
         float m_Bloom_Intensity   = 0.08f;
         float m_PCSS_FilterRadius = 1.0f;
+
+        struct VoxelGI
+        {
+            struct ConeTracingSettings
+            {
+                float aperture;
+                float sampling_factor;
+                float distance_offset;
+                float max_distance;
+                float result_intensity;
+            };
+
+            int                 voxel_grid_resolution = 64;
+            int                 max_mipmap_level      = 6;
+            glm::vec3           scene_voxel_scale     = glm::vec3(1.0f) / 10.0f;
+            ConeTracingSettings diffuse               = {0.577f, 0.119f, 0.081f, 2.0f, 1.0f};
+            ConeTracingSettings specular              = {0.027f, 0.146f, 0.081f, 2.0f, 1.0f};
+        } m_VoxelGI_settings;
 
         entt::entity entity_selected = entt::null;
 
