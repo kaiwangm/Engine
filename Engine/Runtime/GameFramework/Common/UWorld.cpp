@@ -350,9 +350,9 @@ namespace Engine
                         shader->SetMat4("u_MLightSpace", projectionMatrices * viewMatrices[i]);
                         shader->SetMat4("u_MTransform", trans.GetTransform());
 
-                        mesh.m_VertexArray->Bind();
-                        RenderCommand::DrawIndexed(mesh.m_VertexArray);
-                        mesh.m_VertexArray->UnBind();
+                        mesh->m_VertexArray->Bind();
+                        RenderCommand::DrawIndexed(mesh->m_VertexArray);
+                        mesh->m_VertexArray->UnBind();
 
                         shader->UnBind();
                     }
@@ -391,9 +391,9 @@ namespace Engine
                     shader->SetMat4("u_MLightSpace", lightSpaceMatrix);
                     shader->SetMat4("u_MTransform", trans.GetTransform());
 
-                    mesh.m_VertexArray->Bind();
-                    RenderCommand::DrawIndexed(mesh.m_VertexArray);
-                    mesh.m_VertexArray->UnBind();
+                    mesh->m_VertexArray->Bind();
+                    RenderCommand::DrawIndexed(mesh->m_VertexArray);
+                    mesh->m_VertexArray->UnBind();
 
                     shader->UnBind();
                 }
@@ -402,7 +402,7 @@ namespace Engine
             shadowMapBuffer.UnBind();
         }
 
-        glm::vec3 probePosition = glm::vec3(2.3f, 2.7f, 0.0f);
+        glm::vec3 probePosition = glm::vec3(0.0f, 9.0f, 0.0f);
 
         glm::mat4                projectionMatrices = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 100.0f);
         std::array<glm::mat4, 6> viewMatrices       = {
@@ -460,7 +460,7 @@ namespace Engine
                         shader->SetMat4("u_MTransform", trans.GetTransform());
                         shader->UnBind();
 
-                        Renderer::Submit(mesh.m_VertexArray, shader, m_VPMatrix, trans.GetTransform());
+                        Renderer::Submit(mesh->m_VertexArray, shader, m_VPMatrix, trans.GetTransform());
 
                         material_basicPbr->UnBindAllMap(shader);
 
@@ -1339,47 +1339,136 @@ namespace Engine
         m_VPMatrix = m_PMatrix * m_VMatrix;
 
         // Generate ShadowMap
+        static bool isShadowMapGenerated = false;
+        if (isShadowMapGenerated == false)
         {
-            glCullFace(GL_FRONT);
-            // Render to point light ShadowCubeMap
-            for (auto [entity, name, trans, light] : pointlight_view.each())
             {
-                ShadowCubeMapBuffer& shadowCubeMapBuffer = light.GetShadowCubeMapBufferRef();
-                // Y+ Y- X- X+ Z+ Z-
-                std::array<std::function<void()>, 6> renderFuncs {
-                    std::bind(&ShadowCubeMapBuffer::BindTop, &shadowCubeMapBuffer),
-                    std::bind(&ShadowCubeMapBuffer::BindBottom, &shadowCubeMapBuffer),
-                    std::bind(&ShadowCubeMapBuffer::BindLeft, &shadowCubeMapBuffer),
-                    std::bind(&ShadowCubeMapBuffer::BindRight, &shadowCubeMapBuffer),
-                    std::bind(&ShadowCubeMapBuffer::BindFront, &shadowCubeMapBuffer),
-                    std::bind(&ShadowCubeMapBuffer::BindBack, &shadowCubeMapBuffer),
-                };
-
-                glm::vec3                lightPosition      = trans.GetPosition();
-                glm::mat4                projectionMatrices = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
-                std::array<glm::mat4, 6> viewMatrices       = {
-                    glm::lookAt(
-                        lightPosition, lightPosition + glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
-                    glm::lookAt(
-                        lightPosition, lightPosition + glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)),
-                    glm::lookAt(
-                        lightPosition, lightPosition + glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
-                    glm::lookAt(
-                        lightPosition, lightPosition + glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
-                    glm::lookAt(
-                        lightPosition, lightPosition + glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
-                    glm::lookAt(
-                        lightPosition, lightPosition + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
-                };
-
-                for (int i = 0; i < 6; ++i)
+                glCullFace(GL_FRONT);
+                // Render to point light ShadowCubeMap
+                for (auto [entity, name, trans, light] : pointlight_view.each())
                 {
-                    const std::function<void()>& bindFunc = renderFuncs[i];
-                    bindFunc();
+                    ShadowCubeMapBuffer& shadowCubeMapBuffer = light.GetShadowCubeMapBufferRef();
+                    // Y+ Y- X- X+ Z+ Z-
+                    std::array<std::function<void()>, 6> renderFuncs {
+                        std::bind(&ShadowCubeMapBuffer::BindTop, &shadowCubeMapBuffer),
+                        std::bind(&ShadowCubeMapBuffer::BindBottom, &shadowCubeMapBuffer),
+                        std::bind(&ShadowCubeMapBuffer::BindLeft, &shadowCubeMapBuffer),
+                        std::bind(&ShadowCubeMapBuffer::BindRight, &shadowCubeMapBuffer),
+                        std::bind(&ShadowCubeMapBuffer::BindFront, &shadowCubeMapBuffer),
+                        std::bind(&ShadowCubeMapBuffer::BindBack, &shadowCubeMapBuffer),
+                    };
+
+                    glm::vec3 lightPosition               = trans.GetPosition();
+                    glm::mat4 projectionMatrices          = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+                    std::array<glm::mat4, 6> viewMatrices = {
+                        glm::lookAt(
+                            lightPosition, lightPosition + glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
+                        glm::lookAt(
+                            lightPosition, lightPosition + glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)),
+                        glm::lookAt(
+                            lightPosition, lightPosition + glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+                        glm::lookAt(
+                            lightPosition, lightPosition + glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+                        glm::lookAt(
+                            lightPosition, lightPosition + glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+                        glm::lookAt(
+                            lightPosition, lightPosition + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+                    };
+
+                    for (int i = 0; i < 6; ++i)
+                    {
+                        const std::function<void()>& bindFunc = renderFuncs[i];
+                        bindFunc();
+
+                        RenderCommand::SetViewPort(0, 0, 3072, 3072);
+                        RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+                        RenderCommand::Clear();
+
+                        // use a range-for
+                        for (auto [entity, name, trans, model] : model_view.each())
+                        {
+                            const auto meshes = model.GetStaticMesh().m_Meshes;
+                            for (const auto& mesh : meshes)
+                            {
+                                auto shader = m_ShaderLibrary.Get("ShadowMap");
+                                shader->Bind();
+
+                                shader->SetMat4("u_MLightSpace", projectionMatrices * viewMatrices[i]);
+                                shader->SetMat4("u_MTransform", trans.GetTransform());
+
+                                mesh->m_VertexArray->Bind();
+                                RenderCommand::DrawIndexed(mesh->m_VertexArray);
+                                mesh->m_VertexArray->UnBind();
+
+                                shader->UnBind();
+                            }
+                        }
+
+                        // draw chunks
+                        for (auto [entity, name, trans, world] : chunkarrayworld_view.each())
+                        {
+                            auto shader = m_ShaderLibrary.Get("ShadowMap");
+                            shader->Bind();
+
+                            for (int x = 0; x < world.GetWorldSizeX(); ++x)
+                            {
+                                for (int y = 0; y < world.GetWorldSizeY(); ++y)
+                                {
+                                    for (int z = 0; z < world.GetWorldSizeZ(); ++z)
+                                    {
+                                        const UChunkArrayWorldComponent::Chunk& chunk = world.GetChunkRef(x, y, z);
+
+                                        glm::vec3 chunkPosition = chunk.position + glm::vec3(16.0f, 16.0f, 16.0f);
+
+                                        if (glm::length(lightPosition - chunkPosition) > 64.0f ||
+                                            chunk.component == nullptr)
+                                        {
+                                            continue;
+                                        }
+
+                                        shader->SetMat4("u_MLightSpace", projectionMatrices * viewMatrices[i]);
+                                        glm::mat4 model = glm::translate(glm::mat4(1.0f), chunk.position);
+                                        shader->SetMat4("u_MTransform", trans.GetTransform() * model);
+
+                                        const VertexArray& vertexArray = chunk.component->GetVertexArrayRef();
+                                        vertexArray.Bind();
+
+                                        glDrawArrays(GL_TRIANGLES, 0, chunk.component->GetVertexCount());
+
+                                        vertexArray.UnBind();
+                                    }
+                                }
+                            }
+
+                            shader->UnBind();
+                        }
+
+                        shadowCubeMapBuffer.UnBind();
+                    }
+                }
+                glCullFace(GL_BACK);
+            }
+
+            // Render to directional light ShadowMap
+            {
+                glCullFace(GL_FRONT);
+                for (auto [entity, name, trans, light] : dirctionallight_view.each())
+                {
+                    ShadowMapBuffer& shadowMapBuffer = light.GetShadowMapBufferRef();
+                    shadowMapBuffer.Bind();
 
                     RenderCommand::SetViewPort(0, 0, 3072, 3072);
                     RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
                     RenderCommand::Clear();
+
+                    const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 800.0f);
+                    glm::vec3       cameraPosition  = actor_mainCamera->GetTransformComponent().GetPosition();
+                    cameraPosition.y                = 0.0f;
+                    const glm::vec3 lightPosition   = trans.GetPosition();
+                    const glm::vec3 lightDirection  = light.GetDirectionRef();
+                    const glm::mat4 lightView =
+                        glm::lookAt(lightPosition, lightPosition + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
+                    const glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
                     // use a range-for
                     for (auto [entity, name, trans, model] : model_view.each())
@@ -1390,12 +1479,12 @@ namespace Engine
                             auto shader = m_ShaderLibrary.Get("ShadowMap");
                             shader->Bind();
 
-                            shader->SetMat4("u_MLightSpace", projectionMatrices * viewMatrices[i]);
+                            shader->SetMat4("u_MLightSpace", lightSpaceMatrix);
                             shader->SetMat4("u_MTransform", trans.GetTransform());
 
-                            mesh.m_VertexArray->Bind();
-                            RenderCommand::DrawIndexed(mesh.m_VertexArray);
-                            mesh.m_VertexArray->UnBind();
+                            mesh->m_VertexArray->Bind();
+                            RenderCommand::DrawIndexed(mesh->m_VertexArray);
+                            mesh->m_VertexArray->UnBind();
 
                             shader->UnBind();
                         }
@@ -1417,13 +1506,13 @@ namespace Engine
 
                                     glm::vec3 chunkPosition = chunk.position + glm::vec3(16.0f, 16.0f, 16.0f);
 
-                                    if (glm::length(lightPosition - chunkPosition) > 64.0f ||
+                                    if (glm::length(lightPosition - chunkPosition) > 128.0f ||
                                         chunk.component == nullptr)
                                     {
                                         continue;
                                     }
 
-                                    shader->SetMat4("u_MLightSpace", projectionMatrices * viewMatrices[i]);
+                                    shader->SetMat4("u_MLightSpace", lightSpaceMatrix);
                                     glm::mat4 model = glm::translate(glm::mat4(1.0f), chunk.position);
                                     shader->SetMat4("u_MTransform", trans.GetTransform() * model);
 
@@ -1440,97 +1529,17 @@ namespace Engine
                         shader->UnBind();
                     }
 
-                    shadowCubeMapBuffer.UnBind();
+                    shadowMapBuffer.UnBind();
                 }
+                glCullFace(GL_BACK);
             }
-            glCullFace(GL_BACK);
-        }
 
-        // Render to directional light ShadowMap
-        {
-            glCullFace(GL_FRONT);
-            for (auto [entity, name, trans, light] : dirctionallight_view.each())
-            {
-                ShadowMapBuffer& shadowMapBuffer = light.GetShadowMapBufferRef();
-                shadowMapBuffer.Bind();
-
-                RenderCommand::SetViewPort(0, 0, 3072, 3072);
-                RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
-                RenderCommand::Clear();
-
-                const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 800.0f);
-                glm::vec3       cameraPosition  = actor_mainCamera->GetTransformComponent().GetPosition();
-                cameraPosition.y                = 0.0f;
-                const glm::vec3 lightPosition   = cameraPosition + trans.GetPosition();
-                const glm::vec3 lightDirection  = light.GetDirectionRef();
-                const glm::mat4 lightView =
-                    glm::lookAt(lightPosition, lightPosition + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
-                const glm::mat4 lightSpaceMatrix = lightProjection * lightView;
-
-                // use a range-for
-                for (auto [entity, name, trans, model] : model_view.each())
-                {
-                    const auto meshes = model.GetStaticMesh().m_Meshes;
-                    for (const auto& mesh : meshes)
-                    {
-                        auto shader = m_ShaderLibrary.Get("ShadowMap");
-                        shader->Bind();
-
-                        shader->SetMat4("u_MLightSpace", lightSpaceMatrix);
-                        shader->SetMat4("u_MTransform", trans.GetTransform());
-
-                        mesh.m_VertexArray->Bind();
-                        RenderCommand::DrawIndexed(mesh.m_VertexArray);
-                        mesh.m_VertexArray->UnBind();
-
-                        shader->UnBind();
-                    }
-                }
-
-                // draw chunks
-                for (auto [entity, name, trans, world] : chunkarrayworld_view.each())
-                {
-                    auto shader = m_ShaderLibrary.Get("ShadowMap");
-                    shader->Bind();
-
-                    for (int x = 0; x < world.GetWorldSizeX(); ++x)
-                    {
-                        for (int y = 0; y < world.GetWorldSizeY(); ++y)
-                        {
-                            for (int z = 0; z < world.GetWorldSizeZ(); ++z)
-                            {
-                                const UChunkArrayWorldComponent::Chunk& chunk = world.GetChunkRef(x, y, z);
-
-                                glm::vec3 chunkPosition = chunk.position + glm::vec3(16.0f, 16.0f, 16.0f);
-
-                                if (glm::length(lightPosition - chunkPosition) > 128.0f || chunk.component == nullptr)
-                                {
-                                    continue;
-                                }
-
-                                shader->SetMat4("u_MLightSpace", lightSpaceMatrix);
-                                glm::mat4 model = glm::translate(glm::mat4(1.0f), chunk.position);
-                                shader->SetMat4("u_MTransform", trans.GetTransform() * model);
-
-                                const VertexArray& vertexArray = chunk.component->GetVertexArrayRef();
-                                vertexArray.Bind();
-
-                                glDrawArrays(GL_TRIANGLES, 0, chunk.component->GetVertexCount());
-
-                                vertexArray.UnBind();
-                            }
-                        }
-                    }
-
-                    shader->UnBind();
-                }
-
-                shadowMapBuffer.UnBind();
-            }
-            glCullFace(GL_BACK);
+            // isShadowMapGenerated = true;
         }
 
         // VoxelGI_VoxelTexture
+        static bool isVoxelGI_VoxelTextureInitialized = false;
+        if (isVoxelGI_VoxelTextureInitialized == false)
         {
             glViewport(0, 0, m_VoxelGI_settings.voxel_grid_resolution, m_VoxelGI_settings.voxel_grid_resolution);
             glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
@@ -1552,9 +1561,13 @@ namespace Engine
                 MMaterial*   material         = static_cast<MMaterial*>(staticMesh_actor->GetMaterial());
                 std::string  materialType     = material->GetMaterialType();
 
-                const auto meshes = model.GetStaticMesh().m_Meshes;
-                for (const auto& mesh : meshes)
+                const auto meshes    = model.GetStaticMesh().m_Meshes;
+                const auto materials = model.GetStaticMesh().m_Materials;
+                for (int i = 0; i < meshes.size(); ++i)
                 {
+                    const auto mesh              = meshes[i];
+                    const auto material_basicPbr = static_cast<MBasicPbr*>(materials[i]);
+
                     auto shader = m_ShaderLibrary.Get("VoxelGI_Voxelization");
                     shader->Bind();
 
@@ -1573,9 +1586,7 @@ namespace Engine
 
                     if (materialType == "BasicPbr")
                     {
-                        MBasicPbr* material_basicPbr = static_cast<MBasicPbr*>(material);
-                        shader->SetInt("u_tex_diffuse", 1);
-                        material_basicPbr->BindAlbedo(shader, 1);
+                        material_basicPbr->BindAllMap(shader);
                     }
 
                     int ligth_num = 0;
@@ -1602,7 +1613,7 @@ namespace Engine
                         const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 800.0f);
                         glm::vec3       cameraPosition  = actor_mainCamera->GetTransformComponent().GetPosition();
                         cameraPosition.y                = 0.0f;
-                        const glm::vec3 lightPosition   = cameraPosition + lightTrans.GetPosition();
+                        const glm::vec3 lightPosition   = lightTrans.GetPosition();
                         const glm::vec3 lightDirection  = light.GetDirectionRef();
                         const glm::mat4 lightView =
                             glm::lookAt(lightPosition, lightPosition + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -1626,9 +1637,9 @@ namespace Engine
                     shader->SetInt("numDirectionalLights", dirctionallight_num);
                     shader->SetFloat("PCSS_FilterRadius", m_PCSS_FilterRadius);
 
-                    mesh.m_VertexArray->Bind();
-                    RenderCommand::DrawIndexed(mesh.m_VertexArray);
-                    mesh.m_VertexArray->UnBind();
+                    mesh->m_VertexArray->Bind();
+                    RenderCommand::DrawIndexed(mesh->m_VertexArray);
+                    mesh->m_VertexArray->UnBind();
 
                     shader->UnBind();
                 }
@@ -1642,6 +1653,8 @@ namespace Engine
             glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
             glEnable(GL_DEPTH_TEST);
             glEnable(GL_BLEND);
+
+            isVoxelGI_VoxelTextureInitialized = true;
         }
 
         // Render to GeometryBuffer
@@ -1667,13 +1680,16 @@ namespace Engine
 
             if (materialType == "BasicPbr")
             {
-                const auto meshes = model.GetStaticMesh().m_Meshes;
-                for (const auto& mesh : meshes)
+                const auto meshes    = model.GetStaticMesh().m_Meshes;
+                const auto materials = model.GetStaticMesh().m_Materials;
+                for (int i = 0; i < meshes.size(); ++i)
                 {
+                    const auto mesh              = meshes[i];
+                    const auto material_basicPbr = static_cast<MBasicPbr*>(materials[i]);
+
                     auto shader = m_ShaderLibrary.Get("GBuffer");
                     shader->Bind();
 
-                    MBasicPbr* material_basicPbr = static_cast<MBasicPbr*>(material);
                     material_basicPbr->BindAllMap(shader);
 
                     shader->Bind();
@@ -1682,7 +1698,7 @@ namespace Engine
                     shader->SetMat4("u_MTransform", trans.GetTransform());
                     shader->UnBind();
 
-                    Renderer::Submit(mesh.m_VertexArray, shader, m_VPMatrix, trans.GetTransform());
+                    Renderer::Submit(mesh->m_VertexArray, shader, m_VPMatrix, trans.GetTransform());
 
                     material_basicPbr->UnBindAllMap(shader);
 
@@ -1945,7 +1961,7 @@ namespace Engine
                 const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 800.0f);
                 glm::vec3       cameraPosition  = actor_mainCamera->GetTransformComponent().GetPosition();
                 cameraPosition.y                = 0.0f;
-                const glm::vec3 lightPosition   = cameraPosition + trans.GetPosition();
+                const glm::vec3 lightPosition   = trans.GetPosition();
                 const glm::vec3 lightDirection  = light.GetDirectionRef();
                 const glm::mat4 lightView =
                     glm::lookAt(lightPosition, lightPosition + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -2054,7 +2070,7 @@ namespace Engine
                 const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 800.0f);
                 glm::vec3       cameraPosition  = actor_mainCamera->GetTransformComponent().GetPosition();
                 cameraPosition.y                = 0.0f;
-                const glm::vec3 lightPosition   = cameraPosition + trans.GetPosition();
+                const glm::vec3 lightPosition   = trans.GetPosition();
                 const glm::vec3 lightDirection  = light.GetDirectionRef();
                 const glm::mat4 lightView =
                     glm::lookAt(lightPosition, lightPosition + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -2337,14 +2353,14 @@ namespace Engine
             m_GeometryBuffer->BindViewPositionTexture(4);
             ssr_shader->SetInt("g_ViewNormal", 5);
             m_GeometryBuffer->BindViewNormalTexture(5);
-            ssr_shader->SetInt("g_Depth", 6);
-            m_GeometryBuffer->BindDepthTexture(6);
-            ssr_shader->SetInt("g_Specular", 7);
-            m_GeometryBuffer->BindSpecularTexture(7);
-            ssr_shader->SetInt("g_WorldPosition", 8);
-            m_GeometryBuffer->BindWorldPositionTexture(8);
-            ssr_shader->SetInt("g_Roughness", 9);
-            m_GeometryBuffer->BindRoughnessTexture(9);
+            ssr_shader->SetInt("g_Diffuse", 6);
+            m_GeometryBuffer->BindDiffuseTexture(6);
+            ssr_shader->SetInt("g_Roughness", 7);
+            m_GeometryBuffer->BindRoughnessTexture(7);
+            ssr_shader->SetInt("g_Specular", 8);
+            m_GeometryBuffer->BindSpecularTexture(8);
+            ssr_shader->SetInt("g_WorldPosition", 9);
+            m_GeometryBuffer->BindWorldPositionTexture(9);
 
             ssr_shader->SetFloat("rayStep", m_SSR_settings.rayStep);
             ssr_shader->SetFloat("minRayStep", m_SSR_settings.minRayStep);
@@ -2411,6 +2427,13 @@ namespace Engine
 
             auto composite_shader = m_ShaderLibrary.Get("Composite");
             composite_shader->Bind();
+
+            composite_shader->SetFloat("k_dir_diffuse", m_Dir_Diffuse);
+            composite_shader->SetFloat("k_dir_specular", m_Dir_Specular);
+            composite_shader->SetFloat("k_env_diffuse", m_Env_Diffuse);
+            composite_shader->SetFloat("k_env_specular", m_Env_Specular);
+            composite_shader->SetFloat("k_voxelgi", m_VoxelGI);
+            composite_shader->SetFloat("k_ssr_factor", m_SSR_Factor);
 
             composite_shader->SetInt("g_DirectLightinging_diffuse", 0);
             m_FrameRenderBuffer_DirectLighting_diffuse->BindTexture(0);
@@ -2951,6 +2974,13 @@ namespace Engine
         ImGui::Checkbox("Render Grid", &m_RenderGrid);
         ImGui::Checkbox("Render Gizmo", &m_RenderGizmo);
         ImGui::Combo("Viewport Map", &m_ViewportGBufferMap, viewport_items, IM_ARRAYSIZE(viewport_items));
+
+        ImGui::SliderFloat("Direct Diffuse", &m_Dir_Diffuse, 0.0f, 5.0f);
+        ImGui::SliderFloat("Direct Specular", &m_Dir_Specular, 0.0f, 5.0f);
+        ImGui::SliderFloat("Environment Diffuse", &m_Env_Diffuse, 0.0f, 5.0f);
+        ImGui::SliderFloat("Environment Specular", &m_Env_Specular, 0.0f, 5.0f);
+        ImGui::SliderFloat("VoxelGI", &m_VoxelGI, 0.0f, 5.0f);
+        ImGui::SliderFloat("SSR Factor", &m_SSR_Factor, 0.0f, 5.0f);
 
         ImGui::Separator();
 

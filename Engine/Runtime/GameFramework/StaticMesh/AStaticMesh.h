@@ -46,6 +46,6 @@ namespace Engine
             }
         }
 
-        MMaterial* GetMaterial() { return m_Material.get(); }
+        MMaterial* GetMaterial() { return m_Mesh->GetStaticMesh().m_Materials[0]; }
     };
 }; // namespace Engine

@@ -32,42 +32,27 @@ namespace Engine
         bool m_UseDiffuseMap   = false;
         bool m_UseSpecularMap  = false;
 
+        int m_DiffuseMapChannels  = 0;
+        int m_SpecularMapChannels = 0;
+
     public:
-        MBasicPbr(const std::string& name) :
-            MMaterial(name, "BasicPbr"), m_Albedo(1.0f), m_Metallic(0.0f), m_Roughness(1.0f), m_AO(1.0f)
-        {
-            m_Workflow        = 0;
-            m_UseAlbedoMap    = false;
-            m_UseNormalMap    = false;
-            m_UseMetallicMap  = false;
-            m_UseRoughnessMap = false;
-            m_UseAOMap        = false;
-            m_UseDiffuseMap   = false;
-            m_UseSpecularMap  = false;
-        }
+        MBasicPbr(const std::string& name) : MMaterial(name, "BasicPbr") {}
 
-        MBasicPbr(const std::string& name, const std::string& folderName) :
-            MMaterial(name, "BasicPbr"), m_Albedo(1.0f), m_Metallic(0.0f), m_Roughness(0.0f), m_AO(1.0f)
+        MBasicPbr(const std::string& name, const std::string& folderName) : MMaterial(name, "BasicPbr")
         {
-            m_AlbedoMap = Texture2D::Create("Assets/Editor/Material/" + folderName + "/" + folderName + "_albedo.png");
-            m_NormalMap = Texture2D::Create("Assets/Editor/Material/" + folderName + "/" + folderName + "_normal.png");
-            m_MetallicMap =
-                Texture2D::Create("Assets/Editor/Material/" + folderName + "/" + folderName + "_metallic.png");
-            m_RoughnessMap =
-                Texture2D::Create("Assets/Editor/Material/" + folderName + "/" + folderName + "_roughness.png");
-            m_AOMap = Texture2D::Create("Assets/Editor/Material/" + folderName + "/" + folderName + "_ao.png");
+            m_Workflow = 0;
 
-            m_Workflow        = 0;
-            m_UseAlbedoMap    = true;
-            m_UseNormalMap    = true;
-            m_UseMetallicMap  = true;
-            m_UseRoughnessMap = true;
-            m_UseAOMap        = true;
-            m_UseDiffuseMap   = false;
-            m_UseSpecularMap  = false;
+            LoadAlbedoMap("Assets/Editor/Material/" + folderName + "/" + folderName + "_albedo.png");
+            LoadNormalMap("Assets/Editor/Material/" + folderName + "/" + folderName + "_normal.png");
+            LoadMetallicMap("Assets/Editor/Material/" + folderName + "/" + folderName + "_metallic.png");
+            LoadRoughnessMap("Assets/Editor/Material/" + folderName + "/" + folderName + "_roughness.png");
+            LoadAOMap("Assets/Editor/Material/" + folderName + "/" + folderName + "_ao.png");
         }
 
         ~MBasicPbr() = default;
+
+        void SetWorkflow(const int workflow) { m_Workflow = workflow; }
+        int& GetWorkflowRef() { return m_Workflow; }
 
         void SetAlbedo(const glm::vec3& albedo) { m_Albedo = albedo; }
         void SetMetallic(const float metallic) { m_Metallic = metallic; }
@@ -75,6 +60,8 @@ namespace Engine
         void SetAO(const float ao) { m_AO = ao; }
         void SetDiffuse(const glm::vec3& diffuse) { m_Diffuse = diffuse; }
         void SetSpecular(const glm::vec3& specular) { m_Specular = specular; }
+        void SetDiffuseMapChannels(const int channels) { m_DiffuseMapChannels = channels; }
+        void SetSpecularMapChannels(const int channels) { m_SpecularMapChannels = channels; }
 
         glm::vec3& GetAlbedoRef() { return m_Albedo; }
         float&     GetMetallicRef() { return m_Metallic; }
@@ -82,6 +69,46 @@ namespace Engine
         float&     GetAORef() { return m_AO; }
         glm::vec3& GetDiffuseRef() { return m_Diffuse; }
         glm::vec3& GetSpecularRef() { return m_Specular; }
+        int&       GetDiffuseMapChannelsRef() { return m_DiffuseMapChannels; }
+        int&       GetSpecularMapChannelsRef() { return m_SpecularMapChannels; }
+
+        void LoadAlbedoMap(const std::string& path)
+        {
+            m_AlbedoMap    = Texture2D::Create(path);
+            m_UseAlbedoMap = true;
+        }
+        void LoadNormalMap(const std::string& path)
+        {
+            m_NormalMap    = Texture2D::Create(path);
+            m_UseNormalMap = true;
+        }
+        void LoadMetallicMap(const std::string& path)
+        {
+            m_MetallicMap    = Texture2D::Create(path);
+            m_UseMetallicMap = true;
+        }
+        void LoadRoughnessMap(const std::string& path)
+        {
+            m_RoughnessMap    = Texture2D::Create(path);
+            m_UseRoughnessMap = true;
+        }
+        void LoadAOMap(const std::string& path)
+        {
+            m_AOMap    = Texture2D::Create(path);
+            m_UseAOMap = true;
+        }
+        void LoadDiffuseMap(const std::string& path)
+        {
+            m_DiffuseMap    = Texture2D::Create(path);
+            m_UseDiffuseMap = true;
+            m_DiffuseMapChannels = m_DiffuseMap->GetChannels();
+        }
+        void LoadSpecularMap(const std::string& path)
+        {
+            m_SpecularMap    = Texture2D::Create(path);
+            m_UseSpecularMap = true;
+            m_SpecularMapChannels = m_SpecularMap->GetChannels();
+        }
 
         void BindAllMap(const Ref<Shader> shader)
         {
@@ -113,6 +140,9 @@ namespace Engine
             shader->SetFloat3("in_specular", m_Specular);
             shader->SetBool("useSpecularMap", m_UseSpecularMap);
             shader->SetInt("specularMap", 6);
+
+            shader->SetInt("diffuseMapChannels", m_DiffuseMapChannels);
+            shader->SetInt("specularMapChannels", m_SpecularMapChannels);
 
             if (m_UseAlbedoMap == true)
             {

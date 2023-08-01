@@ -201,7 +201,7 @@ namespace Engine
             shader->SetFloat3("u_Color", color);
             shader->SetFloat("u_BoneLength", 1.8 * joints_length[i]);
 
-            auto& vertexArray = m_Joints.GetStaticMesh().m_Meshes[0].m_VertexArray;
+            auto& vertexArray = m_Joints.GetStaticMesh().m_Meshes[0]->m_VertexArray;
             vertexArray->Bind();
             RenderCommand::DrawIndexed(vertexArray);
 
@@ -231,7 +231,7 @@ namespace Engine
             shader->SetFloat3("u_Color", color);
             shader->SetFloat("u_BoneLength", bones_length[i]);
 
-            auto& vertexArray = m_Bones.GetStaticMesh().m_Meshes[0].m_VertexArray;
+            auto& vertexArray = m_Bones.GetStaticMesh().m_Meshes[0]->m_VertexArray;
             vertexArray->Bind();
             RenderCommand::DrawIndexed(vertexArray);
 

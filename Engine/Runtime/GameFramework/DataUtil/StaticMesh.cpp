@@ -1,4 +1,5 @@
 #include <Engine/Runtime/GameFramework/DataUtil/StaticMesh.h>
+#include <Engine/Runtime/GameFramework/Material/MBasicPbr.h>
 
 namespace Engine
 {
@@ -12,18 +13,18 @@ namespace Engine
         };
         uint32_t indices[6] = {0, 1, 2, 2, 3, 0};
 
-        m_Meshes.push_back({vertices,
-                            indices,
-                            4,
-                            8,
-                            6,
-                            {
-                                {0, ShaderDataType::Float3, "a_Position"},
-                                {1, ShaderDataType::Float3, "a_Normal"},
-                                {2, ShaderDataType::Float2, "a_TexCoord"},
-                            }});
+        m_Meshes.push_back(new Mesh(vertices,
+                                    indices,
+                                    4,
+                                    8,
+                                    6,
+                                    {
+                                        {0, ShaderDataType::Float3, "a_Position"},
+                                        {1, ShaderDataType::Float3, "a_Normal"},
+                                        {2, ShaderDataType::Float2, "a_TexCoord"},
+                                    }));
 
-        m_Meshes[0].AddTexture(Texture2D::Create("Assets/Editor/Object/checkerboard/Checkerboard.png"));
+        m_Meshes[0]->AddTexture(Texture2D::Create("Assets/Editor/Object/checkerboard/Checkerboard.png"));
     }
 
     StaticMesh::StaticMesh(const std::string& path) : m_Directory(path.substr(0, path.find_last_of('/')))
@@ -40,11 +41,13 @@ namespace Engine
 
         processNode(scene->mRootNode, scene);
 
-        for (auto& mesh : m_Meshes)
+        for(int i = 0; i < m_Materials.size(); i++)
         {
-            if (mesh.m_Textures.size() == 0)
+            if(m_Materials[i] == nullptr)
             {
-                mesh.AddTexture(Texture2D::Create("Assets/Editor/Object/checkerboard/Checkerboard.png"));
+                MBasicPbr* material = new MBasicPbr("Default");
+                m_Materials[i] = material;
+                material->SetWorkflow(0);
             }
         }
     }
@@ -55,7 +58,7 @@ namespace Engine
         for (unsigned int i = 0; i < node->mNumMeshes; i++)
         {
             aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-            m_Meshes.push_back(processMesh(mesh, scene));
+            processMesh(mesh, scene);
         }
         // then do the same for each of its children
         for (unsigned int i = 0; i < node->mNumChildren; i++)
@@ -64,7 +67,7 @@ namespace Engine
         }
     }
 
-    Mesh StaticMesh::processMesh(aiMesh* amesh, const aiScene* scene)
+    void StaticMesh::processMesh(aiMesh* amesh, const aiScene* scene)
     {
         std::vector<float>    vertices;
         std::vector<uint32_t> indices;
@@ -119,53 +122,82 @@ namespace Engine
                 indices.push_back(face.mIndices[j]);
         }
 
-        Mesh mesh(vertices.data(),
-                  indices.data(),
-                  amesh->mNumVertices,
-                  3 + 3 + 2 + 3 + 3,
-                  amesh->mNumFaces * 3,
-                  {
-                      {0, ShaderDataType::Float3, "a_Position"},
-                      {1, ShaderDataType::Float3, "a_Normal"},
-                      {2, ShaderDataType::Float2, "a_TexCoord"},
-                      {3, ShaderDataType::Float3, "a_Tangent"},
-                      {4, ShaderDataType::Float3, "a_Bitangent"},
-                  });
+        Mesh* mesh = new Mesh(vertices.data(),
+                              indices.data(),
+                              amesh->mNumVertices,
+                              3 + 3 + 2 + 3 + 3,
+                              amesh->mNumFaces * 3,
+                              {
+                                  {0, ShaderDataType::Float3, "a_Position"},
+                                  {1, ShaderDataType::Float3, "a_Normal"},
+                                  {2, ShaderDataType::Float2, "a_TexCoord"},
+                                  {3, ShaderDataType::Float3, "a_Tangent"},
+                                  {4, ShaderDataType::Float3, "a_Bitangent"},
+                              });
 
-        if (amesh->mMaterialIndex >= 0)
+        MBasicPbr* material = nullptr;
+
+        if (amesh->mMaterialIndex > 0)
         {
-            aiMaterial* material    = scene->mMaterials[amesh->mMaterialIndex];
-            auto        diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
-            m_Textures.insert(m_Textures.end(), diffuseMaps.begin(), diffuseMaps.end());
-            if (diffuseMaps.size() != 0)
-            {
-                mesh.AddTexture(diffuseMaps[0]);
-            }
+            aiMaterial* mat = scene->mMaterials[amesh->mMaterialIndex];
+            Log::Info(fmt::format("Material Name: {0}", mat->GetName().C_Str()));
+            std::string materialName = mat->GetName().C_Str();
 
-            auto specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
-            m_Textures.insert(m_Textures.end(), specularMaps.begin(), specularMaps.end());
-            if (specularMaps.size() != 0)
+            if (m_LoadedMaterials.find(materialName) != m_LoadedMaterials.end())
             {
-                mesh.AddTexture(specularMaps[0]);
+                material = static_cast<MBasicPbr*>(m_LoadedMaterials[materialName]);
+            }
+            else
+            {
+                material = new MBasicPbr(materialName);
+                material->SetWorkflow(1);
+
+                aiColor3D diffuse;
+                mat->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse);
+                material->SetAlbedo(glm::vec3(diffuse.r, diffuse.g, diffuse.b));
+
+                aiColor3D specular;
+                mat->Get(AI_MATKEY_COLOR_SPECULAR, specular);
+                material->SetSpecular(glm::vec3(specular.r, specular.g, specular.b));
+
+                float shininess;
+                mat->Get(AI_MATKEY_SHININESS, shininess);
+                float roughness = glm::clamp(1.0f - shininess / 120.0f, 0.05f, 0.97f);
+                material->SetRoughness(roughness);
+
+                Log::Info(fmt::format("Material Diffuse: {0}, {1}, {2}", diffuse.r, diffuse.g, diffuse.b));
+                Log::Info(fmt::format("Material Specular: {0}, {1}, {2}", specular.r, specular.g, specular.b));
+                Log::Info(fmt::format("Material Roughness: {0}", roughness));
+
+                aiString diffuseTexturePath;
+                if (mat->GetTexture(aiTextureType_DIFFUSE, 0, &diffuseTexturePath) == AI_SUCCESS)
+                {
+                    std::string texturePath = m_Directory + "/" + diffuseTexturePath.C_Str();
+                    Log::Info(fmt::format("Material Diffuse Texture Path: {0}", texturePath));
+                    material->LoadDiffuseMap(texturePath);
+                }
+
+                aiString normalTexturePath;
+                if (mat->GetTexture(aiTextureType_NORMALS, 0, &normalTexturePath) == AI_SUCCESS)
+                {
+                    std::string texturePath = m_Directory + "/" + normalTexturePath.C_Str();
+                    Log::Info(fmt::format("Material Normal Texture Path: {0}", texturePath));
+                    material->LoadNormalMap(texturePath);
+                }
+
+                aiString specularTexturePath;
+                if (mat->GetTexture(aiTextureType_SPECULAR, 0, &specularTexturePath) == AI_SUCCESS)
+                {
+                    std::string texturePath = m_Directory + "/" + specularTexturePath.C_Str();
+                    Log::Info(fmt::format("Material Specular Texture Path: {0}", texturePath));
+                    material->LoadSpecularMap(texturePath);
+                }
+
+                m_LoadedMaterials[materialName] = material;
             }
         }
 
-        return mesh;
-    }
-
-    std::vector<Ref<Texture2D>>
-    StaticMesh::loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName)
-    {
-        std::vector<Ref<Texture2D>> textures;
-        for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
-        {
-            aiString str;
-            mat->GetTexture(type, i, &str);
-            std::string path(str.C_Str());
-            path                   = m_Directory + "/" + path;
-            Ref<Texture2D> texture = Texture2D::Create(path);
-            textures.push_back(texture);
-        }
-        return textures;
+        m_Meshes.push_back(mesh);
+        m_Materials.push_back(material);
     }
 } // namespace Engine

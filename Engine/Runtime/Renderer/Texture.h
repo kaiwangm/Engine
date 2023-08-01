@@ -22,8 +22,6 @@ namespace Engine
         virtual uint32_t GetWidth() const    = 0;
         virtual uint32_t GetHeight() const   = 0;
         virtual uint32_t GetChannels() const = 0;
-
-        virtual void Load(void* data, uint32_t width, uint32_t height) = 0;
     };
 
     class Texture3D : public Texture

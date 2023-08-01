@@ -155,12 +155,15 @@ namespace Engine
         }
 
         glCreateTextures(GL_TEXTURE_2D, 1, &m_TextureID);
-        glTextureStorage2D(m_TextureID, 1, internalFormate, m_Width, m_Height);
 
-        glTextureParameteri(m_TextureID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTextureParameteri(m_TextureID, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTextureParameteri(m_TextureID, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
+        glTextureParameteri(m_TextureID, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTextureParameteri(m_TextureID, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTextureStorage2D(m_TextureID, std::log2(std::max(m_Width, m_Height)), internalFormate, m_Width, m_Height);
         glTextureSubImage2D(m_TextureID, 0, 0, 0, m_Width, m_Height, dataFormate, GL_UNSIGNED_BYTE, data);
+
+        glGenerateTextureMipmap(m_TextureID);
 
         stbi_image_free(data);
     }
@@ -168,20 +171,6 @@ namespace Engine
     void OpenGLTexture2D::Bind(const uint32_t& slot) const { glBindTextureUnit(slot, m_TextureID); }
 
     void OpenGLTexture2D::UnBind(const uint32_t& slot) const { glBindTextureUnit(slot, 0); }
-
-    void OpenGLTexture2D::Load(void* data, uint32_t width, uint32_t height)
-    {
-        m_Width    = width;
-        m_Height   = height;
-        m_Channels = 3;
-        // glCreateTextures(GL_TEXTURE_2D, 1, &m_TextureID);
-        glTextureStorage2D(m_TextureID, 1, GL_RGB8, m_Width, m_Height);
-
-        glTextureParameteri(m_TextureID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTextureParameteri(m_TextureID, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-        glTextureSubImage2D(m_TextureID, 0, 0, 0, m_Width, m_Height, GL_RGB, GL_UNSIGNED_BYTE, data);
-    }
 
     void* OpenGLTexture2D::GetTextureID() const { return (void*)(uint64_t)m_TextureID; }
 

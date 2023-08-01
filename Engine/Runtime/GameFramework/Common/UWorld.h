@@ -86,9 +86,16 @@ namespace Engine
         glm::mat4 m_PMatrix;
         glm::mat4 m_VPMatrix;
 
-        float m_Exposure                = 0.25f;
+        float m_Exposure                = 0.3f;
         float m_VisPrePrefilterMipLevel = 0.0f;
         int   m_ViewportGBufferMap      = 0;
+
+        float m_Dir_Diffuse  = 1.0f;
+        float m_Dir_Specular = 1.0f;
+        float m_Env_Diffuse  = 1.0f;
+        float m_Env_Specular = 0.03f;
+        float m_VoxelGI      = 1.8f;
+        float m_SSR_Factor   = 1.0f;
 
         struct ScreenSpaceReflection
         {
@@ -115,9 +122,9 @@ namespace Engine
                 float result_intensity;
             };
 
-            int                 voxel_grid_resolution = 64;
-            int                 max_mipmap_level      = 6;
-            glm::vec3           scene_voxel_scale     = glm::vec3(1.0f) / 10.0f;
+            int                 voxel_grid_resolution = 256;
+            int                 max_mipmap_level      = 8;
+            glm::vec3           scene_voxel_scale     = glm::vec3(1.0f) / 18.0f;
             ConeTracingSettings diffuse               = {0.577f, 0.119f, 0.081f, 2.0f, 1.0f};
             ConeTracingSettings specular              = {0.027f, 0.146f, 0.081f, 2.0f, 1.0f};
         } m_VoxelGI_settings;

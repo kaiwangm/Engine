@@ -18,7 +18,6 @@ namespace Engine
         virtual void Bind(const uint32_t& slot) const override;
         virtual void UnBind(const uint32_t& slot) const override;
 
-        virtual void  Load(void* data, uint32_t width, uint32_t height) override;
         std::string   GetPath() const { return m_Path; }
         virtual void* GetTextureID() const override;
 

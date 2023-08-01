@@ -35,6 +35,7 @@
 - 2023-07-27 ✨ Voxelcraft
 - 2023-07-28 ✨ Fast Approximate Anti-Aliasing (FXAA)
 - 2023-07-31 ✨ Voxel-Based Global Illumination (VXGI)
+- 2023-08-01 ✨ Specular-Glossiness workflow
 - ......
 
 

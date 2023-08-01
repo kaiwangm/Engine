@@ -372,7 +372,7 @@ namespace Engine
 
     void UMotionMatchingComponent::DrawTrajectory(Ref<Shader> shader, glm::mat4 vpMat, glm::mat4 transform)
     {
-        auto&                       vertexArray = m_TrajectoryStaticMesh.GetStaticMesh().m_Meshes[0].m_VertexArray;
+        auto&                       vertexArray = m_TrajectoryStaticMesh.GetStaticMesh().m_Meshes[0]->m_VertexArray;
         std::deque<TrajectoryPoint> m_TrajecotryPoints_Back;
         std::deque<TrajectoryPoint> m_TrajecotryPoints_Forward;
 
@@ -573,7 +573,7 @@ namespace Engine
                                                   .GetPawnStaticMeshRef()
                                                   .GetStaticMesh()
                                                   .m_Meshes[0]
-                                                  .m_VertexArray;
+                                                  ->m_VertexArray;
             pawnStaticMeshvertexArray->Bind();
             RenderCommand::DrawIndexed(pawnStaticMeshvertexArray);
 
