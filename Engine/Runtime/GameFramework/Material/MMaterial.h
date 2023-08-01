@@ -20,8 +20,6 @@ namespace Engine
         {}
         MMaterial() {}
         virtual ~MMaterial() {}
-        virtual void Bind(const Ref<Shader> shader)   = 0;
-        virtual void UnBind(const Ref<Shader> shader) = 0;
 
         std::string GetName() const { return m_Name; }
         std::string GetMaterialType() const { return m_MaterialType; }

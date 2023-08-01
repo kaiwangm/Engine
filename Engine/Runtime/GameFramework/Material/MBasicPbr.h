@@ -7,32 +7,43 @@ namespace Engine
     class MBasicPbr final : public MMaterial
     {
     private:
-        glm::vec3 m_Albedo;
-        float     m_Metallic;
-        float     m_Roughness;
-        float     m_AO;
+        glm::vec3 m_Albedo    = glm::vec3(0.0f);
+        float     m_Metallic  = 0.0f;
+        float     m_Roughness = 0.0f;
+        float     m_AO        = 0.0f;
+        glm::vec3 m_Diffuse   = glm::vec3(0.0f);
+        glm::vec3 m_Specular  = glm::vec3(0.0f);
 
         Ref<Texture2D> m_AlbedoMap;
         Ref<Texture2D> m_NormalMap;
         Ref<Texture2D> m_MetallicMap;
         Ref<Texture2D> m_RoughnessMap;
         Ref<Texture2D> m_AOMap;
+        Ref<Texture2D> m_DiffuseMap;
+        Ref<Texture2D> m_SpecularMap;
 
-        bool m_UseAlbedoMap;
-        bool m_UseNormalMap;
-        bool m_UseMetallicMap;
-        bool m_UseRoughnessMap;
-        bool m_UseAOMap;
+        int m_Workflow = 0;
+
+        bool m_UseAlbedoMap    = false;
+        bool m_UseNormalMap    = false;
+        bool m_UseMetallicMap  = false;
+        bool m_UseRoughnessMap = false;
+        bool m_UseAOMap        = false;
+        bool m_UseDiffuseMap   = false;
+        bool m_UseSpecularMap  = false;
 
     public:
         MBasicPbr(const std::string& name) :
             MMaterial(name, "BasicPbr"), m_Albedo(1.0f), m_Metallic(0.0f), m_Roughness(1.0f), m_AO(1.0f)
         {
+            m_Workflow        = 0;
             m_UseAlbedoMap    = false;
             m_UseNormalMap    = false;
             m_UseMetallicMap  = false;
             m_UseRoughnessMap = false;
             m_UseAOMap        = false;
+            m_UseDiffuseMap   = false;
+            m_UseSpecularMap  = false;
         }
 
         MBasicPbr(const std::string& name, const std::string& folderName) :
@@ -46,96 +57,36 @@ namespace Engine
                 Texture2D::Create("Assets/Editor/Material/" + folderName + "/" + folderName + "_roughness.png");
             m_AOMap = Texture2D::Create("Assets/Editor/Material/" + folderName + "/" + folderName + "_ao.png");
 
+            m_Workflow        = 0;
             m_UseAlbedoMap    = true;
             m_UseNormalMap    = true;
             m_UseMetallicMap  = true;
             m_UseRoughnessMap = true;
             m_UseAOMap        = true;
+            m_UseDiffuseMap   = false;
+            m_UseSpecularMap  = false;
         }
 
         ~MBasicPbr() = default;
-
-        void Bind(const Ref<Shader> shader)
-        {
-            Renderer::SetShaderUniform(shader, "in_albedo", m_Albedo);
-            Renderer::SetShaderUniform(shader, "in_roughness", m_Roughness);
-            Renderer::SetShaderUniform(shader, "in_metallic", m_Metallic);
-            Renderer::SetShaderUniform(shader, "in_ao", m_AO);
-
-            Renderer::SetShaderUniform(shader, "albedoMap", 0);
-            Renderer::SetShaderUniform(shader, "normalMap", 1);
-            Renderer::SetShaderUniform(shader, "metallicMap", 2);
-            Renderer::SetShaderUniform(shader, "roughnessMap", 3);
-            Renderer::SetShaderUniform(shader, "aoMap", 4);
-
-            Renderer::SetShaderUniform(shader, "irradianceMap", 5);
-            Renderer::SetShaderUniform(shader, "prefilterMap", 6);
-            Renderer::SetShaderUniform(shader, "brdfLUT", 7);
-
-            Renderer::SetShaderUniform(shader, "useAlbedoMap", m_UseAlbedoMap);
-            Renderer::SetShaderUniform(shader, "useNormalMap", m_UseNormalMap);
-            Renderer::SetShaderUniform(shader, "useMetallicMap", m_UseMetallicMap);
-            Renderer::SetShaderUniform(shader, "useRoughnessMap", m_UseRoughnessMap);
-            Renderer::SetShaderUniform(shader, "useAOMap", m_UseAOMap);
-
-            if (m_UseAlbedoMap == true)
-            {
-                m_AlbedoMap->Bind(0);
-            }
-            if (m_UseNormalMap == true)
-            {
-                m_NormalMap->Bind(1);
-            }
-            if (m_UseMetallicMap == true)
-            {
-                m_MetallicMap->Bind(2);
-            }
-            if (m_UseRoughnessMap == true)
-            {
-                m_RoughnessMap->Bind(3);
-            }
-            if (m_UseAOMap == true)
-            {
-                m_AOMap->Bind(4);
-            }
-        }
-
-        void UnBind(const Ref<Shader> shader)
-        {
-            if (m_UseAOMap == true)
-            {
-                m_AOMap->UnBind(4);
-            }
-            if (m_UseRoughnessMap == true)
-            {
-                m_RoughnessMap->UnBind(3);
-            }
-            if (m_UseMetallicMap == true)
-            {
-                m_MetallicMap->UnBind(2);
-            }
-            if (m_UseNormalMap == true)
-            {
-                m_NormalMap->UnBind(1);
-            }
-            if (m_UseAlbedoMap == true)
-            {
-                m_AlbedoMap->UnBind(0);
-            }
-        }
 
         void SetAlbedo(const glm::vec3& albedo) { m_Albedo = albedo; }
         void SetMetallic(const float metallic) { m_Metallic = metallic; }
         void SetRoughness(const float roughness) { m_Roughness = roughness; }
         void SetAO(const float ao) { m_AO = ao; }
+        void SetDiffuse(const glm::vec3& diffuse) { m_Diffuse = diffuse; }
+        void SetSpecular(const glm::vec3& specular) { m_Specular = specular; }
 
         glm::vec3& GetAlbedoRef() { return m_Albedo; }
         float&     GetMetallicRef() { return m_Metallic; }
         float&     GetRoughnessRef() { return m_Roughness; }
         float&     GetAORef() { return m_AO; }
+        glm::vec3& GetDiffuseRef() { return m_Diffuse; }
+        glm::vec3& GetSpecularRef() { return m_Specular; }
 
         void BindAllMap(const Ref<Shader> shader)
         {
+            shader->SetInt("workflow", m_Workflow);
+
             shader->SetFloat3("in_albedo", m_Albedo);
             shader->SetBool("useAlbedoMap", m_UseAlbedoMap);
             shader->SetInt("albedoMap", 0);
@@ -154,6 +105,14 @@ namespace Engine
             shader->SetFloat("in_ao", m_AO);
             shader->SetBool("useAOMap", m_UseAOMap);
             shader->SetInt("aoMap", 4);
+
+            shader->SetFloat3("in_diffuse", m_Diffuse);
+            shader->SetBool("useDiffuseMap", m_UseDiffuseMap);
+            shader->SetInt("diffuseMap", 5);
+
+            shader->SetFloat3("in_specular", m_Specular);
+            shader->SetBool("useSpecularMap", m_UseSpecularMap);
+            shader->SetInt("specularMap", 6);
 
             if (m_UseAlbedoMap == true)
             {
@@ -174,6 +133,14 @@ namespace Engine
             if (m_UseAOMap == true)
             {
                 m_AOMap->Bind(4);
+            }
+            if (m_UseDiffuseMap == true)
+            {
+                m_DiffuseMap->Bind(5);
+            }
+            if (m_UseSpecularMap == true)
+            {
+                m_SpecularMap->Bind(6);
             }
         }
 
@@ -198,6 +165,14 @@ namespace Engine
             if (m_UseAOMap == true)
             {
                 m_AOMap->UnBind(4);
+            }
+            if (m_UseDiffuseMap == true)
+            {
+                m_DiffuseMap->UnBind(5);
+            }
+            if (m_UseSpecularMap == true)
+            {
+                m_SpecularMap->UnBind(6);
             }
         }
 

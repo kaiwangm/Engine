@@ -326,10 +326,10 @@ namespace Engine
 
         glGenTextures(1, &m_ViewPosition_RendererID);
         glGenTextures(1, &m_ViewNormal_RendererID);
-        glGenTextures(1, &m_Albedo_RendererID);
+        glGenTextures(1, &m_Diffuse_RendererID);
         glGenTextures(1, &m_Depth_RendererID);
         glGenTextures(1, &m_Roughness_RendererID);
-        glGenTextures(1, &m_Metallic_RendererID);
+        glGenTextures(1, &m_Specular_RendererID);
         glGenTextures(1, &m_WorldPosition_RendererID);
         glGenTextures(1, &m_WorldNormal_RendererID);
     }
@@ -338,10 +338,10 @@ namespace Engine
     {
         glDeleteTextures(1, &m_WorldNormal_RendererID);
         glDeleteTextures(1, &m_WorldPosition_RendererID);
-        glDeleteTextures(1, &m_Metallic_RendererID);
+        glDeleteTextures(1, &m_Specular_RendererID);
         glDeleteTextures(1, &m_Roughness_RendererID);
         glDeleteTextures(1, &m_Depth_RendererID);
-        glDeleteTextures(1, &m_Albedo_RendererID);
+        glDeleteTextures(1, &m_Diffuse_RendererID);
         glDeleteTextures(1, &m_ViewNormal_RendererID);
         glDeleteTextures(1, &m_ViewPosition_RendererID);
 
@@ -377,13 +377,13 @@ namespace Engine
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, m_ViewNormal_RendererID, 0);
             glBindTexture(GL_TEXTURE_2D, 0);
 
-            glBindTexture(GL_TEXTURE_2D, m_Albedo_RendererID);
+            glBindTexture(GL_TEXTURE_2D, m_Diffuse_RendererID);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, m_Albedo_RendererID, 0);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, m_Diffuse_RendererID, 0);
             glBindTexture(GL_TEXTURE_2D, 0);
 
             glBindTexture(GL_TEXTURE_2D, m_Depth_RendererID);
@@ -404,13 +404,13 @@ namespace Engine
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, m_Roughness_RendererID, 0);
             glBindTexture(GL_TEXTURE_2D, 0);
 
-            glBindTexture(GL_TEXTURE_2D, m_Metallic_RendererID);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_FLOAT, NULL);
+            glBindTexture(GL_TEXTURE_2D, m_Specular_RendererID);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT5, GL_TEXTURE_2D, m_Metallic_RendererID, 0);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT5, GL_TEXTURE_2D, m_Specular_RendererID, 0);
             glBindTexture(GL_TEXTURE_2D, 0);
 
             glBindTexture(GL_TEXTURE_2D, m_WorldPosition_RendererID);
@@ -467,13 +467,13 @@ namespace Engine
 
     void* OpenGLGeometryBuffer::GetViewNormalTextureID() const { return (void*)(uint64_t)m_ViewNormal_RendererID; }
 
-    void* OpenGLGeometryBuffer::GetAlbedoTextureID() const { return (void*)(uint64_t)m_Albedo_RendererID; }
+    void* OpenGLGeometryBuffer::GetDiffuseTextureID() const { return (void*)(uint64_t)m_Diffuse_RendererID; }
 
     void* OpenGLGeometryBuffer::GetDepthTextureID() const { return (void*)(uint64_t)m_Depth_RendererID; }
 
     void* OpenGLGeometryBuffer::GetRoughnessTextureID() const { return (void*)(uint64_t)m_Roughness_RendererID; }
 
-    void* OpenGLGeometryBuffer::GetMetallicTextureID() const { return (void*)(uint64_t)m_Metallic_RendererID; }
+    void* OpenGLGeometryBuffer::GetSpecularTextureID() const { return (void*)(uint64_t)m_Specular_RendererID; }
 
     void* OpenGLGeometryBuffer::GetWorldPositionTextureID() const
     {
@@ -492,9 +492,9 @@ namespace Engine
         glBindTextureUnit(slot, m_ViewNormal_RendererID);
     }
 
-    void OpenGLGeometryBuffer::BindAlbedoTexture(const uint32_t& slot) const
+    void OpenGLGeometryBuffer::BindDiffuseTexture(const uint32_t& slot) const
     {
-        glBindTextureUnit(slot, m_Albedo_RendererID);
+        glBindTextureUnit(slot, m_Diffuse_RendererID);
     }
 
     void OpenGLGeometryBuffer::BindDepthTexture(const uint32_t& slot) const
@@ -507,9 +507,9 @@ namespace Engine
         glBindTextureUnit(slot, m_Roughness_RendererID);
     }
 
-    void OpenGLGeometryBuffer::BindMetallicTexture(const uint32_t& slot) const
+    void OpenGLGeometryBuffer::BindSpecularTexture(const uint32_t& slot) const
     {
-        glBindTextureUnit(slot, m_Metallic_RendererID);
+        glBindTextureUnit(slot, m_Specular_RendererID);
     }
 
     void OpenGLGeometryBuffer::BindWorldPositionTexture(const uint32_t& slot) const

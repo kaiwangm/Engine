@@ -57,80 +57,80 @@ namespace Engine
             //                                                    "basic_red_triangle");
             // red_triangle.GetTransformComponent().SetPosition(glm::vec3 {1.0f, 5.5f, 0.0f});
 
-            // auto red_sphere = m_World->AddActor<AStaticMesh>("red_sphere", //
-            //                                                  "Assets/Editor/Object/sphere/sphere.obj",
-            //                                                  "BasicPbr",
-            //                                                  "basic_red_sphere",
-            //                                                  "basic_red_sphere");
-            // red_sphere.GetTransformComponent().SetPosition(glm::vec3 {1.0f, 1.5f, 0.0f});
-            // MBasicPbr* red_sphere_material = static_cast<MBasicPbr*>(red_sphere.GetMaterial());
-            // red_sphere_material->SetAlbedo(glm::vec3 {1.0f, 0.0f, 0.0f});
-            // red_sphere_material->SetMetallic(0.3f);
-            // red_sphere_material->SetRoughness(0.5f);
+            auto red_sphere = m_World->AddActor<AStaticMesh>("red_sphere", //
+                                                             "Assets/Editor/Object/sphere/sphere.obj",
+                                                             "BasicPbr",
+                                                             "basic_red_sphere",
+                                                             "basic_red_sphere");
+            red_sphere.GetTransformComponent().SetPosition(glm::vec3 {1.0f, 1.5f, 0.0f});
+            MBasicPbr* red_sphere_material = static_cast<MBasicPbr*>(red_sphere.GetMaterial());
+            red_sphere_material->SetAlbedo(glm::vec3 {1.0f, 0.0f, 0.0f});
+            red_sphere_material->SetMetallic(0.3f);
+            red_sphere_material->SetRoughness(0.5f);
 
-            // auto brown_sphere = m_World->AddActor<AStaticMesh>("brown_sphere", //
-            //                                                    "Assets/Editor/Object/sphere/sphere.obj",
-            //                                                    "BasicPbr",
-            //                                                    "basic_brown_sphere",
-            //                                                    "basic_brown_sphere");
-            // brown_sphere.GetTransformComponent().SetPosition(glm::vec3 {3.0f, 1.5f, 0.0f});
-            // MBasicPbr* brown_sphere_material = static_cast<MBasicPbr*>(brown_sphere.GetMaterial());
-            // brown_sphere_material->SetAlbedo(glm::vec3 {0.77f, 0.37f, 0.12f});
-            // brown_sphere_material->SetMetallic(0.2f);
-            // brown_sphere_material->SetRoughness(0.8f);
+            auto brown_sphere = m_World->AddActor<AStaticMesh>("brown_sphere", //
+                                                               "Assets/Editor/Object/sphere/sphere.obj",
+                                                               "BasicPbr",
+                                                               "basic_brown_sphere",
+                                                               "basic_brown_sphere");
+            brown_sphere.GetTransformComponent().SetPosition(glm::vec3 {3.0f, 1.5f, 0.0f});
+            MBasicPbr* brown_sphere_material = static_cast<MBasicPbr*>(brown_sphere.GetMaterial());
+            brown_sphere_material->SetAlbedo(glm::vec3 {0.77f, 0.37f, 0.12f});
+            brown_sphere_material->SetMetallic(0.2f);
+            brown_sphere_material->SetRoughness(0.8f);
 
-            // auto aqua_shpere = m_World->AddActor<AStaticMesh>("aqua_sphere", //
-            //                                                   "Assets/Editor/Object/sphere/sphere.obj",
-            //                                                   "BasicPbr",
-            //                                                   "basic_aqua_sphere",
-            //                                                   "basic_aqua_sphere");
-            // aqua_shpere.GetTransformComponent().SetPosition(glm::vec3 {5.0f, 1.5f, 0.0f});
-            // MBasicPbr* aqua_shpere_material = static_cast<MBasicPbr*>(aqua_shpere.GetMaterial());
-            // aqua_shpere_material->SetAlbedo(glm::vec3 {0.0f, 1.0f, 1.0f});
-            // aqua_shpere_material->SetMetallic(0.9f);
-            // aqua_shpere_material->SetRoughness(0.3f);
+            auto aqua_shpere = m_World->AddActor<AStaticMesh>("aqua_sphere", //
+                                                              "Assets/Editor/Object/sphere/sphere.obj",
+                                                              "BasicPbr",
+                                                              "basic_aqua_sphere",
+                                                              "basic_aqua_sphere");
+            aqua_shpere.GetTransformComponent().SetPosition(glm::vec3 {5.0f, 1.5f, 0.0f});
+            MBasicPbr* aqua_shpere_material = static_cast<MBasicPbr*>(aqua_shpere.GetMaterial());
+            aqua_shpere_material->SetAlbedo(glm::vec3 {0.0f, 1.0f, 1.0f});
+            aqua_shpere_material->SetMetallic(0.9f);
+            aqua_shpere_material->SetRoughness(0.3f);
 
-            // auto wood_sphere = m_World->AddActor<AStaticMesh>("wood_sphere", //
-            //                                                   "Assets/Editor/Object/sphere/sphere.obj",
-            //                                                   "Texture",
-            //                                                   "bamboo-wood-semigloss_sphere",
-            //                                                   "bamboo-wood-semigloss");
-            // wood_sphere.GetTransformComponent().SetPosition(glm::vec3 {1.0f, 3.5f, 0.0f});
+            auto wood_sphere = m_World->AddActor<AStaticMesh>("wood_sphere", //
+                                                              "Assets/Editor/Object/sphere/sphere.obj",
+                                                              "Texture",
+                                                              "bamboo-wood-semigloss_sphere",
+                                                              "bamboo-wood-semigloss");
+            wood_sphere.GetTransformComponent().SetPosition(glm::vec3 {1.0f, 3.5f, 0.0f});
 
-            // auto metal_sphere = m_World->AddActor<AStaticMesh>("metal_sphere", //
-            //                                                    "Assets/Editor/Object/sphere/sphere.obj",
-            //                                                    "Texture",
-            //                                                    "streaky-metal1_sphere",
-            //                                                    "streaky-metal1");
-            // metal_sphere.GetTransformComponent().SetPosition(glm::vec3 {3.0f, 3.5f, 0.0f});
+            auto metal_sphere = m_World->AddActor<AStaticMesh>("metal_sphere", //
+                                                               "Assets/Editor/Object/sphere/sphere.obj",
+                                                               "Texture",
+                                                               "streaky-metal1_sphere",
+                                                               "streaky-metal1");
+            metal_sphere.GetTransformComponent().SetPosition(glm::vec3 {3.0f, 3.5f, 0.0f});
 
-            // auto plastic_sphere = m_World->AddActor<AStaticMesh>("plastic_sphere", //
-            //                                                      "Assets/Editor/Object/sphere/sphere.obj",
-            //                                                      "Texture",
-            //                                                      "scuffed-plastic_sphere",
-            //                                                      "scuffed-plastic");
-            // plastic_sphere.GetTransformComponent().SetPosition(glm::vec3 {5.0f, 3.5f, 0.0f});
+            auto plastic_sphere = m_World->AddActor<AStaticMesh>("plastic_sphere", //
+                                                                 "Assets/Editor/Object/sphere/sphere.obj",
+                                                                 "Texture",
+                                                                 "scuffed-plastic_sphere",
+                                                                 "scuffed-plastic");
+            plastic_sphere.GetTransformComponent().SetPosition(glm::vec3 {5.0f, 3.5f, 0.0f});
 
-            // auto basetile_sphere = m_World->AddActor<AStaticMesh>("basetile_sphere", //
-            //                                                       "Assets/Editor/Object/sphere/sphere.obj",
-            //                                                       "Texture",
-            //                                                       "base-white-tile_sphere",
-            //                                                       "base-white-tile");
-            // basetile_sphere.GetTransformComponent().SetPosition(glm::vec3 {3.0f, 5.5f, 0.0f});
+            auto basetile_sphere = m_World->AddActor<AStaticMesh>("basetile_sphere", //
+                                                                  "Assets/Editor/Object/sphere/sphere.obj",
+                                                                  "Texture",
+                                                                  "base-white-tile_sphere",
+                                                                  "base-white-tile");
+            basetile_sphere.GetTransformComponent().SetPosition(glm::vec3 {3.0f, 5.5f, 0.0f});
 
-            // auto blacktile_sphere = m_World->AddActor<AStaticMesh>("blacktile_sphere", //
-            //                                                        "Assets/Editor/Object/sphere/sphere.obj",
-            //                                                        "Texture",
-            //                                                        "metal_panel_sphere",
-            //                                                        "metal_panel");
-            // blacktile_sphere.GetTransformComponent().SetPosition(glm::vec3 {5.0f, 5.5f, 0.0f});
+            auto blacktile_sphere = m_World->AddActor<AStaticMesh>("blacktile_sphere", //
+                                                                   "Assets/Editor/Object/sphere/sphere.obj",
+                                                                   "Texture",
+                                                                   "metal_panel_sphere",
+                                                                   "metal_panel");
+            blacktile_sphere.GetTransformComponent().SetPosition(glm::vec3 {5.0f, 5.5f, 0.0f});
 
-            // auto wood_monkey = m_World->AddActor<AStaticMesh>("wood_mmonkey",
-            //                                                   "Assets/Editor/Object/monkey/monkey.obj",
-            //                                                   "Texture",
-            //                                                   "monkey_wood",
-            //                                                   "bamboo-wood-semigloss");
-            // wood_monkey.GetTransformComponent().SetPosition(glm::vec3 {5.0f, 1.5f, 3.0f});
+            auto wood_monkey = m_World->AddActor<AStaticMesh>("wood_mmonkey",
+                                                              "Assets/Editor/Object/monkey/monkey.obj",
+                                                              "Texture",
+                                                              "monkey_wood",
+                                                              "bamboo-wood-semigloss");
+            wood_monkey.GetTransformComponent().SetPosition(glm::vec3 {5.0f, 1.5f, 3.0f});
 
             auto ground = m_World->AddActor<AStaticMesh>("ground", //
                                                          "Assets/Editor/Object/ground/ground.obj",
@@ -143,12 +143,12 @@ namespace Engine
             ground_material->SetMetallic(0.3f);
             ground_material->SetRoughness(0.9f);
 
-            auto sponza = m_World->AddActor<AStaticMesh>("sponza", //
-                                                         "Assets/Editor/Object/sponza/sponza.obj",
-                                                         "BasicPbr",
-                                                         "basic_sponza",
-                                                         "basic_sponza");
-            sponza.GetTransformComponent().SetScale(glm::vec3 {0.015f, 0.015f, 0.015f});
+            // auto sponza = m_World->AddActor<AStaticMesh>("sponza", //
+            //                                              "Assets/Editor/Object/sponza/sponza.obj",
+            //                                              "BasicPbr",
+            //                                              "basic_sponza",
+            //                                              "basic_sponza");
+            // sponza.GetTransformComponent().SetScale(glm::vec3 {0.015f, 0.015f, 0.015f});
 
             // auto teapot = m_World->AddActor<AStaticMesh>("teapot", //
             //                                              "Assets/Editor/Object/teapot/teapot.obj",

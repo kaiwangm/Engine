@@ -91,10 +91,8 @@ namespace Engine
                    "Assets/Editor/Shader/skeleton_vertex.glsl",
                    "Assets/Editor/Shader/skeleton_fragment.glsl",
                    "Path");
-        LoadShader("GBuffer",
-                   "Assets/Editor/Shader/gbuffer_vertex.glsl",
-                   "Assets/Editor/Shader/gbuffer_fragment.glsl",
-                   "Path");
+        LoadShader(
+            "GBuffer", "Assets/Editor/Shader/deffered/gbuffer.vs", "Assets/Editor/Shader/deffered/gbuffer.fs", "Path");
 
         LoadShader("VisPosition",
                    "Assets/Editor/Shader/screen_quad_vertex.glsl",
@@ -571,14 +569,14 @@ namespace Engine
                 m_GeometryBuffer_Baking->BindViewPositionTexture(0);
                 deferred_shader->SetInt("g_ViewNormal", 1);
                 m_GeometryBuffer_Baking->BindViewNormalTexture(1);
-                deferred_shader->SetInt("g_Albedo", 2);
-                m_GeometryBuffer_Baking->BindAlbedoTexture(2);
+                deferred_shader->SetInt("g_Diffuse", 2);
+                m_GeometryBuffer_Baking->BindDiffuseTexture(2);
                 deferred_shader->SetInt("g_Depth", 3);
                 m_GeometryBuffer_Baking->BindDepthTexture(3);
                 deferred_shader->SetInt("g_Roughness", 4);
                 m_GeometryBuffer_Baking->BindRoughnessTexture(4);
-                deferred_shader->SetInt("g_Metallic", 5);
-                m_GeometryBuffer_Baking->BindMetallicTexture(5);
+                deferred_shader->SetInt("g_Specular", 5);
+                m_GeometryBuffer_Baking->BindSpecularTexture(5);
                 deferred_shader->SetInt("g_WorldPosition", 6);
                 m_GeometryBuffer_Baking->BindWorldPositionTexture(6);
                 deferred_shader->SetInt("g_WorldNormal", 7);
@@ -681,14 +679,14 @@ namespace Engine
                 m_GeometryBuffer_Baking->BindViewPositionTexture(0);
                 deferred_shader->SetInt("g_ViewNormal", 1);
                 m_GeometryBuffer_Baking->BindViewNormalTexture(1);
-                deferred_shader->SetInt("g_Albedo", 2);
-                m_GeometryBuffer_Baking->BindAlbedoTexture(2);
+                deferred_shader->SetInt("g_Diffuse", 2);
+                m_GeometryBuffer_Baking->BindDiffuseTexture(2);
                 deferred_shader->SetInt("g_Depth", 3);
                 m_GeometryBuffer_Baking->BindDepthTexture(3);
                 deferred_shader->SetInt("g_Roughness", 4);
                 m_GeometryBuffer_Baking->BindRoughnessTexture(4);
-                deferred_shader->SetInt("g_Metallic", 5);
-                m_GeometryBuffer_Baking->BindMetallicTexture(5);
+                deferred_shader->SetInt("g_Specular", 5);
+                m_GeometryBuffer_Baking->BindSpecularTexture(5);
                 deferred_shader->SetInt("g_WorldPosition", 6);
                 m_GeometryBuffer_Baking->BindWorldPositionTexture(6);
                 deferred_shader->SetInt("g_WorldNormal", 7);
@@ -791,14 +789,14 @@ namespace Engine
                 m_GeometryBuffer_Baking->BindViewPositionTexture(0);
                 deferred_shader->SetInt("g_ViewNormal", 1);
                 m_GeometryBuffer_Baking->BindViewNormalTexture(1);
-                deferred_shader->SetInt("g_Albedo", 2);
-                m_GeometryBuffer_Baking->BindAlbedoTexture(2);
+                deferred_shader->SetInt("g_Diffuse", 2);
+                m_GeometryBuffer_Baking->BindDiffuseTexture(2);
                 deferred_shader->SetInt("g_Depth", 3);
                 m_GeometryBuffer_Baking->BindDepthTexture(3);
                 deferred_shader->SetInt("g_Roughness", 4);
                 m_GeometryBuffer_Baking->BindRoughnessTexture(4);
-                deferred_shader->SetInt("g_Metallic", 5);
-                m_GeometryBuffer_Baking->BindMetallicTexture(5);
+                deferred_shader->SetInt("g_Specular", 5);
+                m_GeometryBuffer_Baking->BindSpecularTexture(5);
                 deferred_shader->SetInt("g_WorldPosition", 6);
                 m_GeometryBuffer_Baking->BindWorldPositionTexture(6);
                 deferred_shader->SetInt("g_WorldNormal", 7);
@@ -892,8 +890,8 @@ namespace Engine
                 // m_GeometryBuffer_Baking->BindViewNormalTexture(5);
                 // ssr_shader->SetInt("g_Depth", 6);
                 // m_GeometryBuffer_Baking->BindDepthTexture(6);
-                // ssr_shader->SetInt("g_Metallic", 7);
-                // m_GeometryBuffer_Baking->BindMetallicTexture(7);
+                // ssr_shader->SetInt("g_Specular", 7);
+                // m_GeometryBuffer_Baking->BindSpecularTexture(7);
                 // ssr_shader->SetInt("g_WorldPosition", 8);
                 // m_GeometryBuffer_Baking->BindWorldPositionTexture(8);
                 // ssr_shader->SetInt("g_Roughness", 9);
@@ -1908,14 +1906,14 @@ namespace Engine
             m_GeometryBuffer->BindViewPositionTexture(0);
             deferred_shader->SetInt("g_ViewNormal", 1);
             m_GeometryBuffer->BindViewNormalTexture(1);
-            deferred_shader->SetInt("g_Albedo", 2);
-            m_GeometryBuffer->BindAlbedoTexture(2);
+            deferred_shader->SetInt("g_Diffuse", 2);
+            m_GeometryBuffer->BindDiffuseTexture(2);
             deferred_shader->SetInt("g_Depth", 3);
             m_GeometryBuffer->BindDepthTexture(3);
             deferred_shader->SetInt("g_Roughness", 4);
             m_GeometryBuffer->BindRoughnessTexture(4);
-            deferred_shader->SetInt("g_Metallic", 5);
-            m_GeometryBuffer->BindMetallicTexture(5);
+            deferred_shader->SetInt("g_Specular", 5);
+            m_GeometryBuffer->BindSpecularTexture(5);
             deferred_shader->SetInt("g_WorldPosition", 6);
             m_GeometryBuffer->BindWorldPositionTexture(6);
             deferred_shader->SetInt("g_WorldNormal", 7);
@@ -2017,14 +2015,14 @@ namespace Engine
             m_GeometryBuffer->BindViewPositionTexture(0);
             deferred_shader->SetInt("g_ViewNormal", 1);
             m_GeometryBuffer->BindViewNormalTexture(1);
-            deferred_shader->SetInt("g_Albedo", 2);
-            m_GeometryBuffer->BindAlbedoTexture(2);
+            deferred_shader->SetInt("g_Diffuse", 2);
+            m_GeometryBuffer->BindDiffuseTexture(2);
             deferred_shader->SetInt("g_Depth", 3);
             m_GeometryBuffer->BindDepthTexture(3);
             deferred_shader->SetInt("g_Roughness", 4);
             m_GeometryBuffer->BindRoughnessTexture(4);
-            deferred_shader->SetInt("g_Metallic", 5);
-            m_GeometryBuffer->BindMetallicTexture(5);
+            deferred_shader->SetInt("g_Specular", 5);
+            m_GeometryBuffer->BindSpecularTexture(5);
             deferred_shader->SetInt("g_WorldPosition", 6);
             m_GeometryBuffer->BindWorldPositionTexture(6);
             deferred_shader->SetInt("g_WorldNormal", 7);
@@ -2126,14 +2124,14 @@ namespace Engine
             m_GeometryBuffer->BindViewPositionTexture(0);
             deferred_shader->SetInt("g_ViewNormal", 1);
             m_GeometryBuffer->BindViewNormalTexture(1);
-            deferred_shader->SetInt("g_Albedo", 2);
-            m_GeometryBuffer->BindAlbedoTexture(2);
+            deferred_shader->SetInt("g_Diffuse", 2);
+            m_GeometryBuffer->BindDiffuseTexture(2);
             deferred_shader->SetInt("g_Depth", 3);
             m_GeometryBuffer->BindDepthTexture(3);
             deferred_shader->SetInt("g_Roughness", 4);
             m_GeometryBuffer->BindRoughnessTexture(4);
-            deferred_shader->SetInt("g_Metallic", 5);
-            m_GeometryBuffer->BindMetallicTexture(5);
+            deferred_shader->SetInt("g_Specular", 5);
+            m_GeometryBuffer->BindSpecularTexture(5);
             deferred_shader->SetInt("g_WorldPosition", 6);
             m_GeometryBuffer->BindWorldPositionTexture(6);
             deferred_shader->SetInt("g_WorldNormal", 7);
@@ -2205,14 +2203,14 @@ namespace Engine
             m_GeometryBuffer->BindViewPositionTexture(0);
             deferred_shader->SetInt("g_ViewNormal", 1);
             m_GeometryBuffer->BindViewNormalTexture(1);
-            deferred_shader->SetInt("g_Albedo", 2);
-            m_GeometryBuffer->BindAlbedoTexture(2);
+            deferred_shader->SetInt("g_Diffuse", 2);
+            m_GeometryBuffer->BindDiffuseTexture(2);
             deferred_shader->SetInt("g_Depth", 3);
             m_GeometryBuffer->BindDepthTexture(3);
             deferred_shader->SetInt("g_Roughness", 4);
             m_GeometryBuffer->BindRoughnessTexture(4);
-            deferred_shader->SetInt("g_Metallic", 5);
-            m_GeometryBuffer->BindMetallicTexture(5);
+            deferred_shader->SetInt("g_Specular", 5);
+            m_GeometryBuffer->BindSpecularTexture(5);
             deferred_shader->SetInt("g_WorldPosition", 6);
             m_GeometryBuffer->BindWorldPositionTexture(6);
             deferred_shader->SetInt("g_WorldNormal", 7);
@@ -2279,10 +2277,10 @@ namespace Engine
             m_GeometryBuffer->BindWorldPositionTexture(1);
             voxelGI_shader->SetInt("g_WorldNormal", 2);
             m_GeometryBuffer->BindWorldNormalTexture(2);
-            voxelGI_shader->SetInt("g_Albedo", 3);
-            m_GeometryBuffer->BindAlbedoTexture(3);
-            voxelGI_shader->SetInt("g_Metallic", 4);
-            m_GeometryBuffer->BindMetallicTexture(4);
+            voxelGI_shader->SetInt("g_Diffuse", 3);
+            m_GeometryBuffer->BindDiffuseTexture(3);
+            voxelGI_shader->SetInt("g_Specular", 4);
+            m_GeometryBuffer->BindSpecularTexture(4);
 
             glm::vec3 cameraPosition = actor_mainCamera->GetTransformComponent().GetPosition();
             voxelGI_shader->SetFloat3("u_camera_world_position", cameraPosition);
@@ -2341,8 +2339,8 @@ namespace Engine
             m_GeometryBuffer->BindViewNormalTexture(5);
             ssr_shader->SetInt("g_Depth", 6);
             m_GeometryBuffer->BindDepthTexture(6);
-            ssr_shader->SetInt("g_Metallic", 7);
-            m_GeometryBuffer->BindMetallicTexture(7);
+            ssr_shader->SetInt("g_Specular", 7);
+            m_GeometryBuffer->BindSpecularTexture(7);
             ssr_shader->SetInt("g_WorldPosition", 8);
             m_GeometryBuffer->BindWorldPositionTexture(8);
             ssr_shader->SetInt("g_Roughness", 9);
@@ -2801,9 +2799,9 @@ namespace Engine
         RenderCommand::Clear();
 
         std::string gbuffer_shader_name[] = {
-            "VisPosition", "VisNormal", "VisAlbedo", "VisDepth", "VisAO",  "VisRoughness", "VisMetallic",
-            "VisPosition", "VisNormal", "Screen",    "Screen",   "Screen", "Screen",       "Screen",
-            "Screen",      "Screen",    "Screen",    "Screen",   "Screen", "Screen",
+            "VisPosition", "VisNormal", "Screen", "VisDepth", "VisAO",  "VisRoughness", "Screen",
+            "VisPosition", "VisNormal", "Screen", "Screen",   "Screen", "Screen",       "Screen",
+            "Screen",      "Screen",    "Screen", "Screen",   "Screen", "Screen",
         };
 
         const std::string viewport_buffer_name    = viewport_items[m_ViewportGBufferMap];
@@ -2821,10 +2819,10 @@ namespace Engine
             gbuffer_viewport_shader->SetInt("g_Normal", 0);
             m_GeometryBuffer->BindViewNormalTexture(0);
         }
-        if (viewport_buffer_name == "Albedo")
+        if (viewport_buffer_name == "Diffuse")
         {
-            gbuffer_viewport_shader->SetInt("g_Albedo", 0);
-            m_GeometryBuffer->BindAlbedoTexture(0);
+            gbuffer_viewport_shader->SetInt("g_Color", 0);
+            m_GeometryBuffer->BindDiffuseTexture(0);
         }
         if (viewport_buffer_name == "Depth")
         {
@@ -2841,10 +2839,10 @@ namespace Engine
             gbuffer_viewport_shader->SetInt("g_Roughness", 0);
             m_GeometryBuffer->BindRoughnessTexture(0);
         }
-        if (viewport_buffer_name == "Metallic")
+        if (viewport_buffer_name == "Specular")
         {
-            gbuffer_viewport_shader->SetInt("g_Metallic", 0);
-            m_GeometryBuffer->BindMetallicTexture(0);
+            gbuffer_viewport_shader->SetInt("g_Color", 0);
+            m_GeometryBuffer->BindSpecularTexture(0);
         }
         if (viewport_buffer_name == "WorldPosition")
         {

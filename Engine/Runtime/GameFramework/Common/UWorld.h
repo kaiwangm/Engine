@@ -52,11 +52,11 @@ namespace Engine
         const char* viewport_items[20] = {
             "ViewPosition",
             "ViewNormal",
-            "Albedo",
+            "Diffuse",
             "Depth",
             "Ambient Occlusion",
             "Roughness",
-            "Metallic",
+            "Specular",
             "WorldPosition",
             "WorldNormal",
             "Skybox",

@@ -256,19 +256,19 @@ namespace Engine
         virtual uint32_t GetHeight() const                 = 0;
         virtual void*    GetViewPositionTextureID() const  = 0;
         virtual void*    GetViewNormalTextureID() const    = 0;
-        virtual void*    GetAlbedoTextureID() const        = 0;
+        virtual void*    GetDiffuseTextureID() const        = 0;
         virtual void*    GetDepthTextureID() const         = 0;
         virtual void*    GetRoughnessTextureID() const     = 0;
-        virtual void*    GetMetallicTextureID() const      = 0;
+        virtual void*    GetSpecularTextureID() const      = 0;
         virtual void*    GetWorldPositionTextureID() const = 0;
         virtual void*    GetWorldNormalTextureID() const   = 0;
 
         virtual void BindViewPositionTexture(const uint32_t& slot) const  = 0;
         virtual void BindViewNormalTexture(const uint32_t& slot) const    = 0;
-        virtual void BindAlbedoTexture(const uint32_t& slot) const        = 0;
+        virtual void BindDiffuseTexture(const uint32_t& slot) const        = 0;
         virtual void BindDepthTexture(const uint32_t& slot) const         = 0;
         virtual void BindRoughnessTexture(const uint32_t& slot) const     = 0;
-        virtual void BindMetallicTexture(const uint32_t& slot) const      = 0;
+        virtual void BindSpecularTexture(const uint32_t& slot) const      = 0;
         virtual void BindWorldPositionTexture(const uint32_t& slot) const = 0;
         virtual void BindWorldNormalTexture(const uint32_t& slot) const   = 0;
         virtual void UnBindTexture(const uint32_t& slot) const            = 0;
