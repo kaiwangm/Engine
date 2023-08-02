@@ -75,4 +75,29 @@ namespace Engine
     {
         m_ProjectionMatrix = glm::perspective(glm::radians(m_Fov), m_AspectRatio, m_NearClip, m_FarClip);
     }
+
+    Frustum PerspectiveCamera::CreateFrustumFromCamera(const UTransformComponent& transform)
+    {
+        Frustum     frustum;
+        const float halfVSide = m_FarClip * std::tanf(glm::radians(m_Fov) * .5f);
+        const float halfHSide = halfVSide * m_AspectRatio;
+
+        glm::vec3 position = transform.GetPosition();
+        glm::vec3 rotation = transform.GetRotation();
+
+        const glm::vec3 cameraFront = -glm::normalize(glm::rotate(glm::quat(rotation), glm::vec3(0.0f, 0.0f, 1.0f)));
+        const glm::vec3 cameraRight = glm::normalize(glm::rotate(glm::quat(rotation), glm::vec3(1.0f, 0.0f, 0.0f)));
+        const glm::vec3 cameraUp(0.0f, 1.0f, 0.0f);
+
+        const glm::vec3 frontMultFar = m_FarClip * cameraFront;
+
+        frustum.nearFace   = {position + m_NearClip * cameraFront, cameraFront};
+        frustum.farFace    = {position + frontMultFar, -cameraFront};
+        frustum.rightFace  = {position, glm::cross(frontMultFar - cameraRight * halfHSide, cameraUp)};
+        frustum.leftFace   = {position, glm::cross(cameraUp, frontMultFar + cameraRight * halfHSide)};
+        frustum.topFace    = {position, glm::cross(cameraRight, frontMultFar - cameraUp * halfVSide)};
+        frustum.bottomFace = {position, glm::cross(frontMultFar + cameraUp * halfVSide, cameraRight)};
+
+        return frustum;
+    }
 } // namespace Engine

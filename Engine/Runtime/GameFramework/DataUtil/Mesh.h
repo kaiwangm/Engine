@@ -7,6 +7,7 @@
 
 #include <Engine/Runtime/Core/Core.h>
 #include <Engine/Runtime/Renderer/Renderer.h>
+#include <Engine/Runtime/GameFramework/Camera/Frustum.h>
 
 namespace Engine
 {
@@ -14,6 +15,7 @@ namespace Engine
     {
         Ref<VertexArray>            m_VertexArray;
         std::vector<Ref<Texture2D>> m_Textures;
+        FrustumAABB                 m_FrustumVolume;
 
         Mesh();
         Mesh(const void*        vertices,
@@ -30,5 +32,8 @@ namespace Engine
                              const uint32_t     attribute_size,
                              const BufferLayout layout);
         void AddIndexBuffer(const uint32_t* indices, const uint32_t indice_count);
+
+        FrustumVolume* GetFrustumVolume();
+        void           SetFrustumAABB(const FrustumAABB& volume);
     };
 }; // namespace Engine

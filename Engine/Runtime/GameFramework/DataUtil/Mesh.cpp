@@ -42,4 +42,14 @@ namespace Engine
         Ref<IndexBuffer> indexBuffer = IndexBuffer::Create(indices, indice_count);
         m_VertexArray->AddIndexBuffer(indexBuffer);
     }
+
+    FrustumVolume* Mesh::GetFrustumVolume()
+    {
+        return &m_FrustumVolume;
+    }
+
+    void Mesh::SetFrustumAABB(const FrustumAABB& volume)
+    {
+        m_FrustumVolume = volume;
+    }
 }; // namespace Engine

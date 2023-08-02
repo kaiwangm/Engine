@@ -1534,7 +1534,7 @@ namespace Engine
                 glCullFace(GL_BACK);
             }
 
-            // isShadowMapGenerated = true;
+            isShadowMapGenerated = true;
         }
 
         // VoxelGI_VoxelTexture
@@ -1686,6 +1686,14 @@ namespace Engine
                 {
                     const auto mesh              = meshes[i];
                     const auto material_basicPbr = static_cast<MBasicPbr*>(materials[i]);
+
+                    const Frustum        frustum       = m_MainCamera->CreateFrustumFromCamera(actor_mainCamera->GetTransformComponent());
+                    const FrustumVolume* frustumVolume = mesh->GetFrustumVolume();
+
+                    if (frustumVolume->isOnFrustum(frustum, trans) == false)
+                    {
+                        continue;
+                    }
 
                     auto shader = m_ShaderLibrary.Get("GBuffer");
                     shader->Bind();

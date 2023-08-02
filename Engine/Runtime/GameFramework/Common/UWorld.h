@@ -86,7 +86,7 @@ namespace Engine
         glm::mat4 m_PMatrix;
         glm::mat4 m_VPMatrix;
 
-        float m_Exposure                = 0.3f;
+        float m_Exposure                = 0.25f;
         float m_VisPrePrefilterMipLevel = 0.0f;
         int   m_ViewportGBufferMap      = 0;
 

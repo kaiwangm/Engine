@@ -23,86 +23,13 @@ git clone https://github.com/microsoft/vcpkg
 .\vcpkg\bootstrap-vcpkg.bat
 ```
 
-
-
 3. Build.
-
 ```
 cd Engine
 cmake -S . -B build -G Ninja
 cmake --build build --parallel --config Release --target all
 ```
 
-
-
-
 ## Reference
 
 1. Hazel Engine [Github](https://github.com/TheCherno/Hazel)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

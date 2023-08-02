@@ -46,6 +46,8 @@ namespace Engine
         void SetRotation(const glm::vec3& rotation) { m_Rotation = rotation; }
         void SetScale(const glm::vec3& scale) { m_Scale = scale; }
 
+        Frustum CreateFrustumFromCamera(const UTransformComponent& transform) { return m_Camera->CreateFrustumFromCamera(transform); }
+
     public:
         bool  GetIsViewportCamera() const { return m_IsViewportCamera; }
         bool& GetIsViewportCameraRef() { return m_IsViewportCamera; }

@@ -4,6 +4,8 @@
 #include <Engine/Runtime/Core/Events/ApplicationEvent.h>
 #include <Engine/Runtime/Core/Events/MouseEvent.h>
 
+#include <Engine/Runtime/GameFramework/Camera/Frustum.h>
+
 namespace Engine
 {
     class Camera
@@ -18,7 +20,8 @@ namespace Engine
         void OnEvent(Event& event);
         bool OnWindowResizeEvent(WindowResizeEvent& event);
 
-        virtual void RecalculateProjectionMatrix() = 0;
+        virtual void    RecalculateProjectionMatrix()                                                 = 0;
+        virtual Frustum CreateFrustumFromCamera(const UTransformComponent& transform) = 0;
 
     public:
         glm::mat4 m_ProjectionMatrix;
@@ -34,7 +37,7 @@ namespace Engine
         void         RecalculateProjectionMatrix() override;
 
     public:
-        virtual const std::string GetCameraType() const { return "OrthographicCamera"; }
+        virtual const std::string GetCameraType() const override { return "OrthographicCamera"; }
 
     public:
         const std::string m_CameraType = "OrthographicCamera";
@@ -60,6 +63,7 @@ namespace Engine
         float&                    GetAspectRatioRef() { return m_AspectRatio; }
         float&                    GetNearClipRef() { return m_NearClip; }
         float&                    GetFarClipRef() { return m_FarClip; }
+        Frustum CreateFrustumFromCamera(const UTransformComponent& transform) override;
 
     public:
         float m_Fov;

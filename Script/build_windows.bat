@@ -7,11 +7,3 @@ cmake -S . -B build -G Ninja -DCMAKE_RC_COMPILER="Ninja" -DCMAKE_TOOLCHAIN_FILE:
 cmake --build build --parallel --config Release --target all --verbose
 
 cd Script
-
-
-
-
-
-
-
-

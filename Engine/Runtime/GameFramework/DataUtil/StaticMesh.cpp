@@ -41,12 +41,12 @@ namespace Engine
 
         processNode(scene->mRootNode, scene);
 
-        for(int i = 0; i < m_Materials.size(); i++)
+        for (int i = 0; i < m_Materials.size(); i++)
         {
-            if(m_Materials[i] == nullptr)
+            if (m_Materials[i] == nullptr)
             {
                 MBasicPbr* material = new MBasicPbr("Default");
-                m_Materials[i] = material;
+                m_Materials[i]      = material;
                 material->SetWorkflow(0);
             }
         }
@@ -77,11 +77,19 @@ namespace Engine
         Log::Info(fmt::format("Mesh NumVertices: {0}", amesh->mNumVertices));
         Log::Info(fmt::format("Mesh NumFaces: {0}", amesh->mNumFaces));
 
+        glm::vec3 center(0.0f);
+        glm::vec3 max_pos(FLT_MIN);
+        glm::vec3 min_pos(FLT_MAX);
+
         for (unsigned int i = 0; i < amesh->mNumVertices; i++)
         {
             vertices.push_back(amesh->mVertices[i].x);
             vertices.push_back(amesh->mVertices[i].y);
             vertices.push_back(amesh->mVertices[i].z);
+
+            center += glm::vec3(amesh->mVertices[i].x, amesh->mVertices[i].y, amesh->mVertices[i].z);
+            max_pos = glm::max(max_pos, glm::vec3(amesh->mVertices[i].x, amesh->mVertices[i].y, amesh->mVertices[i].z));
+            min_pos = glm::min(min_pos, glm::vec3(amesh->mVertices[i].x, amesh->mVertices[i].y, amesh->mVertices[i].z));
 
             vertices.push_back(amesh->mNormals[i].x);
             vertices.push_back(amesh->mNormals[i].y);
@@ -134,6 +142,14 @@ namespace Engine
                                   {3, ShaderDataType::Float3, "a_Tangent"},
                                   {4, ShaderDataType::Float3, "a_Bitangent"},
                               });
+
+        if (amesh->mNumVertices > 0)
+        {
+            center /= (float)amesh->mNumVertices;
+        }
+        float radius = glm::distance(max_pos, min_pos) / 2.0f;
+
+        mesh->SetFrustumAABB({min_pos, max_pos});
 
         MBasicPbr* material = nullptr;
 
