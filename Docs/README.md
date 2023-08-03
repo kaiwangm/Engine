@@ -37,6 +37,7 @@
 - 2023-07-31 ✨ Voxel-Based Global Illumination (VXGI)
 - 2023-08-01 ✨ Specular-Glossiness workflow
 - 2023-08-01 ✨ Frustum Culling
+- 2023-08-02 ✨ Static batching
 - ......
 
 

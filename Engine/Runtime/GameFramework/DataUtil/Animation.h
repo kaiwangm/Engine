@@ -413,27 +413,27 @@ namespace Engine
 
             Mesh mesh;
 
-            mesh.AddVertexBuffer(
-                positions.data(), amesh->mNumVertices, 3, sizeof(float), {{0, ShaderDataType::Float3, "in_position"}});
-            mesh.AddVertexBuffer(texutreCoords.data(),
-                                 amesh->mNumVertices,
-                                 2,
-                                 sizeof(float),
-                                 {{1, ShaderDataType::Float2, "in_textureCoords"}});
-            mesh.AddVertexBuffer(
-                normals.data(), amesh->mNumVertices, 3, sizeof(float), {{2, ShaderDataType::Float3, "in_normal"}});
-            mesh.AddVertexBuffer(bindJointIDs.data(),
-                                 amesh->mNumVertices,
-                                 3,
-                                 sizeof(int),
-                                 {{3, ShaderDataType::Int3, "in_jointIndices"}});
-            mesh.AddVertexBuffer(weights.data(),
-                                 amesh->mNumVertices,
-                                 3,
-                                 sizeof(float),
-                                 {{4, ShaderDataType::Float3, "in_weights", true}});
+            // mesh.AddVertexBuffer(
+            //     positions.data(), amesh->mNumVertices, 3, sizeof(float), {{0, ShaderDataType::Float3, "in_position"}});
+            // mesh.AddVertexBuffer(texutreCoords.data(),
+            //                      amesh->mNumVertices,
+            //                      2,
+            //                      sizeof(float),
+            //                      {{1, ShaderDataType::Float2, "in_textureCoords"}});
+            // mesh.AddVertexBuffer(
+            //     normals.data(), amesh->mNumVertices, 3, sizeof(float), {{2, ShaderDataType::Float3, "in_normal"}});
+            // mesh.AddVertexBuffer(bindJointIDs.data(),
+            //                      amesh->mNumVertices,
+            //                      3,
+            //                      sizeof(int),
+            //                      {{3, ShaderDataType::Int3, "in_jointIndices"}});
+            // mesh.AddVertexBuffer(weights.data(),
+            //                      amesh->mNumVertices,
+            //                      3,
+            //                      sizeof(float),
+            //                      {{4, ShaderDataType::Float3, "in_weights", true}});
 
-            mesh.AddIndexBuffer(indices.data(), amesh->mNumFaces * 3);
+            // mesh.AddIndexBuffer(indices.data(), amesh->mNumFaces * 3);
 
             if (amesh->mMaterialIndex >= 0)
             {
@@ -442,14 +442,14 @@ namespace Engine
                 m_Textures.insert(m_Textures.end(), diffuseMaps.begin(), diffuseMaps.end());
                 if (diffuseMaps.size() != 0)
                 {
-                    mesh.AddTexture(diffuseMaps[0]);
+                    // mesh.AddTexture(diffuseMaps[0]);
                 }
 
                 auto specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
                 m_Textures.insert(m_Textures.end(), specularMaps.begin(), specularMaps.end());
                 if (specularMaps.size() != 0)
                 {
-                    mesh.AddTexture(specularMaps[0]);
+                    // mesh.AddTexture(specularMaps[0]);
                 }
             }
 
@@ -495,10 +495,10 @@ namespace Engine
                 }
                 shader->UnBind();
 
-                auto texture = mesh.m_Textures[0];
-                texture->Bind(0);
+                // auto texture = mesh.m_Textures[0];
+                // texture->Bind(0);
                 Renderer::Submit(mesh.m_VertexArray, shader, vpMat, transform);
-                texture->UnBind(0);
+                // texture->UnBind(0);
             }
         }
 

@@ -24,10 +24,11 @@ namespace Engine
                                         {2, ShaderDataType::Float2, "a_TexCoord"},
                                     }));
 
-        m_Meshes[0]->AddTexture(Texture2D::Create("Assets/Editor/Object/checkerboard/Checkerboard.png"));
+        // m_Meshes[0]->AddTexture(Texture2D::Create("Assets/Editor/Object/checkerboard/Checkerboard.png"));
     }
 
-    StaticMesh::StaticMesh(const std::string& path) : m_Directory(path.substr(0, path.find_last_of('/')))
+    StaticMesh::StaticMesh(const std::string& path, const bool batching) :
+        m_Directory(path.substr(0, path.find_last_of('/')))
     {
         Assimp::Importer import;
         const aiScene*   scene =
@@ -41,13 +42,85 @@ namespace Engine
 
         processNode(scene->mRootNode, scene);
 
-        for (int i = 0; i < m_Materials.size(); i++)
+        BufferLayout layout {
+            {0, ShaderDataType::Float3, "a_Position"},
+            {1, ShaderDataType::Float3, "a_Normal"},
+            {2, ShaderDataType::Float2, "a_TexCoord"},
+            {3, ShaderDataType::Float3, "a_Tangent"},
+            {4, ShaderDataType::Float3, "a_Bitangent"},
+        };
+
+        // Merge meshes with same material
+        if (batching == true)
         {
-            if (m_Materials[i] == nullptr)
+            for (auto& meshArray : m_LoadedMeshes)
             {
-                MBasicPbr* material = new MBasicPbr("Default");
-                m_Materials[i]      = material;
-                material->SetWorkflow(0);
+                std::string        materialName = meshArray.first;
+                std::vector<Mesh*> mergedMeshes;
+                for (int i = 0; i < meshArray.second.size(); i++)
+                {
+                    if (i == 0)
+                    {
+                        mergedMeshes.push_back(meshArray.second[i]);
+                        continue;
+                    }
+
+                    Mesh*     lastMergeMesh       = mergedMeshes.back();
+                    glm::vec3 lastMergeMeshCenter = lastMergeMesh->GetCenter();
+                    glm::vec3 currentMeshCenter   = meshArray.second[i]->GetCenter();
+
+                    if (glm::distance(lastMergeMeshCenter, currentMeshCenter) < 100.0f ||
+                        lastMergeMesh->GetIndiceSize() < 100000)
+                    {
+                        Mesh::Merge(lastMergeMesh, meshArray.second[i]);
+                        delete meshArray.second[i];
+                    }
+                    else
+                    {
+                        mergedMeshes.push_back(meshArray.second[i]);
+                    }
+                }
+                meshArray.second = mergedMeshes;
+            }
+        }
+
+        for (auto& meshArray : m_LoadedMeshes)
+        {
+            for (auto& mesh : meshArray.second)
+            {
+                mesh->CreateBuffer(layout);
+            }
+        }
+
+        for (auto& meshArray : m_LoadedMeshes)
+        {
+            std::string materialName = meshArray.first;
+            for (auto& mesh : meshArray.second)
+            {
+                m_Meshes.push_back(mesh);
+                m_Materials.push_back(m_LoadedMaterials[materialName]);
+            }
+        }
+    }
+
+    StaticMesh::~StaticMesh()
+    {
+        for (auto& meshArray : m_LoadedMeshes)
+        {
+            for (auto& mesh : meshArray.second)
+            {
+                if (mesh != nullptr)
+                {
+                    delete mesh;
+                }
+            }
+        }
+
+        for (auto& material : m_LoadedMaterials)
+        {
+            if (material.second != nullptr)
+            {
+                delete material.second;
             }
         }
     }
@@ -69,95 +142,52 @@ namespace Engine
 
     void StaticMesh::processMesh(aiMesh* amesh, const aiScene* scene)
     {
-        std::vector<float>    vertices;
-        std::vector<uint32_t> indices;
-        // std::vector<Texture> textures;
-
         Log::Info(fmt::format("Mesh Name: {0}", amesh->mName.C_Str()));
         Log::Info(fmt::format("Mesh NumVertices: {0}", amesh->mNumVertices));
         Log::Info(fmt::format("Mesh NumFaces: {0}", amesh->mNumFaces));
 
-        glm::vec3 center(0.0f);
-        glm::vec3 max_pos(FLT_MIN);
-        glm::vec3 min_pos(FLT_MAX);
+        Mesh* mesh = new Mesh();
 
         for (unsigned int i = 0; i < amesh->mNumVertices; i++)
         {
-            vertices.push_back(amesh->mVertices[i].x);
-            vertices.push_back(amesh->mVertices[i].y);
-            vertices.push_back(amesh->mVertices[i].z);
+            Mesh::Vertex vertex;
 
-            center += glm::vec3(amesh->mVertices[i].x, amesh->mVertices[i].y, amesh->mVertices[i].z);
-            max_pos = glm::max(max_pos, glm::vec3(amesh->mVertices[i].x, amesh->mVertices[i].y, amesh->mVertices[i].z));
-            min_pos = glm::min(min_pos, glm::vec3(amesh->mVertices[i].x, amesh->mVertices[i].y, amesh->mVertices[i].z));
-
-            vertices.push_back(amesh->mNormals[i].x);
-            vertices.push_back(amesh->mNormals[i].y);
-            vertices.push_back(amesh->mNormals[i].z);
+            vertex.position = glm::vec3(amesh->mVertices[i].x, amesh->mVertices[i].y, amesh->mVertices[i].z);
+            vertex.normal   = glm::vec3(amesh->mNormals[i].x, amesh->mNormals[i].y, amesh->mNormals[i].z);
 
             if (amesh->mTextureCoords[0])
             {
-                vertices.push_back(amesh->mTextureCoords[0][i].x);
-                vertices.push_back(amesh->mTextureCoords[0][i].y);
-
-                vertices.push_back(amesh->mTangents[i].x);
-                vertices.push_back(amesh->mTangents[i].y);
-                vertices.push_back(amesh->mTangents[i].z);
-
-                vertices.push_back(amesh->mBitangents[i].x);
-                vertices.push_back(amesh->mBitangents[i].y);
-                vertices.push_back(amesh->mBitangents[i].z);
+                vertex.texcoord  = glm::vec2(amesh->mTextureCoords[0][i].x, amesh->mTextureCoords[0][i].y);
+                vertex.tangent   = glm::vec3(amesh->mTangents[i].x, amesh->mTangents[i].y, amesh->mTangents[i].z);
+                vertex.bitangent = glm::vec3(amesh->mBitangents[i].x, amesh->mBitangents[i].y, amesh->mBitangents[i].z);
             }
             else
             {
-                vertices.push_back(0.0f);
-                vertices.push_back(0.0f);
-
-                vertices.push_back(0.0f);
-                vertices.push_back(0.0f);
-                vertices.push_back(0.0f);
-
-                vertices.push_back(0.0f);
-                vertices.push_back(0.0f);
-                vertices.push_back(0.0f);
+                vertex.texcoord  = glm::vec2(0.0f, 0.0f);
+                vertex.tangent   = glm::vec3(0.0f, 0.0f, 0.0f);
+                vertex.bitangent = glm::vec3(0.0f, 0.0f, 0.0f);
             }
+
+            mesh->AddVertex(vertex);
         }
 
         for (unsigned int i = 0; i < amesh->mNumFaces; i++)
         {
             aiFace face = amesh->mFaces[i];
             for (unsigned int j = 0; j < face.mNumIndices; j++)
-                indices.push_back(face.mIndices[j]);
+            {
+                mesh->AddIndex(face.mIndices[j]);
+            }
         }
 
-        Mesh* mesh = new Mesh(vertices.data(),
-                              indices.data(),
-                              amesh->mNumVertices,
-                              3 + 3 + 2 + 3 + 3,
-                              amesh->mNumFaces * 3,
-                              {
-                                  {0, ShaderDataType::Float3, "a_Position"},
-                                  {1, ShaderDataType::Float3, "a_Normal"},
-                                  {2, ShaderDataType::Float2, "a_TexCoord"},
-                                  {3, ShaderDataType::Float3, "a_Tangent"},
-                                  {4, ShaderDataType::Float3, "a_Bitangent"},
-                              });
-
-        if (amesh->mNumVertices > 0)
-        {
-            center /= (float)amesh->mNumVertices;
-        }
-        float radius = glm::distance(max_pos, min_pos) / 2.0f;
-
-        mesh->SetFrustumAABB({min_pos, max_pos});
-
-        MBasicPbr* material = nullptr;
+        MBasicPbr*  material     = nullptr;
+        std::string materialName = "_Default_Material_";
 
         if (amesh->mMaterialIndex > 0)
         {
             aiMaterial* mat = scene->mMaterials[amesh->mMaterialIndex];
-            Log::Info(fmt::format("Material Name: {0}", mat->GetName().C_Str()));
-            std::string materialName = mat->GetName().C_Str();
+            materialName    = mat->GetName().C_Str();
+            Log::Info(fmt::format("Material Name: {0}", materialName));
 
             if (m_LoadedMaterials.find(materialName) != m_LoadedMaterials.end())
             {
@@ -178,7 +208,7 @@ namespace Engine
 
                 float shininess;
                 mat->Get(AI_MATKEY_SHININESS, shininess);
-                float roughness = glm::clamp(1.0f - shininess / 120.0f, 0.05f, 0.97f);
+                float roughness = glm::clamp(1.0f - shininess / 150.0f, 0.05f, 0.97f);
                 material->SetRoughness(roughness);
 
                 Log::Info(fmt::format("Material Diffuse: {0}, {1}, {2}", diffuse.r, diffuse.g, diffuse.b));
@@ -209,11 +239,26 @@ namespace Engine
                     material->LoadSpecularMap(texturePath);
                 }
 
+                aiString opacityTexturePath;
+                if (mat->GetTexture(aiTextureType_OPACITY, 0, &opacityTexturePath) == AI_SUCCESS)
+                {
+                    std::string texturePath = m_Directory + "/" + opacityTexturePath.C_Str();
+                    Log::Info(fmt::format("Material Opacity Texture Path: {0}", texturePath));
+                    material->LoadOpacityMap(texturePath);
+                }
+
                 m_LoadedMaterials[materialName] = material;
             }
         }
+        else
+        {
+            material = new MBasicPbr(materialName);
+            material->SetWorkflow(0);
 
-        m_Meshes.push_back(mesh);
-        m_Materials.push_back(material);
+            m_LoadedMaterials[materialName] = material;
+        }
+
+        mesh->GenerateFrustumVolume();
+        m_LoadedMeshes[materialName].push_back(mesh);
     }
 } // namespace Engine

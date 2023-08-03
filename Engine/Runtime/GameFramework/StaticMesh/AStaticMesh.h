@@ -26,10 +26,11 @@ namespace Engine
                     const std::string& path,
                     const std::string& materialMode,
                     const std::string& materialName,
-                    const std::string& materialFolderName = "") :
+                    const std::string& materialFolderName = "",
+                    const bool         batching           = false) :
             AActor(world, handle, name)
         {
-            m_Mesh = m_World->RegisterComponents<UStaticMeshComponent>(m_EntityHandle, path);
+            m_Mesh = m_World->RegisterComponents<UStaticMeshComponent>(m_EntityHandle, path, batching);
             m_Mesh->SetOwner(this);
 
             if (materialMode == "BasicPbr")

@@ -48,15 +48,15 @@ namespace Engine
                           const glm::mat4&        pvMatrix,
                           const glm::mat4&        transform)
     {
-        shader->Bind();
-        shader->SetMat4("u_ViewProjection", pvMatrix);
-        shader->SetMat4("u_Transform", transform);
+        // shader->Bind();
+        // shader->SetMat4("u_ViewProjection", pvMatrix);
+        // shader->SetMat4("u_Transform", transform);
 
         vertexArray->Bind();
         RenderCommand::DrawIndexed(vertexArray);
 
         vertexArray->UnBind();
-        shader->UnBind();
+        // shader->UnBind();
     }
 
     void Renderer::DrawArray(const Ref<VertexArray>& vertexArray,

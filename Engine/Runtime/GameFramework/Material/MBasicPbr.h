@@ -21,6 +21,7 @@ namespace Engine
         Ref<Texture2D> m_AOMap;
         Ref<Texture2D> m_DiffuseMap;
         Ref<Texture2D> m_SpecularMap;
+        Ref<Texture2D> m_OpacityMap;
 
         int m_Workflow = 0;
 
@@ -31,6 +32,7 @@ namespace Engine
         bool m_UseAOMap        = false;
         bool m_UseDiffuseMap   = false;
         bool m_UseSpecularMap  = false;
+        bool m_UseOpacityMap   = false;
 
         int m_DiffuseMapChannels  = 0;
         int m_SpecularMapChannels = 0;
@@ -109,6 +111,11 @@ namespace Engine
             m_UseSpecularMap = true;
             m_SpecularMapChannels = m_SpecularMap->GetChannels();
         }
+        void LoadOpacityMap(const std::string& path)
+        {
+            m_OpacityMap    = Texture2D::Create(path);
+            m_UseOpacityMap = true;
+        }
 
         void BindAllMap(const Ref<Shader> shader)
         {
@@ -144,6 +151,9 @@ namespace Engine
             shader->SetInt("diffuseMapChannels", m_DiffuseMapChannels);
             shader->SetInt("specularMapChannels", m_SpecularMapChannels);
 
+            shader->SetBool("useOpacityMap", m_UseOpacityMap);
+            shader->SetInt("opacityMap", 7);
+
             if (m_UseAlbedoMap == true)
             {
                 m_AlbedoMap->Bind(0);
@@ -171,6 +181,10 @@ namespace Engine
             if (m_UseSpecularMap == true)
             {
                 m_SpecularMap->Bind(6);
+            }
+            if (m_UseOpacityMap == true)
+            {
+                m_OpacityMap->Bind(7);
             }
         }
 
@@ -203,6 +217,10 @@ namespace Engine
             if (m_UseSpecularMap == true)
             {
                 m_SpecularMap->UnBind(6);
+            }
+            if (m_UseOpacityMap == true)
+            {
+                m_OpacityMap->UnBind(7);
             }
         }
 

@@ -13,9 +13,20 @@ namespace Engine
 {
     struct Mesh
     {
-        Ref<VertexArray>            m_VertexArray;
-        std::vector<Ref<Texture2D>> m_Textures;
-        FrustumAABB                 m_FrustumVolume;
+        struct Vertex
+        {
+            glm::vec3 position;
+            glm::vec3 normal;
+            glm::vec2 texcoord;
+            glm::vec3 tangent;
+            glm::vec3 bitangent;
+        };
+
+        std::vector<Vertex>   m_Vertices;
+        std::vector<uint32_t> m_Indices;
+
+        Ref<VertexArray> m_VertexArray;
+        FrustumAABB      m_FrustumVolume;
 
         Mesh();
         Mesh(const void*        vertices,
@@ -25,14 +36,18 @@ namespace Engine
              const uint32_t     indice_count,
              const BufferLayout layout);
 
-        void AddTexture(const Ref<Texture2D>& texture);
-        void AddVertexBuffer(const void*        vertices_array,
-                             const uint32_t     vertice_count,
-                             const uint32_t     attribute_count,
-                             const uint32_t     attribute_size,
-                             const BufferLayout layout);
-        void AddIndexBuffer(const uint32_t* indices, const uint32_t indice_count);
+        static Mesh* Merge(Mesh* mesh1, const Mesh* mesh2);
 
+        uint32_t GetVerticeSize() const;
+        uint32_t GetIndiceSize() const;
+
+        void AddVertex(const Vertex& vertex);
+        void AddIndex(const uint32_t& index);
+        void CreateBuffer(const BufferLayout& layout);
+
+        glm::vec3 GetCenter();
+
+        void           GenerateFrustumVolume();
         FrustumVolume* GetFrustumVolume();
         void           SetFrustumAABB(const FrustumAABB& volume);
     };

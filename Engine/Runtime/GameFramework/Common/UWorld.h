@@ -90,26 +90,26 @@ namespace Engine
         float m_VisPrePrefilterMipLevel = 0.0f;
         int   m_ViewportGBufferMap      = 0;
 
-        float m_Dir_Diffuse  = 1.0f;
-        float m_Dir_Specular = 1.0f;
-        float m_Env_Diffuse  = 1.0f;
+        float m_Dir_Diffuse  = 0.7f;
+        float m_Dir_Specular = 0.7f;
+        float m_Env_Diffuse  = 0.5f;
         float m_Env_Specular = 0.03f;
-        float m_VoxelGI      = 1.8f;
-        float m_SSR_Factor   = 1.0f;
+        float m_VoxelGI      = 0.9f;
+        float m_SSR_Factor   = 0.7f;
 
         struct ScreenSpaceReflection
         {
             bool  debug                             = false;
-            float rayStep                           = 0.01f;
+            float rayStep                           = 0.03f;
             float minRayStep                        = 0.1f;
-            float maxSteps                          = 500.0f;
+            float maxSteps                          = 75.0f;
             int   numBinarySearchSteps              = 5;
             float reflectionSpecularFalloffExponent = 1.0f;
             float refBias                           = 0.001f;
         } m_SSR_settings;
 
         float m_Bloom_Intensity   = 0.08f;
-        float m_PCSS_FilterRadius = 1.0f;
+        float m_PCSS_FilterRadius = 0.3f;
 
         struct VoxelGI
         {
@@ -125,8 +125,8 @@ namespace Engine
             int                 voxel_grid_resolution = 256;
             int                 max_mipmap_level      = 8;
             glm::vec3           scene_voxel_scale     = glm::vec3(1.0f) / 18.0f;
-            ConeTracingSettings diffuse               = {0.577f, 0.119f, 0.081f, 2.0f, 1.0f};
-            ConeTracingSettings specular              = {0.027f, 0.146f, 0.081f, 2.0f, 1.0f};
+            ConeTracingSettings diffuse               = {0.577f, 0.119f, 0.03f, 2.0f, 1.0f};
+            ConeTracingSettings specular              = {0.027f, 0.146f, 0.03f, 2.0f, 1.0f};
         } m_VoxelGI_settings;
 
         entt::entity entity_selected = entt::null;

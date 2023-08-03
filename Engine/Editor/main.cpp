@@ -34,7 +34,7 @@ namespace Engine
             m_Camera                   = camera_viewport;
 
             auto skybox =
-                m_World->AddActor<ASkybox>("skybox", "Assets/Editor/Skybox/TheSkyIsOnFire/the_sky_is_on_fire_8k.hdr");
+                m_World->AddActor<ASkybox>("skybox", "Assets/Editor/Object/bistro/san_giuseppe_bridge_4k.hdr");
 
             // m_World->AddActor<AActor>("Actor");
 
@@ -62,7 +62,7 @@ namespace Engine
                                                              "BasicPbr",
                                                              "basic_red_sphere",
                                                              "basic_red_sphere");
-            red_sphere.GetTransformComponent().SetPosition(glm::vec3 {1.0f, 1.5f, 0.0f});
+            red_sphere.GetTransformComponent().SetPosition(glm::vec3 {-6.960f, 1.751f, 1.916f});
             MBasicPbr* red_sphere_material = static_cast<MBasicPbr*>(red_sphere.GetMaterial());
             red_sphere_material->SetAlbedo(glm::vec3 {0.8f, 0.0f, 0.0f});
             red_sphere_material->SetMetallic(0.3f);
@@ -186,9 +186,9 @@ namespace Engine
             auto sky_light = m_World->AddActor<ADirectionalLight>("sky light");
             sky_light.GetTransformComponent().SetPosition(glm::vec3 {18.0f, 30.0f, 18.0f});
 
-            sky_light.GetDirectionalLightComponentRef().SetColor(glm::vec3 {0.72f, 0.54f, 0.50f});
-            sky_light.GetDirectionalLightComponentRef().SetDirection(glm::vec3 {-18.0f, -30.0f, -18.0f});
-            sky_light.GetDirectionalLightComponentRef().SetIntensity(18.0f);
+            sky_light.GetDirectionalLightComponentRef().SetColor(glm::vec3 {0.9f, 0.9f, 0.85f});
+            sky_light.GetDirectionalLightComponentRef().SetDirection(glm::vec3 {-0.330f, -0.885f, -0.330f});
+            sky_light.GetDirectionalLightComponentRef().SetIntensity(10.0f);
 
             // auto pointcloud =
             //     m_World->AddActor<APointCloud>("pointcloud",
@@ -196,19 +196,21 @@ namespace Engine
             // pointcloud.GetTransformComponent().SetPosition(glm::vec3 {0.0f, 0.0f, 0.0f});
             // pointcloud.GetTransformComponent().SetScale(glm::vec3 {0.01f, 0.01f, 0.01f});
 
-            // auto bistro = m_World->AddActor<AStaticMesh>("bistro", //
-            //                                              "Assets/Editor/Object/bistro/Exterior/exterior.obj",
-            //                                              "Texture",
-            //                                              "streaky-metal1_bistro",
-            //                                              "streaky-metal1");
-            // bistro.GetTransformComponent().SetScale(glm::vec3 {0.01f, 0.01f, 0.01f});
-
-            auto sponza = m_World->AddActor<AStaticMesh>("sponza", //
-                                                         "Assets/Editor/Object/sponza/sponza.obj",
+            auto bistro = m_World->AddActor<AStaticMesh>("bistro", //
+                                                         "Assets/Editor/Object/bistro/Exterior/exterior.obj",
                                                          "Texture",
-                                                         "streaky-metal1_sponza",
-                                                         "streaky-metal1");
-            sponza.GetTransformComponent().SetScale(glm::vec3 {0.01f, 0.01f, 0.01f});
+                                                         "streaky-metal1_bistro",
+                                                         "streaky-metal1",
+                                                         true);
+            bistro.GetTransformComponent().SetScale(glm::vec3 {0.01f, 0.01f, 0.01f});
+
+            // auto sponza = m_World->AddActor<AStaticMesh>("sponza", //
+            //                                              "Assets/Editor/Object/sponza/sponza.obj",
+            //                                              "Texture",
+            //                                              "streaky-metal1_sponza",
+            //                                              "streaky-metal1",
+            //                                              true);
+            // sponza.GetTransformComponent().SetScale(glm::vec3 {0.01f, 0.01f, 0.01f});
 
             m_Callbacks["Open"] = std::function<void()>([&]() {
                 std::string filepath = OpenFile();

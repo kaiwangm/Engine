@@ -372,7 +372,7 @@ namespace Engine
             RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
             RenderCommand::Clear();
 
-            const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 800.0f);
+            const glm::mat4 lightProjection = glm::ortho(-70.0f, 70.0f, -70.0f, 70.0f, 0.5f, 100.0f);;
             const glm::vec3 lightPosition   = trans.GetPosition();
             const glm::vec3 lightDirection  = light.GetDirectionRef();
             const glm::mat4 lightView =
@@ -402,7 +402,7 @@ namespace Engine
             shadowMapBuffer.UnBind();
         }
 
-        glm::vec3 probePosition = glm::vec3(0.0f, 9.0f, 0.0f);
+        glm::vec3 probePosition = glm::vec3(0.0f, 18.0f, 0.0f);
 
         glm::mat4                projectionMatrices = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 100.0f);
         std::array<glm::mat4, 6> viewMatrices       = {
@@ -458,7 +458,7 @@ namespace Engine
                         shader->SetMat4("u_MProjection", m_PMatrix);
                         shader->SetMat4("u_MView", m_VMatrix);
                         shader->SetMat4("u_MTransform", trans.GetTransform());
-                        shader->UnBind();
+                        // shader->UnBind();
 
                         Renderer::Submit(mesh->m_VertexArray, shader, m_VPMatrix, trans.GetTransform());
 
@@ -606,7 +606,7 @@ namespace Engine
                 int dirctionallight_num = 0;
                 for (auto [entity, name, trans, light] : dirctionallight_view.each())
                 {
-                    const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 800.0f);
+                    const glm::mat4 lightProjection = glm::ortho(-70.0f, 70.0f, -70.0f, 70.0f, 0.5f, 100.0f);;
                     const glm::vec3 lightPosition   = trans.GetPosition();
                     const glm::vec3 lightDirection  = light.GetDirectionRef();
                     const glm::mat4 lightView =
@@ -716,7 +716,7 @@ namespace Engine
                 int dirctionallight_num = 0;
                 for (auto [entity, name, trans, light] : dirctionallight_view.each())
                 {
-                    const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 800.0f);
+                    const glm::mat4 lightProjection = glm::ortho(-70.0f, 70.0f, -70.0f, 70.0f, 0.5f, 100.0f);;
                     const glm::vec3 lightPosition   = trans.GetPosition();
                     const glm::vec3 lightDirection  = light.GetDirectionRef();
                     const glm::mat4 lightView =
@@ -1461,7 +1461,7 @@ namespace Engine
                     RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
                     RenderCommand::Clear();
 
-                    const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 800.0f);
+                    const glm::mat4 lightProjection = glm::ortho(-70.0f, 70.0f, -70.0f, 70.0f, 0.5f, 100.0f);;
                     glm::vec3       cameraPosition  = actor_mainCamera->GetTransformComponent().GetPosition();
                     cameraPosition.y                = 0.0f;
                     const glm::vec3 lightPosition   = trans.GetPosition();
@@ -1534,7 +1534,7 @@ namespace Engine
                 glCullFace(GL_BACK);
             }
 
-            isShadowMapGenerated = true;
+            // isShadowMapGenerated = true;
         }
 
         // VoxelGI_VoxelTexture
@@ -1610,7 +1610,7 @@ namespace Engine
                     int dirctionallight_num = 0;
                     for (auto [lightEntity, lightName, lightTrans, light] : dirctionallight_view.each())
                     {
-                        const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 800.0f);
+                        const glm::mat4 lightProjection = glm::ortho(-70.0f, 70.0f, -70.0f, 70.0f, 0.5f, 100.0f);;
                         glm::vec3       cameraPosition  = actor_mainCamera->GetTransformComponent().GetPosition();
                         cameraPosition.y                = 0.0f;
                         const glm::vec3 lightPosition   = lightTrans.GetPosition();
@@ -1680,38 +1680,38 @@ namespace Engine
 
             if (materialType == "BasicPbr")
             {
-                const auto meshes    = model.GetStaticMesh().m_Meshes;
-                const auto materials = model.GetStaticMesh().m_Materials;
-                for (int i = 0; i < meshes.size(); ++i)
+                auto shader = m_ShaderLibrary.Get("GBuffer");
+                shader->Bind();
+
+                shader->SetMat4("u_MProjection", m_PMatrix);
+                shader->SetMat4("u_MView", m_VMatrix);
+                shader->SetMat4("u_MTransform", trans.GetTransform());
+
+                const Frustum frustum =
+                    m_MainCamera->CreateFrustumFromCamera(actor_mainCamera->GetTransformComponent());
+                const auto& materials = model.GetStaticMesh().m_LoadedMaterials;
+                const auto& meshes    = model.GetStaticMesh().m_LoadedMeshes;
+
+                for (const auto& meshArray : meshes)
                 {
-                    const auto mesh              = meshes[i];
-                    const auto material_basicPbr = static_cast<MBasicPbr*>(materials[i]);
-
-                    const Frustum        frustum       = m_MainCamera->CreateFrustumFromCamera(actor_mainCamera->GetTransformComponent());
-                    const FrustumVolume* frustumVolume = mesh->GetFrustumVolume();
-
-                    if (frustumVolume->isOnFrustum(frustum, trans) == false)
-                    {
-                        continue;
-                    }
-
-                    auto shader = m_ShaderLibrary.Get("GBuffer");
-                    shader->Bind();
-
+                    std::string      materialName      = meshArray.first;
+                    const auto material_basicPbr = static_cast<MBasicPbr*>(materials.at(materialName));
                     material_basicPbr->BindAllMap(shader);
+                    for (const auto& mesh : meshArray.second)
+                    {
+                        const FrustumVolume* frustumVolume = mesh->GetFrustumVolume();
 
-                    shader->Bind();
-                    shader->SetMat4("u_MProjection", m_PMatrix);
-                    shader->SetMat4("u_MView", m_VMatrix);
-                    shader->SetMat4("u_MTransform", trans.GetTransform());
-                    shader->UnBind();
+                        if (frustumVolume->isOnFrustum(frustum, trans) == false)
+                        {
+                            continue;
+                        }
 
-                    Renderer::Submit(mesh->m_VertexArray, shader, m_VPMatrix, trans.GetTransform());
-
+                        Renderer::Submit(mesh->m_VertexArray, shader, m_VPMatrix, trans.GetTransform());
+                    }
                     material_basicPbr->UnBindAllMap(shader);
-
-                    shader->UnBind();
                 }
+
+                shader->UnBind();
             }
         }
 
@@ -1966,7 +1966,7 @@ namespace Engine
             int dirctionallight_num = 0;
             for (auto [entity, name, trans, light] : dirctionallight_view.each())
             {
-                const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 800.0f);
+                const glm::mat4 lightProjection = glm::ortho(-70.0f, 70.0f, -70.0f, 70.0f, 0.5f, 100.0f);;
                 glm::vec3       cameraPosition  = actor_mainCamera->GetTransformComponent().GetPosition();
                 cameraPosition.y                = 0.0f;
                 const glm::vec3 lightPosition   = trans.GetPosition();
@@ -2075,7 +2075,7 @@ namespace Engine
             int dirctionallight_num = 0;
             for (auto [entity, name, trans, light] : dirctionallight_view.each())
             {
-                const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 0.5f, 800.0f);
+                const glm::mat4 lightProjection = glm::ortho(-70.0f, 70.0f, -70.0f, 70.0f, 0.5f, 100.0f);;
                 glm::vec3       cameraPosition  = actor_mainCamera->GetTransformComponent().GetPosition();
                 cameraPosition.y                = 0.0f;
                 const glm::vec3 lightPosition   = trans.GetPosition();
@@ -3015,7 +3015,6 @@ namespace Engine
         ImGui::Separator();
 
         Gui::Text("Bloom");
-        ImGui::SliderFloat("FilterRadius", &m_PCSS_FilterRadius, 0.0f, 30.0f);
         Gui::SliderFloat("Intensity", m_Bloom_Intensity, 0.0f, 1.0f);
 
         ImGui::Separator();

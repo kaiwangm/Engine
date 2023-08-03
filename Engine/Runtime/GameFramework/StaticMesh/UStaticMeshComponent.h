@@ -11,7 +11,7 @@ namespace Engine
 
     public:
         UStaticMeshComponent() : m_StaticMesh() {}
-        UStaticMeshComponent(const std::string path) : m_StaticMesh(path) {}
+        UStaticMeshComponent(const std::string path, const bool batching = false) : m_StaticMesh(path, batching) {}
 
         StaticMesh& GetStaticMesh() { return m_StaticMesh; }
     };
