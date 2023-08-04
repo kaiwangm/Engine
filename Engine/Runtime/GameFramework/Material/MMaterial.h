@@ -20,6 +20,8 @@ namespace Engine
         {}
         MMaterial() {}
         virtual ~MMaterial() {}
+        virtual void BufferTextures() {};
+        virtual void ClearTextures() {};
 
         std::string GetName() const { return m_Name; }
         std::string GetMaterialType() const { return m_MaterialType; }

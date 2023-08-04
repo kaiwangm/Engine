@@ -37,6 +37,8 @@ namespace Engine
         int m_DiffuseMapChannels  = 0;
         int m_SpecularMapChannels = 0;
 
+        bool isBuffered = false;
+
     public:
         MBasicPbr(const std::string& name) : MMaterial(name, "BasicPbr") {}
 
@@ -51,7 +53,7 @@ namespace Engine
             LoadAOMap("Assets/Editor/Material/" + folderName + "/" + folderName + "_ao.png");
         }
 
-        ~MBasicPbr() = default;
+        virtual ~MBasicPbr() override {};
 
         void SetWorkflow(const int workflow) { m_Workflow = workflow; }
         int& GetWorkflowRef() { return m_Workflow; }
@@ -101,20 +103,106 @@ namespace Engine
         }
         void LoadDiffuseMap(const std::string& path)
         {
-            m_DiffuseMap    = Texture2D::Create(path);
-            m_UseDiffuseMap = true;
+            m_DiffuseMap         = Texture2D::Create(path);
+            m_UseDiffuseMap      = true;
             m_DiffuseMapChannels = m_DiffuseMap->GetChannels();
         }
         void LoadSpecularMap(const std::string& path)
         {
-            m_SpecularMap    = Texture2D::Create(path);
-            m_UseSpecularMap = true;
+            m_SpecularMap         = Texture2D::Create(path);
+            m_UseSpecularMap      = true;
             m_SpecularMapChannels = m_SpecularMap->GetChannels();
         }
         void LoadOpacityMap(const std::string& path)
         {
             m_OpacityMap    = Texture2D::Create(path);
             m_UseOpacityMap = true;
+        }
+
+        virtual void BufferTextures() override
+        {
+            if (isBuffered == true)
+            {
+                return;
+            }
+
+            if (m_UseAlbedoMap == true)
+            {
+                m_AlbedoMap->Buffer();
+            }
+            if (m_UseNormalMap == true)
+            {
+                m_NormalMap->Buffer();
+            }
+            if (m_UseMetallicMap == true)
+            {
+                m_MetallicMap->Buffer();
+            }
+            if (m_UseRoughnessMap == true)
+            {
+                m_RoughnessMap->Buffer();
+            }
+            if (m_UseAOMap == true)
+            {
+                m_AOMap->Buffer();
+            }
+            if (m_UseDiffuseMap == true)
+            {
+                m_DiffuseMap->Buffer();
+            }
+            if (m_UseSpecularMap == true)
+            {
+                m_SpecularMap->Buffer();
+            }
+            if (m_UseOpacityMap == true)
+            {
+                m_OpacityMap->Buffer();
+            }
+
+            isBuffered = true;
+        }
+
+        virtual void ClearTextures() override
+        {
+            if (isBuffered == false)
+            {
+                return;
+            }
+
+            if (m_UseAlbedoMap == true)
+            {
+                m_AlbedoMap->Clear();
+            }
+            if (m_UseNormalMap == true)
+            {
+                m_NormalMap->Clear();
+            }
+            if (m_UseMetallicMap == true)
+            {
+                m_MetallicMap->Clear();
+            }
+            if (m_UseRoughnessMap == true)
+            {
+                m_RoughnessMap->Clear();
+            }
+            if (m_UseAOMap == true)
+            {
+                m_AOMap->Clear();
+            }
+            if (m_UseDiffuseMap == true)
+            {
+                m_DiffuseMap->Clear();
+            }
+            if (m_UseSpecularMap == true)
+            {
+                m_SpecularMap->Clear();
+            }
+            if (m_UseOpacityMap == true)
+            {
+                m_OpacityMap->Clear();
+            }
+
+            isBuffered = false;
         }
 
         void BindAllMap(const Ref<Shader> shader)

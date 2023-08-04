@@ -372,9 +372,10 @@ namespace Engine
             RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
             RenderCommand::Clear();
 
-            const glm::mat4 lightProjection = glm::ortho(-70.0f, 70.0f, -70.0f, 70.0f, 0.5f, 100.0f);;
-            const glm::vec3 lightPosition   = trans.GetPosition();
-            const glm::vec3 lightDirection  = light.GetDirectionRef();
+            const glm::mat4 lightProjection = glm::ortho(-70.0f, 70.0f, -70.0f, 70.0f, 0.5f, 120.0f);
+            ;
+            const glm::vec3 lightPosition  = trans.GetPosition();
+            const glm::vec3 lightDirection = light.GetDirectionRef();
             const glm::mat4 lightView =
                 glm::lookAt(lightPosition, lightPosition + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
             const glm::mat4 lightSpaceMatrix = lightProjection * lightView;
@@ -606,9 +607,10 @@ namespace Engine
                 int dirctionallight_num = 0;
                 for (auto [entity, name, trans, light] : dirctionallight_view.each())
                 {
-                    const glm::mat4 lightProjection = glm::ortho(-70.0f, 70.0f, -70.0f, 70.0f, 0.5f, 100.0f);;
-                    const glm::vec3 lightPosition   = trans.GetPosition();
-                    const glm::vec3 lightDirection  = light.GetDirectionRef();
+                    const glm::mat4 lightProjection = glm::ortho(-70.0f, 70.0f, -70.0f, 70.0f, 0.5f, 120.0f);
+                    ;
+                    const glm::vec3 lightPosition  = trans.GetPosition();
+                    const glm::vec3 lightDirection = light.GetDirectionRef();
                     const glm::mat4 lightView =
                         glm::lookAt(lightPosition, lightPosition + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
                     const glm::mat4 lightSpaceMatrix = lightProjection * lightView;
@@ -716,9 +718,10 @@ namespace Engine
                 int dirctionallight_num = 0;
                 for (auto [entity, name, trans, light] : dirctionallight_view.each())
                 {
-                    const glm::mat4 lightProjection = glm::ortho(-70.0f, 70.0f, -70.0f, 70.0f, 0.5f, 100.0f);;
-                    const glm::vec3 lightPosition   = trans.GetPosition();
-                    const glm::vec3 lightDirection  = light.GetDirectionRef();
+                    const glm::mat4 lightProjection = glm::ortho(-70.0f, 70.0f, -70.0f, 70.0f, 0.5f, 120.0f);
+                    ;
+                    const glm::vec3 lightPosition  = trans.GetPosition();
+                    const glm::vec3 lightDirection = light.GetDirectionRef();
                     const glm::mat4 lightView =
                         glm::lookAt(lightPosition, lightPosition + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
                     const glm::mat4 lightSpaceMatrix = lightProjection * lightView;
@@ -1461,11 +1464,12 @@ namespace Engine
                     RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
                     RenderCommand::Clear();
 
-                    const glm::mat4 lightProjection = glm::ortho(-70.0f, 70.0f, -70.0f, 70.0f, 0.5f, 100.0f);;
-                    glm::vec3       cameraPosition  = actor_mainCamera->GetTransformComponent().GetPosition();
-                    cameraPosition.y                = 0.0f;
-                    const glm::vec3 lightPosition   = trans.GetPosition();
-                    const glm::vec3 lightDirection  = light.GetDirectionRef();
+                    const glm::mat4 lightProjection = glm::ortho(-70.0f, 70.0f, -70.0f, 70.0f, 0.5f, 120.0f);
+                    ;
+                    glm::vec3 cameraPosition       = actor_mainCamera->GetTransformComponent().GetPosition();
+                    cameraPosition.y               = 0.0f;
+                    const glm::vec3 lightPosition  = trans.GetPosition();
+                    const glm::vec3 lightDirection = light.GetDirectionRef();
                     const glm::mat4 lightView =
                         glm::lookAt(lightPosition, lightPosition + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
                     const glm::mat4 lightSpaceMatrix = lightProjection * lightView;
@@ -1534,7 +1538,7 @@ namespace Engine
                 glCullFace(GL_BACK);
             }
 
-            // isShadowMapGenerated = true;
+            isShadowMapGenerated = true;
         }
 
         // VoxelGI_VoxelTexture
@@ -1610,11 +1614,12 @@ namespace Engine
                     int dirctionallight_num = 0;
                     for (auto [lightEntity, lightName, lightTrans, light] : dirctionallight_view.each())
                     {
-                        const glm::mat4 lightProjection = glm::ortho(-70.0f, 70.0f, -70.0f, 70.0f, 0.5f, 100.0f);;
-                        glm::vec3       cameraPosition  = actor_mainCamera->GetTransformComponent().GetPosition();
-                        cameraPosition.y                = 0.0f;
-                        const glm::vec3 lightPosition   = lightTrans.GetPosition();
-                        const glm::vec3 lightDirection  = light.GetDirectionRef();
+                        const glm::mat4 lightProjection = glm::ortho(-70.0f, 70.0f, -70.0f, 70.0f, 0.5f, 120.0f);
+                        ;
+                        glm::vec3 cameraPosition       = actor_mainCamera->GetTransformComponent().GetPosition();
+                        cameraPosition.y               = 0.0f;
+                        const glm::vec3 lightPosition  = lightTrans.GetPosition();
+                        const glm::vec3 lightDirection = light.GetDirectionRef();
                         const glm::mat4 lightView =
                             glm::lookAt(lightPosition, lightPosition + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
                         const glm::mat4 lightSpaceMatrix = lightProjection * lightView;
@@ -1694,9 +1699,11 @@ namespace Engine
 
                 for (const auto& meshArray : meshes)
                 {
-                    std::string      materialName      = meshArray.first;
-                    const auto material_basicPbr = static_cast<MBasicPbr*>(materials.at(materialName));
+                    std::string materialName      = meshArray.first;
+                    const auto  material_basicPbr = static_cast<MBasicPbr*>(materials.at(materialName));
                     material_basicPbr->BindAllMap(shader);
+
+                    uint32_t drawedMeshCount = 0;
                     for (const auto& mesh : meshArray.second)
                     {
                         const FrustumVolume* frustumVolume = mesh->GetFrustumVolume();
@@ -1705,12 +1712,18 @@ namespace Engine
                         {
                             continue;
                         }
+                        // material_basicPbr->BufferTextures();
 
                         Renderer::Submit(mesh->m_VertexArray, shader, m_VPMatrix, trans.GetTransform());
+                        drawedMeshCount++;
                     }
                     material_basicPbr->UnBindAllMap(shader);
-                }
 
+                    if (drawedMeshCount == 0)
+                    {
+                        // material_basicPbr->ClearTextures();
+                    }
+                }
                 shader->UnBind();
             }
         }
@@ -1966,11 +1979,12 @@ namespace Engine
             int dirctionallight_num = 0;
             for (auto [entity, name, trans, light] : dirctionallight_view.each())
             {
-                const glm::mat4 lightProjection = glm::ortho(-70.0f, 70.0f, -70.0f, 70.0f, 0.5f, 100.0f);;
-                glm::vec3       cameraPosition  = actor_mainCamera->GetTransformComponent().GetPosition();
-                cameraPosition.y                = 0.0f;
-                const glm::vec3 lightPosition   = trans.GetPosition();
-                const glm::vec3 lightDirection  = light.GetDirectionRef();
+                const glm::mat4 lightProjection = glm::ortho(-70.0f, 70.0f, -70.0f, 70.0f, 0.5f, 120.0f);
+                ;
+                glm::vec3 cameraPosition       = actor_mainCamera->GetTransformComponent().GetPosition();
+                cameraPosition.y               = 0.0f;
+                const glm::vec3 lightPosition  = trans.GetPosition();
+                const glm::vec3 lightDirection = light.GetDirectionRef();
                 const glm::mat4 lightView =
                     glm::lookAt(lightPosition, lightPosition + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
                 const glm::mat4 lightSpaceMatrix = lightProjection * lightView;
@@ -2075,11 +2089,12 @@ namespace Engine
             int dirctionallight_num = 0;
             for (auto [entity, name, trans, light] : dirctionallight_view.each())
             {
-                const glm::mat4 lightProjection = glm::ortho(-70.0f, 70.0f, -70.0f, 70.0f, 0.5f, 100.0f);;
-                glm::vec3       cameraPosition  = actor_mainCamera->GetTransformComponent().GetPosition();
-                cameraPosition.y                = 0.0f;
-                const glm::vec3 lightPosition   = trans.GetPosition();
-                const glm::vec3 lightDirection  = light.GetDirectionRef();
+                const glm::mat4 lightProjection = glm::ortho(-70.0f, 70.0f, -70.0f, 70.0f, 0.5f, 120.0f);
+                ;
+                glm::vec3 cameraPosition       = actor_mainCamera->GetTransformComponent().GetPosition();
+                cameraPosition.y               = 0.0f;
+                const glm::vec3 lightPosition  = trans.GetPosition();
+                const glm::vec3 lightDirection = light.GetDirectionRef();
                 const glm::mat4 lightView =
                     glm::lookAt(lightPosition, lightPosition + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
                 const glm::mat4 lightSpaceMatrix = lightProjection * lightView;
@@ -2995,17 +3010,17 @@ namespace Engine
         Gui::Text("Voxel-Based Global Illumination (VXGI)");
         ImGui::SliderInt("Voxel Grid Resolution", &m_VoxelGI_settings.voxel_grid_resolution, 1, 256);
         ImGui::SliderInt("Max Mipmap Level", &m_VoxelGI_settings.max_mipmap_level, 1, 10);
-        ImGui::SliderFloat3("Scene Voxel Scale", &m_VoxelGI_settings.scene_voxel_scale[0], 0.0f, 1.0f);
-        ImGui::SliderFloat("Diffuse Aperture", &m_VoxelGI_settings.diffuse.aperture, 0.0f, 1.0f);
-        ImGui::SliderFloat("Diffuse Sampling Factor", &m_VoxelGI_settings.diffuse.sampling_factor, 0.01f, 1.0f);
-        ImGui::SliderFloat("Diffuse Distance Offset", &m_VoxelGI_settings.diffuse.distance_offset, 0.0f, 1.0f);
-        ImGui::SliderFloat("Diffuse Max Distance", &m_VoxelGI_settings.diffuse.max_distance, 0.0f, 5.0f);
-        ImGui::SliderFloat("Diffuse Result Intensity", &m_VoxelGI_settings.diffuse.result_intensity, 0.0f, 10.0f);
-        ImGui::SliderFloat("Specular Aperture", &m_VoxelGI_settings.specular.aperture, 0.0f, 1.0f);
-        ImGui::SliderFloat("Specular Sampling Factor", &m_VoxelGI_settings.specular.sampling_factor, 0.01f, 1.0f);
-        ImGui::SliderFloat("Specular Distance Offset", &m_VoxelGI_settings.specular.distance_offset, 0.0f, 1.0f);
-        ImGui::SliderFloat("Specular Max Distance", &m_VoxelGI_settings.specular.max_distance, 0.0f, 5.0f);
-        ImGui::SliderFloat("Specular Result Intensity", &m_VoxelGI_settings.specular.result_intensity, 0.0f, 10.0f);
+        ImGui::SliderFloat3("Scene Voxel Scale", &m_VoxelGI_settings.scene_voxel_scale[0], 0.05f, 1.0f);
+        ImGui::SliderFloat("Diffuse Aperture", &m_VoxelGI_settings.diffuse.aperture, 00.05f, 1.0f);
+        ImGui::SliderFloat("Diffuse Sampling Factor", &m_VoxelGI_settings.diffuse.sampling_factor, 0.05f, 1.0f);
+        ImGui::SliderFloat("Diffuse Distance Offset", &m_VoxelGI_settings.diffuse.distance_offset, 0.05f, 1.0f);
+        ImGui::SliderFloat("Diffuse Max Distance", &m_VoxelGI_settings.diffuse.max_distance, 0.05f, 5.0f);
+        ImGui::SliderFloat("Diffuse Result Intensity", &m_VoxelGI_settings.diffuse.result_intensity, 0.05f, 10.0f);
+        ImGui::SliderFloat("Specular Aperture", &m_VoxelGI_settings.specular.aperture, 0.05f, 1.0f);
+        ImGui::SliderFloat("Specular Sampling Factor", &m_VoxelGI_settings.specular.sampling_factor, 0.05f, 1.0f);
+        ImGui::SliderFloat("Specular Distance Offset", &m_VoxelGI_settings.specular.distance_offset, 0.05f, 1.0f);
+        ImGui::SliderFloat("Specular Max Distance", &m_VoxelGI_settings.specular.max_distance, 0.05f, 5.0f);
+        ImGui::SliderFloat("Specular Result Intensity", &m_VoxelGI_settings.specular.result_intensity, 0.05f, 10.0f);
 
         ImGui::Separator();
 

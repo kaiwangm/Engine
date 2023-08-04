@@ -13,10 +13,10 @@ namespace Engine
         {
             m_World = std::make_shared<UWorld>();
 
-            auto  camera_viewport = std::make_shared<PerspectiveCamera>(70.0f, 1.778f, 0.01f, 800.0f);
+            auto  camera_viewport = std::make_shared<PerspectiveCamera>(60.0f, 1.778f, 0.01f, 800.0f);
             auto& camera_s        = m_World->AddActor<ACamera>("viewport camera", camera_viewport);
-            camera_s.GetTransformComponent().SetPosition(glm::vec3 {8.393f, 1.604f, -0.797f});
-            camera_s.GetTransformComponent().SetRotation(glm::vec3 {0.333f, 1.678f, 0.000f});
+            camera_s.GetTransformComponent().SetPosition(glm::vec3 {-12.205f, 6.758f, -3.085f});
+            camera_s.GetTransformComponent().SetRotation(glm::vec3 {-0.593f, -1.878f, 0.000f});
             camera_s.GetTransformComponent().SetScale(glm::vec3 {1.000f, 1.000f, 1.000f});
             camera_s.SetIsControlled(true);
             camera_s.SetIsViewportCamera(true);
@@ -64,9 +64,31 @@ namespace Engine
                                                              "basic_red_sphere");
             red_sphere.GetTransformComponent().SetPosition(glm::vec3 {-6.960f, 1.751f, 1.916f});
             MBasicPbr* red_sphere_material = static_cast<MBasicPbr*>(red_sphere.GetMaterial());
-            red_sphere_material->SetAlbedo(glm::vec3 {0.8f, 0.0f, 0.0f});
+            red_sphere_material->SetAlbedo(glm::vec3 {0.7f, 0.15f, 0.15f});
             red_sphere_material->SetMetallic(0.3f);
             red_sphere_material->SetRoughness(0.5f);
+
+            auto white_sphere = m_World->AddActor<AStaticMesh>("white_sphere", //
+                                                               "Assets/Editor/Object/sphere/sphere.obj",
+                                                               "BasicPbr",
+                                                               "basic_white_sphere",
+                                                               "basic_white_sphere");
+            white_sphere.GetTransformComponent().SetPosition(glm::vec3 {-5.000f, 2.755f, 1.693f});
+            MBasicPbr* white_sphere_material = static_cast<MBasicPbr*>(white_sphere.GetMaterial());
+            white_sphere_material->SetAlbedo(glm::vec3 {0.9f, 0.9f, 0.9f});
+            white_sphere_material->SetMetallic(0.15f);
+            white_sphere_material->SetRoughness(0.5f);
+
+            auto purple_sphere = m_World->AddActor<AStaticMesh>("purple_sphere", //
+                                                                "Assets/Editor/Object/sphere/sphere.obj",
+                                                                "BasicPbr",
+                                                                "basic_purple_sphere",
+                                                                "basic_purple_sphere");
+            purple_sphere.GetTransformComponent().SetPosition(glm::vec3 {-5.571f, 1.987f, 3.986f});
+            MBasicPbr* purple_sphere_material = static_cast<MBasicPbr*>(purple_sphere.GetMaterial());
+            purple_sphere_material->SetAlbedo(glm::vec3 {0.6f, 0.55f, 0.88f});
+            purple_sphere_material->SetMetallic(0.75f);
+            purple_sphere_material->SetRoughness(0.5f);
 
             // auto brown_sphere = m_World->AddActor<AStaticMesh>("brown_sphere", //
             //                                                    "Assets/Editor/Object/sphere/sphere.obj",
@@ -179,12 +201,12 @@ namespace Engine
             // light2.GetTransformComponent().SetPosition(glm::vec3 {0.0f, 2.5f, 1.5f});
             // light2.GetPointLightComponentRef().SetIntensity(5.0f);
 
-            auto light3 = m_World->AddActor<APointLight>("point light_3");
-            light3.GetTransformComponent().SetPosition(glm::vec3 {0.0f, 3.0f, 0.0f});
-            light3.GetPointLightComponentRef().SetIntensity(5.0f);
+            // auto light3 = m_World->AddActor<APointLight>("point light_3");
+            // light3.GetTransformComponent().SetPosition(glm::vec3 {0.0f, 3.0f, 0.0f});
+            // light3.GetPointLightComponentRef().SetIntensity(5.0f);
 
             auto sky_light = m_World->AddActor<ADirectionalLight>("sky light");
-            sky_light.GetTransformComponent().SetPosition(glm::vec3 {18.0f, 30.0f, 18.0f});
+            sky_light.GetTransformComponent().SetPosition(glm::vec3 {50.0f, 70.0f, 23.0f});
 
             sky_light.GetDirectionalLightComponentRef().SetColor(glm::vec3 {0.9f, 0.9f, 0.85f});
             sky_light.GetDirectionalLightComponentRef().SetDirection(glm::vec3 {-0.330f, -0.885f, -0.330f});

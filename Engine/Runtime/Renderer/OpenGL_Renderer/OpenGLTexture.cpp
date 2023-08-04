@@ -119,10 +119,10 @@ namespace Engine
 {
     OpenGLTexture2D::OpenGLTexture2D() { glCreateTextures(GL_TEXTURE_2D, 1, &m_TextureID); }
 
-    OpenGLTexture2D::OpenGLTexture2D(const std::string& path) : m_Path(path)
+    OpenGLTexture2D::OpenGLTexture2D(const std::string& path)
     {
-        int      width, height, channels;
-        stbi_uc* data = stbi_load(path.c_str(), &width, &height, &channels, STBI_default);
+        int width, height, channels;
+        data = stbi_load(path.c_str(), &width, &height, &channels, STBI_default);
         if (data == nullptr)
         {
             Log::Core_Error(fmt::format("Could not open texture file \"{0}\".", path));
@@ -131,8 +131,6 @@ namespace Engine
         m_Width    = width;
         m_Height   = height;
         m_Channels = channels;
-
-        GLenum internalFormate = 0, dataFormate = 0;
         if (m_Channels == 4)
         {
             internalFormate = GL_RGBA8;
@@ -153,8 +151,21 @@ namespace Engine
             internalFormate = GL_R8;
             dataFormate     = GL_RED;
         }
+    }
 
+    OpenGLTexture2D::~OpenGLTexture2D()
+    {
+        glDeleteTextures(1, &m_TextureID);
+        if (data != nullptr)
+        {
+            stbi_image_free(data);
+        }
+    }
+
+    void OpenGLTexture2D::Buffer()
+    {
         glCreateTextures(GL_TEXTURE_2D, 1, &m_TextureID);
+        glBindTexture(GL_TEXTURE_2D, m_TextureID);
 
         glTextureParameteri(m_TextureID, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTextureParameteri(m_TextureID, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -164,8 +175,16 @@ namespace Engine
         glTextureSubImage2D(m_TextureID, 0, 0, 0, m_Width, m_Height, dataFormate, GL_UNSIGNED_BYTE, data);
 
         glGenerateTextureMipmap(m_TextureID);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
 
-        stbi_image_free(data);
+    void OpenGLTexture2D::Clear()
+    {
+        if (m_TextureID != 0)
+        {
+            glDeleteTextures(1, &m_TextureID);
+        }
+        m_TextureID = 0;
     }
 
     void OpenGLTexture2D::Bind(const uint32_t& slot) const { glBindTextureUnit(slot, m_TextureID); }

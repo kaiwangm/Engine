@@ -86,16 +86,16 @@ namespace Engine
         glm::mat4 m_PMatrix;
         glm::mat4 m_VPMatrix;
 
-        float m_Exposure                = 0.25f;
+        float m_Exposure                = 0.8f;
         float m_VisPrePrefilterMipLevel = 0.0f;
         int   m_ViewportGBufferMap      = 0;
 
-        float m_Dir_Diffuse  = 0.7f;
-        float m_Dir_Specular = 0.7f;
-        float m_Env_Diffuse  = 0.5f;
-        float m_Env_Specular = 0.03f;
-        float m_VoxelGI      = 0.9f;
-        float m_SSR_Factor   = 0.7f;
+        float m_Dir_Diffuse  = 0.21f;
+        float m_Dir_Specular = 0.21f;
+        float m_Env_Diffuse  = 0.21f;
+        float m_Env_Specular = 0.21f;
+        float m_VoxelGI      = 0.21f;
+        float m_SSR_Factor   = 0.21f;
 
         struct ScreenSpaceReflection
         {
@@ -109,7 +109,7 @@ namespace Engine
         } m_SSR_settings;
 
         float m_Bloom_Intensity   = 0.08f;
-        float m_PCSS_FilterRadius = 0.3f;
+        float m_PCSS_FilterRadius = 9.0f;
 
         struct VoxelGI
         {
@@ -122,11 +122,11 @@ namespace Engine
                 float result_intensity;
             };
 
-            int                 voxel_grid_resolution = 256;
+            int                 voxel_grid_resolution = 300;
             int                 max_mipmap_level      = 8;
-            glm::vec3           scene_voxel_scale     = glm::vec3(1.0f) / 18.0f;
-            ConeTracingSettings diffuse               = {0.577f, 0.119f, 0.03f, 2.0f, 1.0f};
-            ConeTracingSettings specular              = {0.027f, 0.146f, 0.03f, 2.0f, 1.0f};
+            glm::vec3           scene_voxel_scale     = glm::vec3(1.0f) / 75.0f;
+            ConeTracingSettings diffuse               = {0.500f, 0.300f, 0.012f, 2.0f, 1.0f};
+            ConeTracingSettings specular              = {0.500f, 0.300f, 0.012f, 2.0f, 1.0f};
         } m_VoxelGI_settings;
 
         entt::entity entity_selected = entt::null;

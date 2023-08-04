@@ -86,10 +86,12 @@ namespace Engine
 
         for (auto& meshArray : m_LoadedMeshes)
         {
+            std::string materialName = meshArray.first;
             for (auto& mesh : meshArray.second)
             {
                 mesh->CreateBuffer(layout);
             }
+            m_LoadedMaterials.at(materialName)->BufferTextures();
         }
 
         for (auto& meshArray : m_LoadedMeshes)
@@ -98,7 +100,7 @@ namespace Engine
             for (auto& mesh : meshArray.second)
             {
                 m_Meshes.push_back(mesh);
-                m_Materials.push_back(m_LoadedMaterials[materialName]);
+                m_Materials.push_back(m_LoadedMaterials.at(materialName));
             }
         }
     }
@@ -224,11 +226,11 @@ namespace Engine
                 }
 
                 aiString normalTexturePath;
-                if (mat->GetTexture(aiTextureType_NORMALS, 0, &normalTexturePath) == AI_SUCCESS)
+                if (mat->GetTexture(aiTextureType_HEIGHT, 0, &normalTexturePath) == AI_SUCCESS)
                 {
                     std::string texturePath = m_Directory + "/" + normalTexturePath.C_Str();
                     Log::Info(fmt::format("Material Normal Texture Path: {0}", texturePath));
-                    material->LoadNormalMap(texturePath);
+                    // material->LoadNormalMap(texturePath);
                 }
 
                 aiString specularTexturePath;

@@ -1,6 +1,7 @@
 #pragma once
 #include <Engine/Runtime/Core/Core.h>
 #include <Engine/Runtime/Renderer/Texture.h>
+#include <stb_image.h>
 
 namespace Engine
 {
@@ -9,7 +10,10 @@ namespace Engine
     public:
         OpenGLTexture2D();
         OpenGLTexture2D(const std::string& path);
-        virtual ~OpenGLTexture2D() { glDeleteTextures(1, &m_TextureID); }
+        virtual ~OpenGLTexture2D();
+
+        virtual void Buffer() override;
+        virtual void Clear() override;
 
         virtual uint32_t GetWidth() const override { return m_Width; }
         virtual uint32_t GetHeight() const override { return m_Height; }
@@ -18,13 +22,14 @@ namespace Engine
         virtual void Bind(const uint32_t& slot) const override;
         virtual void UnBind(const uint32_t& slot) const override;
 
-        std::string   GetPath() const { return m_Path; }
         virtual void* GetTextureID() const override;
 
     private:
-        std::string m_Path;
-        uint32_t    m_Width, m_Height, m_Channels;
-        GLuint      m_TextureID;
+        GLenum   internalFormate = 0;
+        GLenum   dataFormate     = 0;
+        stbi_uc* data;
+        uint32_t m_Width, m_Height, m_Channels;
+        GLuint   m_TextureID;
     };
 
     class OpenGLTexture3D : public Texture3D
@@ -45,8 +50,8 @@ namespace Engine
         virtual void* GetTextureID() const override;
 
     private:
-        uint32_t    m_Width, m_Height, m_Depth, m_Channels;
-        GLuint      m_TextureID;
+        uint32_t m_Width, m_Height, m_Depth, m_Channels;
+        GLuint   m_TextureID;
     };
 
     class OpenGLCubeMap : public CubeMap
@@ -73,7 +78,7 @@ namespace Engine
         GLuint      m_BrdfLut;
 
     public:
-        std::vector<glm::vec3>                sh_data;
+        std::vector<glm::vec3> sh_data;
 
         virtual void                          ComputeIrradianceTexture() override;
         virtual void                          ComputeSphereHarmonicsParameters() override;
