@@ -6,7 +6,7 @@
 
 My toy modern OpenGL game engine.
 
-![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Docs/Screenshots/VoxelGI.png)
+![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Docs/Screenshots/Bistro.png)
 
 ## Getting Started
 

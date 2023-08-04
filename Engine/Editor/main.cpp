@@ -210,7 +210,7 @@ namespace Engine
 
             sky_light.GetDirectionalLightComponentRef().SetColor(glm::vec3 {0.9f, 0.9f, 0.85f});
             sky_light.GetDirectionalLightComponentRef().SetDirection(glm::vec3 {-0.330f, -0.885f, -0.330f});
-            sky_light.GetDirectionalLightComponentRef().SetIntensity(10.0f);
+            sky_light.GetDirectionalLightComponentRef().SetIntensity(6.0f);
 
             // auto pointcloud =
             //     m_World->AddActor<APointCloud>("pointcloud",
