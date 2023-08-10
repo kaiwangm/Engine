@@ -60,6 +60,6 @@ namespace Engine
         virtual void ComputeSphereHarmonicsParameters() = 0;
         virtual void ComputePrefilterTexture()          = 0;
 
-        virtual const std::vector<glm::vec3>& GetSphereHarmonicsParametersRef() const = 0;
+        virtual const std::array<glm::vec3, 9>& GetSphereHarmonicsParametersRef() const = 0;
     };
 } // namespace Engine

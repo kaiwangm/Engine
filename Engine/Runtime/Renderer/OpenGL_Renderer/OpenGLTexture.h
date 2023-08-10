@@ -78,7 +78,7 @@ namespace Engine
         GLuint      m_BrdfLut;
 
     private:
-        std::vector<glm::vec3> sh_data;
+        std::array<glm::vec3, 9> sh_data;
 
     public:
         virtual void ComputeIrradianceTexture() override;
@@ -86,6 +86,6 @@ namespace Engine
         virtual void ComputePrefilterTexture() override;
 
     public:
-        virtual const std::vector<glm::vec3>& GetSphereHarmonicsParametersRef() const override { return sh_data; }
+        virtual const std::array<glm::vec3, 9>& GetSphereHarmonicsParametersRef() const override { return sh_data; }
     };
 } // namespace Engine

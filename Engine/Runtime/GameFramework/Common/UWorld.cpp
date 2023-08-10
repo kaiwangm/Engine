@@ -20,6 +20,7 @@
 #include <Engine/Runtime/GameFramework/Skybox/ASkybox.h>
 #include <Engine/Runtime/GameFramework/Camera/ACamera.h>
 #include <Engine/Runtime/GameFramework/Pawn/APawn.h>
+#include <Engine/Runtime/GameFramework/Skybox/ULightProbeComponent.h>
 #include <Engine/Runtime/GameFramework/Light/UPointLightComponent.h>
 #include <Engine/Runtime/GameFramework/Light/UDirectionalLightComponent.h>
 
@@ -54,9 +55,9 @@ namespace Engine
         m_FrameRenderBuffer_bloom = FrameRenderBuffer::Create();
         m_FrameRenderBuffer_fxaa  = FrameRenderBuffer::Create();
 
-        m_FrameRenderBuffer_bufferViewport        = FrameRenderBuffer::Create();
-        m_FrameRenderBuffer_shadowMapViewport     = FrameRenderBuffer::Create();
-        m_FrameRenderBuffer_shadowCubeMapViewport = FrameRenderBuffer::Create();
+        m_FrameRenderBuffer_bufferViewport    = FrameRenderBuffer::Create();
+        m_FrameRenderBuffer_shadowMapViewport = FrameRenderBuffer::Create();
+        // m_FrameRenderBuffer_shadowCubeMapViewport = FrameRenderBuffer::Create();
 
         m_FrameRenderBuffer_VoxelGIViewport = FrameRenderBuffer::Create();
 
@@ -208,9 +209,9 @@ namespace Engine
                    "Assets/Editor/Shader/shadowmap/fragment.glsl",
                    "Path");
 
-        LoadShader("VisCubeDepth",
+        LoadShader("VisCubeMap",
                    "Assets/Editor/Shader/screen_quad_vertex.glsl",
-                   "Assets/Editor/Shader/viewport/depth_cubemap.glsl",
+                   "Assets/Editor/Shader/viewport/cubemap.glsl",
                    "Path");
 
         LoadShader("HighLight",
@@ -266,6 +267,7 @@ namespace Engine
         auto trajectory_view      = m_Registry.view<UTagComponent, UTransformComponent, UTrajectoryComponent>();
         auto skinnedmesh_view     = m_Registry.view<UTagComponent, UTransformComponent, USkinnedMeshComponent>();
         auto motionmatching_view  = m_Registry.view<UTagComponent, UTransformComponent, UMotionMatchingComponent>();
+        auto lightprobe_view      = m_Registry.view<UTagComponent, UTransformComponent, ULightProbeComponent>();
 
         Ref<GeometryBuffer>    m_GeometryBuffer_Baking                                 = GeometryBuffer::Create();
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_skybox_Baking                       = FrameRenderBuffer::Create();
@@ -406,690 +408,701 @@ namespace Engine
             shadowMapBuffer.UnBind();
         }
 
-        glm::vec3 probePosition = glm::vec3(-9.0f, 5.0f, 3.0f);
-
-        glm::mat4                projectionMatrices = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 100.0f);
-        std::array<glm::mat4, 6> viewMatrices       = {
-            glm::lookAt(probePosition, probePosition + glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
-            glm::lookAt(probePosition, probePosition + glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
-            glm::lookAt(probePosition, probePosition + glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
-            glm::lookAt(probePosition, probePosition + glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)),
-            glm::lookAt(probePosition, probePosition + glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
-            glm::lookAt(probePosition, probePosition + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
-        };
-
-        m_Probe_CubeMap = CubeMap::Create();
-        typedef std::array<std::array<std::array<float, 3>, 512>, 512> cube_image;
-        std::vector<cube_image>                                        cubeMapData(6);
-
-        for (int i = 0; i < 6; ++i)
+        // Precompute lightprobe
+        for (auto [entity, name, trans, lightprobe] : lightprobe_view.each())
         {
-            // Render to GeometryBuffer
-            m_VMatrix  = viewMatrices[i];
-            m_PMatrix  = projectionMatrices;
-            m_VPMatrix = m_PMatrix * m_VMatrix;
+            glm::vec3 probePosition = lightprobe.GetPosition();
 
-            m_GeometryBuffer_Baking->Bind();
-            RenderCommand::SetViewPort(0, 0, cubeMapSize, cubeMapSize);
+            glm::mat4                projectionMatrices = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 100.0f);
+            std::array<glm::mat4, 6> viewMatrices       = {
+                glm::lookAt(probePosition, probePosition + glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+                glm::lookAt(probePosition, probePosition + glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+                glm::lookAt(probePosition, probePosition + glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
+                glm::lookAt(probePosition, probePosition + glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)),
+                glm::lookAt(probePosition, probePosition + glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+                glm::lookAt(probePosition, probePosition + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+            };
 
-            RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
-            RenderCommand::Clear();
+            Ref<CubeMap>&                                                  probeCubeMap = lightprobe.GetCubeMapPtr();
+            typedef std::array<std::array<std::array<float, 3>, 512>, 512> cube_image;
+            std::vector<cube_image>                                        cubeMapData(6);
 
-            // use a range-for
-            for (auto [entity, name, trans, model] : model_view.each())
+            for (int i = 0; i < 6; ++i)
             {
-                AStaticMesh* staticMesh_actor = static_cast<AStaticMesh*>(model.GetOwner());
-                MMaterial*   material         = static_cast<MMaterial*>(staticMesh_actor->GetMaterial());
-                std::string  materialType     = material->GetMaterialType();
+                // Render to GeometryBuffer
+                m_VMatrix  = viewMatrices[i];
+                m_PMatrix  = projectionMatrices;
+                m_VPMatrix = m_PMatrix * m_VMatrix;
 
-                if (staticMesh_actor->GetVisible() == false)
+                m_GeometryBuffer_Baking->Bind();
+                RenderCommand::SetViewPort(0, 0, cubeMapSize, cubeMapSize);
+
+                RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+                RenderCommand::Clear();
+
+                // use a range-for
+                for (auto [entity, name, trans, model] : model_view.each())
                 {
-                    continue;
-                }
+                    AStaticMesh* staticMesh_actor = static_cast<AStaticMesh*>(model.GetOwner());
+                    MMaterial*   material         = static_cast<MMaterial*>(staticMesh_actor->GetMaterial());
+                    std::string  materialType     = material->GetMaterialType();
 
-                if (materialType == "BasicPbr")
-                {
-                    auto shader = m_ShaderLibrary.Get("GBuffer");
-                    shader->Bind();
-
-                    shader->SetMat4("u_MProjection", m_PMatrix);
-                    shader->SetMat4("u_MView", m_VMatrix);
-                    shader->SetMat4("u_MTransform", trans.GetTransform());
-
-                    const auto& materials = model.GetStaticMesh().m_LoadedMaterials;
-                    const auto& meshes    = model.GetStaticMesh().m_LoadedMeshes;
-
-                    for (const auto& meshArray : meshes)
+                    if (staticMesh_actor->GetVisible() == false)
                     {
-                        std::string materialName      = meshArray.first;
-                        const auto  material_basicPbr = static_cast<MBasicPbr*>(materials.at(materialName));
-                        material_basicPbr->BindAllMap(shader);
+                        continue;
+                    }
 
-                        uint32_t drawedMeshCount = 0;
-                        for (const auto& mesh : meshArray.second)
+                    if (materialType == "BasicPbr")
+                    {
+                        auto shader = m_ShaderLibrary.Get("GBuffer");
+                        shader->Bind();
+
+                        shader->SetMat4("u_MProjection", m_PMatrix);
+                        shader->SetMat4("u_MView", m_VMatrix);
+                        shader->SetMat4("u_MTransform", trans.GetTransform());
+
+                        const auto& materials = model.GetStaticMesh().m_LoadedMaterials;
+                        const auto& meshes    = model.GetStaticMesh().m_LoadedMeshes;
+
+                        for (const auto& meshArray : meshes)
                         {
-                            const FrustumVolume* frustumVolume = mesh->GetFrustumVolume();
+                            std::string materialName      = meshArray.first;
+                            const auto  material_basicPbr = static_cast<MBasicPbr*>(materials.at(materialName));
+                            material_basicPbr->BindAllMap(shader);
 
-                            Renderer::Submit(mesh->m_VertexArray, shader, m_VPMatrix, trans.GetTransform());
-                            drawedMeshCount++;
+                            uint32_t drawedMeshCount = 0;
+                            for (const auto& mesh : meshArray.second)
+                            {
+                                const FrustumVolume* frustumVolume = mesh->GetFrustumVolume();
+
+                                Renderer::Submit(mesh->m_VertexArray, shader, m_VPMatrix, trans.GetTransform());
+                                drawedMeshCount++;
+                            }
+                            material_basicPbr->UnBindAllMap(shader);
                         }
-                        material_basicPbr->UnBindAllMap(shader);
+                        shader->UnBind();
                     }
-                    shader->UnBind();
                 }
-            }
 
-            m_GeometryBuffer_Baking->UnBind();
+                m_GeometryBuffer_Baking->UnBind();
 
-            // Render to SSAOBuffer
+                // Render to SSAOBuffer
 
-            m_VMatrix  = viewMatrices[i];
-            m_PMatrix  = projectionMatrices;
-            m_VPMatrix = m_PMatrix * m_VMatrix;
+                m_VMatrix  = viewMatrices[i];
+                m_PMatrix  = projectionMatrices;
+                m_VPMatrix = m_PMatrix * m_VMatrix;
 
-            m_SSAOBuffer_Baking->Bind();
-            RenderCommand::SetViewPort(0, 0, cubeMapSize, cubeMapSize);
-
-            RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
-            RenderCommand::Clear();
-
-            auto computeAO_shader = m_ShaderLibrary.Get("ComputeAO");
-            computeAO_shader->Bind();
-
-            computeAO_shader->SetInt("g_ViewPosition", 0);
-            m_GeometryBuffer_Baking->BindViewPositionTexture(0);
-            computeAO_shader->SetInt("g_ViewNormal", 1);
-            m_GeometryBuffer_Baking->BindViewNormalTexture(1);
-            computeAO_shader->SetInt("g_Depth", 2);
-            m_GeometryBuffer_Baking->BindDepthTexture(2);
-
-            computeAO_shader->SetInt("texNoise", 3);
-            m_SSAOBuffer_Baking->BindNoiseTexture(3);
-
-            std::vector<glm::vec3>& kernel = m_SSAOBuffer_Baking->GetSSAOKernel();
-            for (unsigned int i = 0; i < kernel.size(); ++i)
-            {
-                computeAO_shader->SetFloat3("samples[" + std::to_string(i) + "]", kernel[i]);
-            }
-            computeAO_shader->SetMat4("projection", m_PMatrix);
-
-            computeAO_shader->SetFloat("radius", m_SSAOBuffer_Baking->GetRadiusRef());
-            computeAO_shader->SetFloat("bias", m_SSAOBuffer_Baking->GetBiasRef());
-            computeAO_shader->SetFloat("power", m_SSAOBuffer_Baking->GetPowerRef());
-
-            computeAO_shader->SetFloat("screenWidth", cubeMapSize);
-            computeAO_shader->SetFloat("screenHeight", cubeMapSize);
-
-            computeAO_shader->Bind();
-            RenderCommand::RenderToQuad();
-
-            m_SSAOBuffer_Baking->UnBindTexture(3);
-
-            m_GeometryBuffer_Baking->UnBindTexture(2);
-            m_GeometryBuffer_Baking->UnBindTexture(1);
-            m_GeometryBuffer_Baking->UnBindTexture(0);
-
-            computeAO_shader->UnBind();
-
-            m_SSAOBuffer_Baking->UnBind();
-
-            // Render to Skybox
-
-            m_VMatrix  = viewMatrices[i];
-            m_PMatrix  = projectionMatrices;
-            m_VPMatrix = m_PMatrix * m_VMatrix;
-
-            // skybox shading
-            {
-                m_FrameRenderBuffer_skybox_Baking->Bind();
+                m_SSAOBuffer_Baking->Bind();
                 RenderCommand::SetViewPort(0, 0, cubeMapSize, cubeMapSize);
 
                 RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
                 RenderCommand::Clear();
 
-                if (m_RenderSkybox)
+                auto computeAO_shader = m_ShaderLibrary.Get("ComputeAO");
+                computeAO_shader->Bind();
+
+                computeAO_shader->SetInt("g_ViewPosition", 0);
+                m_GeometryBuffer_Baking->BindViewPositionTexture(0);
+                computeAO_shader->SetInt("g_ViewNormal", 1);
+                m_GeometryBuffer_Baking->BindViewNormalTexture(1);
+                computeAO_shader->SetInt("g_Depth", 2);
+                m_GeometryBuffer_Baking->BindDepthTexture(2);
+
+                computeAO_shader->SetInt("texNoise", 3);
+                m_SSAOBuffer_Baking->BindNoiseTexture(3);
+
+                std::vector<glm::vec3>& kernel = m_SSAOBuffer_Baking->GetSSAOKernel();
+                for (unsigned int i = 0; i < kernel.size(); ++i)
                 {
-                    // draw skybox
-                    // use a range-for
-                    for (auto [entity, name, trans, skybox] : skybox_view.each())
+                    computeAO_shader->SetFloat3("samples[" + std::to_string(i) + "]", kernel[i]);
+                }
+                computeAO_shader->SetMat4("projection", m_PMatrix);
+
+                computeAO_shader->SetFloat("radius", m_SSAOBuffer_Baking->GetRadiusRef());
+                computeAO_shader->SetFloat("bias", m_SSAOBuffer_Baking->GetBiasRef());
+                computeAO_shader->SetFloat("power", m_SSAOBuffer_Baking->GetPowerRef());
+
+                computeAO_shader->SetFloat("screenWidth", cubeMapSize);
+                computeAO_shader->SetFloat("screenHeight", cubeMapSize);
+
+                computeAO_shader->Bind();
+                RenderCommand::RenderToQuad();
+
+                m_SSAOBuffer_Baking->UnBindTexture(3);
+
+                m_GeometryBuffer_Baking->UnBindTexture(2);
+                m_GeometryBuffer_Baking->UnBindTexture(1);
+                m_GeometryBuffer_Baking->UnBindTexture(0);
+
+                computeAO_shader->UnBind();
+
+                m_SSAOBuffer_Baking->UnBind();
+
+                // Render to Skybox
+
+                m_VMatrix  = viewMatrices[i];
+                m_PMatrix  = projectionMatrices;
+                m_VPMatrix = m_PMatrix * m_VMatrix;
+
+                // skybox shading
+                {
+                    m_FrameRenderBuffer_skybox_Baking->Bind();
+                    RenderCommand::SetViewPort(0, 0, cubeMapSize, cubeMapSize);
+
+                    RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+                    RenderCommand::Clear();
+
+                    if (m_RenderSkybox)
                     {
-                        auto shader = m_ShaderLibrary.Get("Skybox");
-                        Renderer::SetShaderUniform(shader, "mipLevel", m_VisPrePrefilterMipLevel);
+                        // draw skybox
+                        // use a range-for
+                        for (auto [entity, name, trans, skybox] : skybox_view.each())
+                        {
+                            auto shader = m_ShaderLibrary.Get("Skybox");
+                            shader->SetFloat("mipLevel", 0.0f);
 
-                        auto vpmat = m_PMatrix * glm::mat4(glm::mat3(m_VMatrix));
-                        skybox.Draw(shader, vpmat);
+                            auto vpmat = m_PMatrix * glm::mat4(glm::mat3(m_VMatrix));
+                            skybox.Draw(shader, vpmat);
+                        }
                     }
+
+                    m_FrameRenderBuffer_skybox_Baking->UnBind();
                 }
 
-                m_FrameRenderBuffer_skybox_Baking->UnBind();
-            }
-
-            // DirectLighting_diffuse Shading
-            {
-                m_FrameRenderBuffer_DirectLighting_diffuse_Baking->Bind();
-                RenderCommand::SetViewPort(0, 0, cubeMapSize, cubeMapSize);
-
-                RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
-                RenderCommand::Clear();
-
-                auto deferred_shader = m_ShaderLibrary.Get("DirectLighting_diffuse");
-                deferred_shader->Bind();
-
-                deferred_shader->SetInt("g_ViewPosition", 0);
-                m_GeometryBuffer_Baking->BindViewPositionTexture(0);
-                deferred_shader->SetInt("g_ViewNormal", 1);
-                m_GeometryBuffer_Baking->BindViewNormalTexture(1);
-                deferred_shader->SetInt("g_Diffuse", 2);
-                m_GeometryBuffer_Baking->BindDiffuseTexture(2);
-                deferred_shader->SetInt("g_Depth", 3);
-                m_GeometryBuffer_Baking->BindDepthTexture(3);
-                deferred_shader->SetInt("g_Roughness", 4);
-                m_GeometryBuffer_Baking->BindRoughnessTexture(4);
-                deferred_shader->SetInt("g_Specular", 5);
-                m_GeometryBuffer_Baking->BindSpecularTexture(5);
-                deferred_shader->SetInt("g_WorldPosition", 6);
-                m_GeometryBuffer_Baking->BindWorldPositionTexture(6);
-                deferred_shader->SetInt("g_WorldNormal", 7);
-                m_GeometryBuffer_Baking->BindWorldNormalTexture(7);
-                deferred_shader->SetInt("g_AO", 8);
-                m_SSAOBuffer_Baking->BindSSAOTexture(8);
-
-                int ligth_num = 0;
-                for (auto [entity, name, trans, light] : pointlight_view.each())
+                // DirectLighting_diffuse Shading
                 {
-                    deferred_shader->SetFloat3("pointLightPositions[" + std::to_string(ligth_num) + "]",
-                                               trans.GetPosition());
-                    deferred_shader->SetFloat3("pointLightColors[" + std::to_string(ligth_num) + "]",
-                                               light.GetColorRef());
-                    deferred_shader->SetFloat("pointLightIntensities[" + std::to_string(ligth_num) + "]",
-                                              light.GetIntensityRef());
+                    m_FrameRenderBuffer_DirectLighting_diffuse_Baking->Bind();
+                    RenderCommand::SetViewPort(0, 0, cubeMapSize, cubeMapSize);
 
-                    deferred_shader->SetInt("pointShadowCubeMaps[" + std::to_string(ligth_num) + "]", 50 + ligth_num);
-                    light.GetShadowCubeMapBufferRef().BindTexture(50 + ligth_num);
-                    deferred_shader->SetFloat("pointShadowCubeMapsNearPlane[" + std::to_string(ligth_num) + "]", 1.0f);
-                    deferred_shader->SetFloat("pointShadowCubeMapsFarPlane[" + std::to_string(ligth_num) + "]", 10.0f);
+                    RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+                    RenderCommand::Clear();
 
-                    ligth_num++;
+                    auto deferred_shader = m_ShaderLibrary.Get("DirectLighting_diffuse");
+                    deferred_shader->Bind();
+
+                    deferred_shader->SetInt("g_ViewPosition", 0);
+                    m_GeometryBuffer_Baking->BindViewPositionTexture(0);
+                    deferred_shader->SetInt("g_ViewNormal", 1);
+                    m_GeometryBuffer_Baking->BindViewNormalTexture(1);
+                    deferred_shader->SetInt("g_Diffuse", 2);
+                    m_GeometryBuffer_Baking->BindDiffuseTexture(2);
+                    deferred_shader->SetInt("g_Depth", 3);
+                    m_GeometryBuffer_Baking->BindDepthTexture(3);
+                    deferred_shader->SetInt("g_Roughness", 4);
+                    m_GeometryBuffer_Baking->BindRoughnessTexture(4);
+                    deferred_shader->SetInt("g_Specular", 5);
+                    m_GeometryBuffer_Baking->BindSpecularTexture(5);
+                    deferred_shader->SetInt("g_WorldPosition", 6);
+                    m_GeometryBuffer_Baking->BindWorldPositionTexture(6);
+                    deferred_shader->SetInt("g_WorldNormal", 7);
+                    m_GeometryBuffer_Baking->BindWorldNormalTexture(7);
+                    deferred_shader->SetInt("g_AO", 8);
+                    m_SSAOBuffer_Baking->BindSSAOTexture(8);
+
+                    int ligth_num = 0;
+                    for (auto [entity, name, trans, light] : pointlight_view.each())
+                    {
+                        deferred_shader->SetFloat3("pointLightPositions[" + std::to_string(ligth_num) + "]",
+                                                   trans.GetPosition());
+                        deferred_shader->SetFloat3("pointLightColors[" + std::to_string(ligth_num) + "]",
+                                                   light.GetColorRef());
+                        deferred_shader->SetFloat("pointLightIntensities[" + std::to_string(ligth_num) + "]",
+                                                  light.GetIntensityRef());
+
+                        deferred_shader->SetInt("pointShadowCubeMaps[" + std::to_string(ligth_num) + "]",
+                                                50 + ligth_num);
+                        light.GetShadowCubeMapBufferRef().BindTexture(50 + ligth_num);
+                        deferred_shader->SetFloat("pointShadowCubeMapsNearPlane[" + std::to_string(ligth_num) + "]",
+                                                  1.0f);
+                        deferred_shader->SetFloat("pointShadowCubeMapsFarPlane[" + std::to_string(ligth_num) + "]",
+                                                  10.0f);
+
+                        ligth_num++;
+                    }
+                    deferred_shader->SetInt("numPointLights", ligth_num);
+
+                    int dirctionallight_num = 0;
+                    for (auto [entity, name, trans, light] : dirctionallight_view.each())
+                    {
+                        const glm::mat4 lightProjection = glm::ortho(-70.0f, 70.0f, -70.0f, 70.0f, 0.5f, 120.0f);
+                        const glm::vec3 lightPosition   = trans.GetPosition();
+                        const glm::vec3 lightDirection  = light.GetDirectionRef();
+                        const glm::mat4 lightView =
+                            glm::lookAt(lightPosition, lightPosition + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
+                        const glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+
+                        deferred_shader->SetFloat3("directionalLightDirections[" + std::to_string(dirctionallight_num) +
+                                                       "]",
+                                                   light.GetDirectionRef());
+                        deferred_shader->SetFloat3(
+                            "directionalLightColors[" + std::to_string(dirctionallight_num) + "]", light.GetColorRef());
+                        deferred_shader->SetFloat("directionalLightIntensities[" + std::to_string(dirctionallight_num) +
+                                                      "]",
+                                                  light.GetIntensityRef());
+                        deferred_shader->SetMat4(
+                            "directionalLightMatrices[" + std::to_string(dirctionallight_num) + "]", lightSpaceMatrix);
+                        deferred_shader->SetInt("directionalShadowMaps[" + std::to_string(dirctionallight_num) + "]",
+                                                150 + dirctionallight_num);
+
+                        light.GetShadowMapBufferRef().BindTexture(150 + dirctionallight_num);
+
+                        dirctionallight_num++;
+                    }
+                    deferred_shader->SetInt("numDirectionalLights", dirctionallight_num);
+                    deferred_shader->SetFloat("PCSS_FilterRadius", m_PCSS_FilterRadius);
+
+                    glm::vec3 camPos = glm::vec3(glm::inverse(m_VMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+                    deferred_shader->SetFloat3("camPos", camPos);
+
+                    auto sky_cubeMap = m_MainSkybox->GetSkyboxComponent().GetCubeMap();
+
+                    deferred_shader->SetInt("irradianceMap", 15);
+                    sky_cubeMap->BindIrradianceTexture(15);
+                    deferred_shader->SetInt("prefilterMap", 16);
+                    sky_cubeMap->BindPrefilterTexture(16);
+                    deferred_shader->SetInt("brdfLUT", 17);
+                    sky_cubeMap->BindBrdfLutTexture(17);
+
+                    RenderCommand::RenderToQuad();
+
+                    sky_cubeMap->UnBind(17);
+                    sky_cubeMap->UnBind(16);
+                    sky_cubeMap->UnBind(15);
+
+                    m_SSAOBuffer_Baking->UnBindTexture(8);
+                    m_GeometryBuffer_Baking->UnBindTexture(7);
+                    m_GeometryBuffer_Baking->UnBindTexture(6);
+                    m_GeometryBuffer_Baking->UnBindTexture(5);
+                    m_GeometryBuffer_Baking->UnBindTexture(4);
+                    m_GeometryBuffer_Baking->UnBindTexture(3);
+                    m_GeometryBuffer_Baking->UnBindTexture(2);
+                    m_GeometryBuffer_Baking->UnBindTexture(1);
+                    m_GeometryBuffer_Baking->UnBindTexture(0);
+
+                    deferred_shader->UnBind();
+                    m_FrameRenderBuffer_DirectLighting_diffuse_Baking->UnBind();
                 }
-                deferred_shader->SetInt("numPointLights", ligth_num);
-
-                int dirctionallight_num = 0;
-                for (auto [entity, name, trans, light] : dirctionallight_view.each())
+                // DirectLighting_specular Shading
                 {
-                    const glm::mat4 lightProjection = glm::ortho(-70.0f, 70.0f, -70.0f, 70.0f, 0.5f, 120.0f);
-                    const glm::vec3 lightPosition   = trans.GetPosition();
-                    const glm::vec3 lightDirection  = light.GetDirectionRef();
-                    const glm::mat4 lightView =
-                        glm::lookAt(lightPosition, lightPosition + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
-                    const glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+                    m_FrameRenderBuffer_DirectLighting_specular_Baking->Bind();
+                    RenderCommand::SetViewPort(0, 0, cubeMapSize, cubeMapSize);
 
-                    deferred_shader->SetFloat3("directionalLightDirections[" + std::to_string(dirctionallight_num) +
-                                                   "]",
-                                               light.GetDirectionRef());
-                    deferred_shader->SetFloat3("directionalLightColors[" + std::to_string(dirctionallight_num) + "]",
-                                               light.GetColorRef());
-                    deferred_shader->SetFloat("directionalLightIntensities[" + std::to_string(dirctionallight_num) +
-                                                  "]",
-                                              light.GetIntensityRef());
-                    deferred_shader->SetMat4("directionalLightMatrices[" + std::to_string(dirctionallight_num) + "]",
-                                             lightSpaceMatrix);
-                    deferred_shader->SetInt("directionalShadowMaps[" + std::to_string(dirctionallight_num) + "]",
-                                            150 + dirctionallight_num);
+                    RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+                    RenderCommand::Clear();
 
-                    light.GetShadowMapBufferRef().BindTexture(150 + dirctionallight_num);
+                    auto deferred_shader = m_ShaderLibrary.Get("DirectLighting_specular");
+                    deferred_shader->Bind();
 
-                    dirctionallight_num++;
+                    deferred_shader->SetInt("g_ViewPosition", 0);
+                    m_GeometryBuffer_Baking->BindViewPositionTexture(0);
+                    deferred_shader->SetInt("g_ViewNormal", 1);
+                    m_GeometryBuffer_Baking->BindViewNormalTexture(1);
+                    deferred_shader->SetInt("g_Diffuse", 2);
+                    m_GeometryBuffer_Baking->BindDiffuseTexture(2);
+                    deferred_shader->SetInt("g_Depth", 3);
+                    m_GeometryBuffer_Baking->BindDepthTexture(3);
+                    deferred_shader->SetInt("g_Roughness", 4);
+                    m_GeometryBuffer_Baking->BindRoughnessTexture(4);
+                    deferred_shader->SetInt("g_Specular", 5);
+                    m_GeometryBuffer_Baking->BindSpecularTexture(5);
+                    deferred_shader->SetInt("g_WorldPosition", 6);
+                    m_GeometryBuffer_Baking->BindWorldPositionTexture(6);
+                    deferred_shader->SetInt("g_WorldNormal", 7);
+                    m_GeometryBuffer_Baking->BindWorldNormalTexture(7);
+                    deferred_shader->SetInt("g_AO", 8);
+                    m_SSAOBuffer_Baking->BindSSAOTexture(8);
+
+                    int ligth_num = 0;
+                    for (auto [entity, name, trans, light] : pointlight_view.each())
+                    {
+                        deferred_shader->SetFloat3("pointLightPositions[" + std::to_string(ligth_num) + "]",
+                                                   trans.GetPosition());
+                        deferred_shader->SetFloat3("pointLightColors[" + std::to_string(ligth_num) + "]",
+                                                   light.GetColorRef());
+                        deferred_shader->SetFloat("pointLightIntensities[" + std::to_string(ligth_num) + "]",
+                                                  light.GetIntensityRef());
+
+                        deferred_shader->SetInt("pointShadowCubeMaps[" + std::to_string(ligth_num) + "]",
+                                                50 + ligth_num);
+                        light.GetShadowCubeMapBufferRef().BindTexture(50 + ligth_num);
+                        deferred_shader->SetFloat("pointShadowCubeMapsNearPlane[" + std::to_string(ligth_num) + "]",
+                                                  1.0f);
+                        deferred_shader->SetFloat("pointShadowCubeMapsFarPlane[" + std::to_string(ligth_num) + "]",
+                                                  10.0f);
+
+                        ligth_num++;
+                    }
+                    deferred_shader->SetInt("numPointLights", ligth_num);
+
+                    int dirctionallight_num = 0;
+                    for (auto [entity, name, trans, light] : dirctionallight_view.each())
+                    {
+                        const glm::mat4 lightProjection = glm::ortho(-70.0f, 70.0f, -70.0f, 70.0f, 0.5f, 120.0f);
+                        const glm::vec3 lightPosition   = trans.GetPosition();
+                        const glm::vec3 lightDirection  = light.GetDirectionRef();
+                        const glm::mat4 lightView =
+                            glm::lookAt(lightPosition, lightPosition + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
+                        const glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+
+                        deferred_shader->SetFloat3("directionalLightDirections[" + std::to_string(dirctionallight_num) +
+                                                       "]",
+                                                   light.GetDirectionRef());
+                        deferred_shader->SetFloat3(
+                            "directionalLightColors[" + std::to_string(dirctionallight_num) + "]", light.GetColorRef());
+                        deferred_shader->SetFloat("directionalLightIntensities[" + std::to_string(dirctionallight_num) +
+                                                      "]",
+                                                  light.GetIntensityRef());
+                        deferred_shader->SetMat4(
+                            "directionalLightMatrices[" + std::to_string(dirctionallight_num) + "]", lightSpaceMatrix);
+                        deferred_shader->SetInt("directionalShadowMaps[" + std::to_string(dirctionallight_num) + "]",
+                                                150 + dirctionallight_num);
+
+                        light.GetShadowMapBufferRef().BindTexture(150 + dirctionallight_num);
+
+                        dirctionallight_num++;
+                    }
+                    deferred_shader->SetInt("numDirectionalLights", dirctionallight_num);
+                    deferred_shader->SetFloat("PCSS_FilterRadius", m_PCSS_FilterRadius);
+
+                    glm::vec3 camPos = glm::vec3(glm::inverse(m_VMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+                    deferred_shader->SetFloat3("camPos", camPos);
+
+                    auto sky_cubeMap = m_MainSkybox->GetSkyboxComponent().GetCubeMap();
+
+                    deferred_shader->SetInt("irradianceMap", 15);
+                    sky_cubeMap->BindIrradianceTexture(15);
+                    deferred_shader->SetInt("prefilterMap", 16);
+                    sky_cubeMap->BindPrefilterTexture(16);
+                    deferred_shader->SetInt("brdfLUT", 17);
+                    sky_cubeMap->BindBrdfLutTexture(17);
+
+                    RenderCommand::RenderToQuad();
+
+                    sky_cubeMap->UnBind(17);
+                    sky_cubeMap->UnBind(16);
+                    sky_cubeMap->UnBind(15);
+
+                    m_SSAOBuffer_Baking->UnBindTexture(8);
+                    m_GeometryBuffer_Baking->UnBindTexture(7);
+                    m_GeometryBuffer_Baking->UnBindTexture(6);
+                    m_GeometryBuffer_Baking->UnBindTexture(5);
+                    m_GeometryBuffer_Baking->UnBindTexture(4);
+                    m_GeometryBuffer_Baking->UnBindTexture(3);
+                    m_GeometryBuffer_Baking->UnBindTexture(2);
+                    m_GeometryBuffer_Baking->UnBindTexture(1);
+                    m_GeometryBuffer_Baking->UnBindTexture(0);
+
+                    deferred_shader->UnBind();
+                    m_FrameRenderBuffer_DirectLighting_specular_Baking->UnBind();
                 }
-                deferred_shader->SetInt("numDirectionalLights", dirctionallight_num);
-                deferred_shader->SetFloat("PCSS_FilterRadius", m_PCSS_FilterRadius);
-
-                glm::vec3 camPos = glm::vec3(glm::inverse(m_VMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-                deferred_shader->SetFloat3("camPos", camPos);
-
-                auto sky_cubeMap = m_MainSkybox->GetSkyboxComponent().GetCubeMap();
-
-                deferred_shader->SetInt("irradianceMap", 15);
-                sky_cubeMap->BindIrradianceTexture(15);
-                deferred_shader->SetInt("prefilterMap", 16);
-                sky_cubeMap->BindPrefilterTexture(16);
-                deferred_shader->SetInt("brdfLUT", 17);
-                sky_cubeMap->BindBrdfLutTexture(17);
-
-                RenderCommand::RenderToQuad();
-
-                sky_cubeMap->UnBind(17);
-                sky_cubeMap->UnBind(16);
-                sky_cubeMap->UnBind(15);
-
-                m_SSAOBuffer_Baking->UnBindTexture(8);
-                m_GeometryBuffer_Baking->UnBindTexture(7);
-                m_GeometryBuffer_Baking->UnBindTexture(6);
-                m_GeometryBuffer_Baking->UnBindTexture(5);
-                m_GeometryBuffer_Baking->UnBindTexture(4);
-                m_GeometryBuffer_Baking->UnBindTexture(3);
-                m_GeometryBuffer_Baking->UnBindTexture(2);
-                m_GeometryBuffer_Baking->UnBindTexture(1);
-                m_GeometryBuffer_Baking->UnBindTexture(0);
-
-                deferred_shader->UnBind();
-                m_FrameRenderBuffer_DirectLighting_diffuse_Baking->UnBind();
-            }
-            // DirectLighting_specular Shading
-            {
-                m_FrameRenderBuffer_DirectLighting_specular_Baking->Bind();
-                RenderCommand::SetViewPort(0, 0, cubeMapSize, cubeMapSize);
-
-                RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
-                RenderCommand::Clear();
-
-                auto deferred_shader = m_ShaderLibrary.Get("DirectLighting_specular");
-                deferred_shader->Bind();
-
-                deferred_shader->SetInt("g_ViewPosition", 0);
-                m_GeometryBuffer_Baking->BindViewPositionTexture(0);
-                deferred_shader->SetInt("g_ViewNormal", 1);
-                m_GeometryBuffer_Baking->BindViewNormalTexture(1);
-                deferred_shader->SetInt("g_Diffuse", 2);
-                m_GeometryBuffer_Baking->BindDiffuseTexture(2);
-                deferred_shader->SetInt("g_Depth", 3);
-                m_GeometryBuffer_Baking->BindDepthTexture(3);
-                deferred_shader->SetInt("g_Roughness", 4);
-                m_GeometryBuffer_Baking->BindRoughnessTexture(4);
-                deferred_shader->SetInt("g_Specular", 5);
-                m_GeometryBuffer_Baking->BindSpecularTexture(5);
-                deferred_shader->SetInt("g_WorldPosition", 6);
-                m_GeometryBuffer_Baking->BindWorldPositionTexture(6);
-                deferred_shader->SetInt("g_WorldNormal", 7);
-                m_GeometryBuffer_Baking->BindWorldNormalTexture(7);
-                deferred_shader->SetInt("g_AO", 8);
-                m_SSAOBuffer_Baking->BindSSAOTexture(8);
-
-                int ligth_num = 0;
-                for (auto [entity, name, trans, light] : pointlight_view.each())
+                // EnvironmentLighting_diffuse Shading
                 {
-                    deferred_shader->SetFloat3("pointLightPositions[" + std::to_string(ligth_num) + "]",
-                                               trans.GetPosition());
-                    deferred_shader->SetFloat3("pointLightColors[" + std::to_string(ligth_num) + "]",
-                                               light.GetColorRef());
-                    deferred_shader->SetFloat("pointLightIntensities[" + std::to_string(ligth_num) + "]",
-                                              light.GetIntensityRef());
+                    m_FrameRenderBuffer_EnvironmentLighting_diffuse_Baking->Bind();
+                    RenderCommand::SetViewPort(0, 0, cubeMapSize, cubeMapSize);
 
-                    deferred_shader->SetInt("pointShadowCubeMaps[" + std::to_string(ligth_num) + "]", 50 + ligth_num);
-                    light.GetShadowCubeMapBufferRef().BindTexture(50 + ligth_num);
-                    deferred_shader->SetFloat("pointShadowCubeMapsNearPlane[" + std::to_string(ligth_num) + "]", 1.0f);
-                    deferred_shader->SetFloat("pointShadowCubeMapsFarPlane[" + std::to_string(ligth_num) + "]", 10.0f);
+                    RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+                    RenderCommand::Clear();
 
-                    ligth_num++;
+                    auto deferred_shader = m_ShaderLibrary.Get("EnvironmentLighting_diffuse");
+                    deferred_shader->Bind();
+
+                    deferred_shader->SetInt("g_ViewPosition", 0);
+                    m_GeometryBuffer_Baking->BindViewPositionTexture(0);
+                    deferred_shader->SetInt("g_ViewNormal", 1);
+                    m_GeometryBuffer_Baking->BindViewNormalTexture(1);
+                    deferred_shader->SetInt("g_Diffuse", 2);
+                    m_GeometryBuffer_Baking->BindDiffuseTexture(2);
+                    deferred_shader->SetInt("g_Depth", 3);
+                    m_GeometryBuffer_Baking->BindDepthTexture(3);
+                    deferred_shader->SetInt("g_Roughness", 4);
+                    m_GeometryBuffer_Baking->BindRoughnessTexture(4);
+                    deferred_shader->SetInt("g_Specular", 5);
+                    m_GeometryBuffer_Baking->BindSpecularTexture(5);
+                    deferred_shader->SetInt("g_WorldPosition", 6);
+                    m_GeometryBuffer_Baking->BindWorldPositionTexture(6);
+                    deferred_shader->SetInt("g_WorldNormal", 7);
+                    m_GeometryBuffer_Baking->BindWorldNormalTexture(7);
+                    deferred_shader->SetInt("g_AO", 8);
+                    m_SSAOBuffer_Baking->BindSSAOTexture(8);
+
+                    int ligth_num = 0;
+                    for (auto [entity, name, trans, light] : pointlight_view.each())
+                    {
+                        deferred_shader->SetFloat3("pointLightPositions[" + std::to_string(ligth_num) + "]",
+                                                   trans.GetPosition());
+                        deferred_shader->SetFloat3("pointLightColors[" + std::to_string(ligth_num) + "]",
+                                                   light.GetColorRef());
+
+                        ligth_num++;
+                    }
+                    deferred_shader->SetInt("numPointLights", ligth_num);
+
+                    glm::vec3 camPos = glm::vec3(glm::inverse(m_VMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+                    deferred_shader->SetFloat3("camPos", camPos);
+
+                    auto sky_cubeMap = m_MainSkybox->GetSkyboxComponent().GetCubeMap();
+
+                    const auto& sphericlaHarmonicsParameters = sky_cubeMap->GetSphereHarmonicsParametersRef();
+                    for (int i = 0; i < 9; ++i)
+                    {
+                        deferred_shader->SetFloat3("sphericlaHarmonicsParameters[" + std::to_string(i) + "]",
+                                                   sphericlaHarmonicsParameters[i]);
+                    }
+
+                    deferred_shader->SetInt("prefilterMap", 16);
+                    sky_cubeMap->BindPrefilterTexture(16);
+                    deferred_shader->SetInt("brdfLUT", 17);
+                    sky_cubeMap->BindBrdfLutTexture(17);
+
+                    RenderCommand::RenderToQuad();
+
+                    sky_cubeMap->UnBind(17);
+                    sky_cubeMap->UnBind(16);
+                    sky_cubeMap->UnBind(15);
+
+                    m_SSAOBuffer_Baking->UnBindTexture(8);
+                    m_GeometryBuffer_Baking->UnBindTexture(7);
+                    m_GeometryBuffer_Baking->UnBindTexture(6);
+                    m_GeometryBuffer_Baking->UnBindTexture(5);
+                    m_GeometryBuffer_Baking->UnBindTexture(4);
+                    m_GeometryBuffer_Baking->UnBindTexture(3);
+                    m_GeometryBuffer_Baking->UnBindTexture(2);
+                    m_GeometryBuffer_Baking->UnBindTexture(1);
+                    m_GeometryBuffer_Baking->UnBindTexture(0);
+
+                    deferred_shader->UnBind();
+                    m_FrameRenderBuffer_EnvironmentLighting_diffuse_Baking->UnBind();
                 }
-                deferred_shader->SetInt("numPointLights", ligth_num);
-
-                int dirctionallight_num = 0;
-                for (auto [entity, name, trans, light] : dirctionallight_view.each())
+                // EnvironmentLighting_specular Shading
                 {
-                    const glm::mat4 lightProjection = glm::ortho(-70.0f, 70.0f, -70.0f, 70.0f, 0.5f, 120.0f);
-                    const glm::vec3 lightPosition   = trans.GetPosition();
-                    const glm::vec3 lightDirection  = light.GetDirectionRef();
-                    const glm::mat4 lightView =
-                        glm::lookAt(lightPosition, lightPosition + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
-                    const glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+                    m_FrameRenderBuffer_EnvironmentLighting_specular_Baking->Bind();
+                    RenderCommand::SetViewPort(0, 0, cubeMapSize, cubeMapSize);
 
-                    deferred_shader->SetFloat3("directionalLightDirections[" + std::to_string(dirctionallight_num) +
-                                                   "]",
-                                               light.GetDirectionRef());
-                    deferred_shader->SetFloat3("directionalLightColors[" + std::to_string(dirctionallight_num) + "]",
-                                               light.GetColorRef());
-                    deferred_shader->SetFloat("directionalLightIntensities[" + std::to_string(dirctionallight_num) +
-                                                  "]",
-                                              light.GetIntensityRef());
-                    deferred_shader->SetMat4("directionalLightMatrices[" + std::to_string(dirctionallight_num) + "]",
-                                             lightSpaceMatrix);
-                    deferred_shader->SetInt("directionalShadowMaps[" + std::to_string(dirctionallight_num) + "]",
-                                            150 + dirctionallight_num);
+                    RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+                    RenderCommand::Clear();
 
-                    light.GetShadowMapBufferRef().BindTexture(150 + dirctionallight_num);
+                    auto deferred_shader = m_ShaderLibrary.Get("EnvironmentLighting_specular");
+                    deferred_shader->Bind();
 
-                    dirctionallight_num++;
+                    deferred_shader->SetInt("g_ViewPosition", 0);
+                    m_GeometryBuffer_Baking->BindViewPositionTexture(0);
+                    deferred_shader->SetInt("g_ViewNormal", 1);
+                    m_GeometryBuffer_Baking->BindViewNormalTexture(1);
+                    deferred_shader->SetInt("g_Diffuse", 2);
+                    m_GeometryBuffer_Baking->BindDiffuseTexture(2);
+                    deferred_shader->SetInt("g_Depth", 3);
+                    m_GeometryBuffer_Baking->BindDepthTexture(3);
+                    deferred_shader->SetInt("g_Roughness", 4);
+                    m_GeometryBuffer_Baking->BindRoughnessTexture(4);
+                    deferred_shader->SetInt("g_Specular", 5);
+                    m_GeometryBuffer_Baking->BindSpecularTexture(5);
+                    deferred_shader->SetInt("g_WorldPosition", 6);
+                    m_GeometryBuffer_Baking->BindWorldPositionTexture(6);
+                    deferred_shader->SetInt("g_WorldNormal", 7);
+                    m_GeometryBuffer_Baking->BindWorldNormalTexture(7);
+                    deferred_shader->SetInt("g_AO", 8);
+                    m_SSAOBuffer->BindSSAOTexture(8);
+
+                    int ligth_num = 0;
+                    for (auto [entity, name, trans, light] : pointlight_view.each())
+                    {
+                        deferred_shader->SetFloat3("pointLightPositions[" + std::to_string(ligth_num) + "]",
+                                                   trans.GetPosition());
+                        deferred_shader->SetFloat3("pointLightColors[" + std::to_string(ligth_num) + "]",
+                                                   light.GetColorRef());
+
+                        ligth_num++;
+                    }
+                    deferred_shader->SetInt("numPointLights", ligth_num);
+
+                    glm::vec3 camPos = glm::vec3(glm::inverse(m_VMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+                    deferred_shader->SetFloat3("camPos", camPos);
+
+                    auto sky_cubeMap = m_MainSkybox->GetSkyboxComponent().GetCubeMap();
+
+                    deferred_shader->SetInt("irradianceMap", 15);
+                    sky_cubeMap->BindIrradianceTexture(15);
+                    deferred_shader->SetInt("prefilterMap", 16);
+                    sky_cubeMap->BindPrefilterTexture(16);
+                    deferred_shader->SetInt("brdfLUT", 17);
+                    sky_cubeMap->BindBrdfLutTexture(17);
+
+                    RenderCommand::RenderToQuad();
+
+                    sky_cubeMap->UnBind(17);
+                    sky_cubeMap->UnBind(16);
+                    sky_cubeMap->UnBind(15);
+
+                    m_SSAOBuffer->UnBindTexture(8);
+                    m_GeometryBuffer->UnBindTexture(7);
+                    m_GeometryBuffer->UnBindTexture(6);
+                    m_GeometryBuffer->UnBindTexture(5);
+                    m_GeometryBuffer->UnBindTexture(4);
+                    m_GeometryBuffer->UnBindTexture(3);
+                    m_GeometryBuffer->UnBindTexture(2);
+                    m_GeometryBuffer->UnBindTexture(1);
+                    m_GeometryBuffer->UnBindTexture(0);
+
+                    deferred_shader->UnBind();
+                    m_FrameRenderBuffer_EnvironmentLighting_specular_Baking->UnBind();
                 }
-                deferred_shader->SetInt("numDirectionalLights", dirctionallight_num);
-                deferred_shader->SetFloat("PCSS_FilterRadius", m_PCSS_FilterRadius);
 
-                glm::vec3 camPos = glm::vec3(glm::inverse(m_VMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-                deferred_shader->SetFloat3("camPos", camPos);
-
-                auto sky_cubeMap = m_MainSkybox->GetSkyboxComponent().GetCubeMap();
-
-                deferred_shader->SetInt("irradianceMap", 15);
-                sky_cubeMap->BindIrradianceTexture(15);
-                deferred_shader->SetInt("prefilterMap", 16);
-                sky_cubeMap->BindPrefilterTexture(16);
-                deferred_shader->SetInt("brdfLUT", 17);
-                sky_cubeMap->BindBrdfLutTexture(17);
-
-                RenderCommand::RenderToQuad();
-
-                sky_cubeMap->UnBind(17);
-                sky_cubeMap->UnBind(16);
-                sky_cubeMap->UnBind(15);
-
-                m_SSAOBuffer_Baking->UnBindTexture(8);
-                m_GeometryBuffer_Baking->UnBindTexture(7);
-                m_GeometryBuffer_Baking->UnBindTexture(6);
-                m_GeometryBuffer_Baking->UnBindTexture(5);
-                m_GeometryBuffer_Baking->UnBindTexture(4);
-                m_GeometryBuffer_Baking->UnBindTexture(3);
-                m_GeometryBuffer_Baking->UnBindTexture(2);
-                m_GeometryBuffer_Baking->UnBindTexture(1);
-                m_GeometryBuffer_Baking->UnBindTexture(0);
-
-                deferred_shader->UnBind();
-                m_FrameRenderBuffer_DirectLighting_specular_Baking->UnBind();
-            }
-            // EnvironmentLighting_diffuse Shading
-            {
-                m_FrameRenderBuffer_EnvironmentLighting_diffuse_Baking->Bind();
-                RenderCommand::SetViewPort(0, 0, cubeMapSize, cubeMapSize);
-
-                RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
-                RenderCommand::Clear();
-
-                auto deferred_shader = m_ShaderLibrary.Get("EnvironmentLighting_diffuse");
-                deferred_shader->Bind();
-
-                deferred_shader->SetInt("g_ViewPosition", 0);
-                m_GeometryBuffer_Baking->BindViewPositionTexture(0);
-                deferred_shader->SetInt("g_ViewNormal", 1);
-                m_GeometryBuffer_Baking->BindViewNormalTexture(1);
-                deferred_shader->SetInt("g_Diffuse", 2);
-                m_GeometryBuffer_Baking->BindDiffuseTexture(2);
-                deferred_shader->SetInt("g_Depth", 3);
-                m_GeometryBuffer_Baking->BindDepthTexture(3);
-                deferred_shader->SetInt("g_Roughness", 4);
-                m_GeometryBuffer_Baking->BindRoughnessTexture(4);
-                deferred_shader->SetInt("g_Specular", 5);
-                m_GeometryBuffer_Baking->BindSpecularTexture(5);
-                deferred_shader->SetInt("g_WorldPosition", 6);
-                m_GeometryBuffer_Baking->BindWorldPositionTexture(6);
-                deferred_shader->SetInt("g_WorldNormal", 7);
-                m_GeometryBuffer_Baking->BindWorldNormalTexture(7);
-                deferred_shader->SetInt("g_AO", 8);
-                m_SSAOBuffer_Baking->BindSSAOTexture(8);
-
-                int ligth_num = 0;
-                for (auto [entity, name, trans, light] : pointlight_view.each())
+                // ssr
                 {
-                    deferred_shader->SetFloat3("pointLightPositions[" + std::to_string(ligth_num) + "]",
-                                               trans.GetPosition());
-                    deferred_shader->SetFloat3("pointLightColors[" + std::to_string(ligth_num) + "]",
-                                               light.GetColorRef());
+                    glDisable(GL_DEPTH_TEST);
+                    m_FrameRenderBuffer_ssr_Baking->Bind();
+                    RenderCommand::SetViewPort(0, 0, cubeMapSize, cubeMapSize);
+                    RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+                    RenderCommand::Clear();
 
-                    ligth_num++;
+                    // auto ssr_shader = m_ShaderLibrary.Get("ScreenSpaceReflection");
+                    // ssr_shader->Bind();
+
+                    // ssr_shader->SetInt("g_DirectLightinging_diffuse", 0);
+                    // m_FrameRenderBuffer_DirectLighting_diffuse_Baking->BindTexture(0);
+                    // ssr_shader->SetInt("g_DirectLightinging_specular", 1);
+                    // m_FrameRenderBuffer_DirectLighting_specular_Baking->BindTexture(1);
+                    // ssr_shader->SetInt("g_EnvironmentLighting_diffuse", 2);
+                    // m_FrameRenderBuffer_EnvironmentLighting_diffuse_Baking->BindTexture(2);
+                    // ssr_shader->SetInt("g_EnvironmentLighting_specular", 3);
+                    // m_FrameRenderBuffer_EnvironmentLighting_specular_Baking->BindTexture(3);
+                    // ssr_shader->SetInt("g_ViewPosition", 4);
+                    // m_GeometryBuffer_Baking->BindViewPositionTexture(4);
+                    // ssr_shader->SetInt("g_ViewNormal", 5);
+                    // m_GeometryBuffer_Baking->BindViewNormalTexture(5);
+                    // ssr_shader->SetInt("g_Depth", 6);
+                    // m_GeometryBuffer_Baking->BindDepthTexture(6);
+                    // ssr_shader->SetInt("g_Specular", 7);
+                    // m_GeometryBuffer_Baking->BindSpecularTexture(7);
+                    // ssr_shader->SetInt("g_WorldPosition", 8);
+                    // m_GeometryBuffer_Baking->BindWorldPositionTexture(8);
+                    // ssr_shader->SetInt("g_Roughness", 9);
+                    // m_GeometryBuffer_Baking->BindRoughnessTexture(9);
+
+                    // ssr_shader->SetFloat("rayStep", m_SSR_settings.rayStep);
+                    // ssr_shader->SetFloat("minRayStep", m_SSR_settings.minRayStep);
+                    // ssr_shader->SetFloat("maxSteps", m_SSR_settings.maxSteps);
+                    // ssr_shader->SetInt("numBinarySearchSteps", m_SSR_settings.numBinarySearchSteps);
+                    // ssr_shader->SetFloat("reflectionSpecularFalloffExponent",
+                    //                      m_SSR_settings.reflectionSpecularFalloffExponent);
+                    // ssr_shader->SetBool("debug", m_SSR_settings.debug);
+                    // ssr_shader->SetFloat("refBias", m_SSR_settings.refBias);
+
+                    // ssr_shader->SetMat4("u_MProjection", m_PMatrix);
+                    // ssr_shader->SetMat4("u_MView", m_VMatrix);
+                    // ssr_shader->SetMat4("u_MInvProjection", glm::inverse(m_PMatrix));
+                    // ssr_shader->SetMat4("u_MInvView", glm::inverse(m_VMatrix));
+
+                    // RenderCommand::RenderToQuad();
+
+                    // m_GeometryBuffer_Baking->UnBindTexture(9);
+                    // m_GeometryBuffer_Baking->UnBindTexture(8);
+                    // m_GeometryBuffer_Baking->UnBindTexture(7);
+                    // m_GeometryBuffer_Baking->UnBindTexture(6);
+                    // m_GeometryBuffer_Baking->UnBindTexture(5);
+                    // m_GeometryBuffer_Baking->UnBindTexture(4);
+                    // m_FrameRenderBuffer_EnvironmentLighting_specular_Baking->UnBindTexture(3);
+                    // m_FrameRenderBuffer_EnvironmentLighting_diffuse_Baking->UnBindTexture(2);
+                    // m_FrameRenderBuffer_DirectLighting_specular_Baking->UnBindTexture(1);
+                    // m_FrameRenderBuffer_DirectLighting_diffuse_Baking->UnBindTexture(0);
+
+                    // ssr_shader->UnBind();
+                    Renderer::EndScene(m_FrameRenderBuffer_ssr_Baking);
+                    glEnable(GL_DEPTH_TEST);
                 }
-                deferred_shader->SetInt("numPointLights", ligth_num);
-
-                glm::vec3 camPos = glm::vec3(glm::inverse(m_VMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-                deferred_shader->SetFloat3("camPos", camPos);
-
-                auto sky_cubeMap = m_MainSkybox->GetSkyboxComponent().GetCubeMap();
-
-                const auto& sphericlaHarmonicsParameters = sky_cubeMap->GetSphereHarmonicsParametersRef();
-                for (int i = 0; i < 9; ++i)
+                // blur ssr
                 {
-                    deferred_shader->SetFloat3("sphericlaHarmonicsParameters[" + std::to_string(i) + "]",
-                                               sphericlaHarmonicsParameters[i]);
+                    glDisable(GL_DEPTH_TEST);
+                    m_FrameRenderBuffer_ssr_blur_Baking->Bind();
+                    RenderCommand::SetViewPort(0, 0, cubeMapSize, cubeMapSize);
+                    RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+                    RenderCommand::Clear();
+
+                    // auto blur_shader = m_ShaderLibrary.Get("GaussianBlur");
+                    // blur_shader->Bind();
+
+                    // blur_shader->SetInt("g_Color", 0);
+                    // m_FrameRenderBuffer_ssr_Baking->BindTexture(0);
+                    // blur_shader->SetFloat2("screenSize", glm::vec2(cubeMapSize, cubeMapSize) / 1.0f);
+
+                    // RenderCommand::RenderToQuad();
+
+                    // m_FrameRenderBuffer_ssr_Baking->UnBindTexture(0);
+
+                    // blur_shader->UnBind();
+                    Renderer::EndScene(m_FrameRenderBuffer_ssr_blur_Baking);
+                    glEnable(GL_DEPTH_TEST);
                 }
 
-                deferred_shader->SetInt("prefilterMap", 16);
-                sky_cubeMap->BindPrefilterTexture(16);
-                deferred_shader->SetInt("brdfLUT", 17);
-                sky_cubeMap->BindBrdfLutTexture(17);
-
-                RenderCommand::RenderToQuad();
-
-                sky_cubeMap->UnBind(17);
-                sky_cubeMap->UnBind(16);
-                sky_cubeMap->UnBind(15);
-
-                m_SSAOBuffer_Baking->UnBindTexture(8);
-                m_GeometryBuffer_Baking->UnBindTexture(7);
-                m_GeometryBuffer_Baking->UnBindTexture(6);
-                m_GeometryBuffer_Baking->UnBindTexture(5);
-                m_GeometryBuffer_Baking->UnBindTexture(4);
-                m_GeometryBuffer_Baking->UnBindTexture(3);
-                m_GeometryBuffer_Baking->UnBindTexture(2);
-                m_GeometryBuffer_Baking->UnBindTexture(1);
-                m_GeometryBuffer_Baking->UnBindTexture(0);
-
-                deferred_shader->UnBind();
-                m_FrameRenderBuffer_EnvironmentLighting_diffuse_Baking->UnBind();
-            }
-            // EnvironmentLighting_specular Shading
-            {
-                m_FrameRenderBuffer_EnvironmentLighting_specular_Baking->Bind();
-                RenderCommand::SetViewPort(0, 0, cubeMapSize, cubeMapSize);
-
-                RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
-                RenderCommand::Clear();
-
-                auto deferred_shader = m_ShaderLibrary.Get("EnvironmentLighting_specular");
-                deferred_shader->Bind();
-
-                deferred_shader->SetInt("g_ViewPosition", 0);
-                m_GeometryBuffer_Baking->BindViewPositionTexture(0);
-                deferred_shader->SetInt("g_ViewNormal", 1);
-                m_GeometryBuffer_Baking->BindViewNormalTexture(1);
-                deferred_shader->SetInt("g_Diffuse", 2);
-                m_GeometryBuffer_Baking->BindDiffuseTexture(2);
-                deferred_shader->SetInt("g_Depth", 3);
-                m_GeometryBuffer_Baking->BindDepthTexture(3);
-                deferred_shader->SetInt("g_Roughness", 4);
-                m_GeometryBuffer_Baking->BindRoughnessTexture(4);
-                deferred_shader->SetInt("g_Specular", 5);
-                m_GeometryBuffer_Baking->BindSpecularTexture(5);
-                deferred_shader->SetInt("g_WorldPosition", 6);
-                m_GeometryBuffer_Baking->BindWorldPositionTexture(6);
-                deferred_shader->SetInt("g_WorldNormal", 7);
-                m_GeometryBuffer_Baking->BindWorldNormalTexture(7);
-                deferred_shader->SetInt("g_AO", 8);
-                m_SSAOBuffer->BindSSAOTexture(8);
-
-                int ligth_num = 0;
-                for (auto [entity, name, trans, light] : pointlight_view.each())
+                // composite
                 {
-                    deferred_shader->SetFloat3("pointLightPositions[" + std::to_string(ligth_num) + "]",
-                                               trans.GetPosition());
-                    deferred_shader->SetFloat3("pointLightColors[" + std::to_string(ligth_num) + "]",
-                                               light.GetColorRef());
+                    glDisable(GL_DEPTH_TEST);
+                    m_FrameRenderBuffer_Baking->Bind();
+                    RenderCommand::SetViewPort(0, 0, cubeMapSize, cubeMapSize);
+                    RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+                    RenderCommand::Clear();
 
-                    ligth_num++;
+                    auto composite_shader = m_ShaderLibrary.Get("Composite");
+                    composite_shader->Bind();
+
+                    composite_shader->SetInt("g_DirectLightinging_diffuse", 0);
+                    m_FrameRenderBuffer_DirectLighting_diffuse_Baking->BindTexture(0);
+                    composite_shader->SetInt("g_DirectLightinging_specular", 1);
+                    m_FrameRenderBuffer_DirectLighting_specular_Baking->BindTexture(1);
+                    composite_shader->SetInt("g_EnvironmentLighting_diffuse", 2);
+                    m_FrameRenderBuffer_EnvironmentLighting_diffuse_Baking->BindTexture(2);
+                    composite_shader->SetInt("g_EnvironmentLighting_specular", 3);
+                    m_FrameRenderBuffer_EnvironmentLighting_specular_Baking->BindTexture(3);
+                    composite_shader->SetInt("g_Skybox", 4);
+                    m_FrameRenderBuffer_skybox_Baking->BindTexture(4);
+                    composite_shader->SetInt("g_ScreenSpaceReflection", 5);
+                    m_FrameRenderBuffer_ssr_blur_Baking->BindTexture(5);
+                    composite_shader->SetInt("g_AO", 6);
+                    m_SSAOBuffer_Baking->BindSSAOTexture(6);
+
+                    RenderCommand::RenderToQuad();
+
+                    m_SSAOBuffer_Baking->UnBindTexture(6);
+                    m_FrameRenderBuffer_ssr_blur_Baking->UnBindTexture(5);
+                    m_FrameRenderBuffer_skybox_Baking->UnBindTexture(4);
+                    m_FrameRenderBuffer_EnvironmentLighting_specular_Baking->UnBindTexture(3);
+                    m_FrameRenderBuffer_EnvironmentLighting_diffuse_Baking->UnBindTexture(2);
+                    m_FrameRenderBuffer_DirectLighting_specular_Baking->UnBindTexture(1);
+                    m_FrameRenderBuffer_DirectLighting_diffuse_Baking->UnBindTexture(0);
+
+                    composite_shader->UnBind();
+                    Renderer::EndScene(m_FrameRenderBuffer_Baking);
+                    glEnable(GL_DEPTH_TEST);
                 }
-                deferred_shader->SetInt("numPointLights", ligth_num);
 
-                glm::vec3 camPos = glm::vec3(glm::inverse(m_VMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-                deferred_shader->SetFloat3("camPos", camPos);
+                {
+                    // copy to cubeMapData
+                    glBindTexture(GL_TEXTURE_2D, (GLuint)(size_t)m_FrameRenderBuffer_Baking->GetTextureID());
+                    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, cubeMapData[i].data());
+                    glBindTexture(GL_TEXTURE_2D, 0);
 
-                auto sky_cubeMap = m_MainSkybox->GetSkyboxComponent().GetCubeMap();
-
-                deferred_shader->SetInt("irradianceMap", 15);
-                sky_cubeMap->BindIrradianceTexture(15);
-                deferred_shader->SetInt("prefilterMap", 16);
-                m_Probe_CubeMap->BindPrefilterTexture(16);
-                deferred_shader->SetInt("brdfLUT", 17);
-                sky_cubeMap->BindBrdfLutTexture(17);
-
-                RenderCommand::RenderToQuad();
-
-                sky_cubeMap->UnBind(17);
-                sky_cubeMap->UnBind(16);
-                sky_cubeMap->UnBind(15);
-
-                m_SSAOBuffer->UnBindTexture(8);
-                m_GeometryBuffer->UnBindTexture(7);
-                m_GeometryBuffer->UnBindTexture(6);
-                m_GeometryBuffer->UnBindTexture(5);
-                m_GeometryBuffer->UnBindTexture(4);
-                m_GeometryBuffer->UnBindTexture(3);
-                m_GeometryBuffer->UnBindTexture(2);
-                m_GeometryBuffer->UnBindTexture(1);
-                m_GeometryBuffer->UnBindTexture(0);
-
-                deferred_shader->UnBind();
-                m_FrameRenderBuffer_EnvironmentLighting_specular_Baking->UnBind();
+                    glBindTexture(GL_TEXTURE_CUBE_MAP, (GLuint)(size_t)probeCubeMap->GetTextureID());
+                    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+                                 0,
+                                 GL_RGB16F,
+                                 cubeMapSize,
+                                 cubeMapSize,
+                                 0,
+                                 GL_RGB,
+                                 GL_FLOAT,
+                                 cubeMapData[i].data());
+                    glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+                    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+                }
             }
 
-            // ssr
-            {
-                glDisable(GL_DEPTH_TEST);
-                m_FrameRenderBuffer_ssr_Baking->Bind();
-                RenderCommand::SetViewPort(0, 0, cubeMapSize, cubeMapSize);
-                RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
-                RenderCommand::Clear();
+            probeCubeMap->ComputeIrradianceTexture();
+            probeCubeMap->ComputeSphereHarmonicsParameters();
+            probeCubeMap->ComputePrefilterTexture();
 
-                // auto ssr_shader = m_ShaderLibrary.Get("ScreenSpaceReflection");
-                // ssr_shader->Bind();
-
-                // ssr_shader->SetInt("g_DirectLightinging_diffuse", 0);
-                // m_FrameRenderBuffer_DirectLighting_diffuse_Baking->BindTexture(0);
-                // ssr_shader->SetInt("g_DirectLightinging_specular", 1);
-                // m_FrameRenderBuffer_DirectLighting_specular_Baking->BindTexture(1);
-                // ssr_shader->SetInt("g_EnvironmentLighting_diffuse", 2);
-                // m_FrameRenderBuffer_EnvironmentLighting_diffuse_Baking->BindTexture(2);
-                // ssr_shader->SetInt("g_EnvironmentLighting_specular", 3);
-                // m_FrameRenderBuffer_EnvironmentLighting_specular_Baking->BindTexture(3);
-                // ssr_shader->SetInt("g_ViewPosition", 4);
-                // m_GeometryBuffer_Baking->BindViewPositionTexture(4);
-                // ssr_shader->SetInt("g_ViewNormal", 5);
-                // m_GeometryBuffer_Baking->BindViewNormalTexture(5);
-                // ssr_shader->SetInt("g_Depth", 6);
-                // m_GeometryBuffer_Baking->BindDepthTexture(6);
-                // ssr_shader->SetInt("g_Specular", 7);
-                // m_GeometryBuffer_Baking->BindSpecularTexture(7);
-                // ssr_shader->SetInt("g_WorldPosition", 8);
-                // m_GeometryBuffer_Baking->BindWorldPositionTexture(8);
-                // ssr_shader->SetInt("g_Roughness", 9);
-                // m_GeometryBuffer_Baking->BindRoughnessTexture(9);
-
-                // ssr_shader->SetFloat("rayStep", m_SSR_settings.rayStep);
-                // ssr_shader->SetFloat("minRayStep", m_SSR_settings.minRayStep);
-                // ssr_shader->SetFloat("maxSteps", m_SSR_settings.maxSteps);
-                // ssr_shader->SetInt("numBinarySearchSteps", m_SSR_settings.numBinarySearchSteps);
-                // ssr_shader->SetFloat("reflectionSpecularFalloffExponent",
-                //                      m_SSR_settings.reflectionSpecularFalloffExponent);
-                // ssr_shader->SetBool("debug", m_SSR_settings.debug);
-                // ssr_shader->SetFloat("refBias", m_SSR_settings.refBias);
-
-                // ssr_shader->SetMat4("u_MProjection", m_PMatrix);
-                // ssr_shader->SetMat4("u_MView", m_VMatrix);
-                // ssr_shader->SetMat4("u_MInvProjection", glm::inverse(m_PMatrix));
-                // ssr_shader->SetMat4("u_MInvView", glm::inverse(m_VMatrix));
-
-                // RenderCommand::RenderToQuad();
-
-                // m_GeometryBuffer_Baking->UnBindTexture(9);
-                // m_GeometryBuffer_Baking->UnBindTexture(8);
-                // m_GeometryBuffer_Baking->UnBindTexture(7);
-                // m_GeometryBuffer_Baking->UnBindTexture(6);
-                // m_GeometryBuffer_Baking->UnBindTexture(5);
-                // m_GeometryBuffer_Baking->UnBindTexture(4);
-                // m_FrameRenderBuffer_EnvironmentLighting_specular_Baking->UnBindTexture(3);
-                // m_FrameRenderBuffer_EnvironmentLighting_diffuse_Baking->UnBindTexture(2);
-                // m_FrameRenderBuffer_DirectLighting_specular_Baking->UnBindTexture(1);
-                // m_FrameRenderBuffer_DirectLighting_diffuse_Baking->UnBindTexture(0);
-
-                // ssr_shader->UnBind();
-                Renderer::EndScene(m_FrameRenderBuffer_ssr_Baking);
-                glEnable(GL_DEPTH_TEST);
-            }
-            // blur ssr
-            {
-                glDisable(GL_DEPTH_TEST);
-                m_FrameRenderBuffer_ssr_blur_Baking->Bind();
-                RenderCommand::SetViewPort(0, 0, cubeMapSize, cubeMapSize);
-                RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
-                RenderCommand::Clear();
-
-                // auto blur_shader = m_ShaderLibrary.Get("GaussianBlur");
-                // blur_shader->Bind();
-
-                // blur_shader->SetInt("g_Color", 0);
-                // m_FrameRenderBuffer_ssr_Baking->BindTexture(0);
-                // blur_shader->SetFloat2("screenSize", glm::vec2(cubeMapSize, cubeMapSize) / 1.0f);
-
-                // RenderCommand::RenderToQuad();
-
-                // m_FrameRenderBuffer_ssr_Baking->UnBindTexture(0);
-
-                // blur_shader->UnBind();
-                Renderer::EndScene(m_FrameRenderBuffer_ssr_blur_Baking);
-                glEnable(GL_DEPTH_TEST);
-            }
-
-            // composite
-            {
-                glDisable(GL_DEPTH_TEST);
-                m_FrameRenderBuffer_Baking->Bind();
-                RenderCommand::SetViewPort(0, 0, cubeMapSize, cubeMapSize);
-                RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
-                RenderCommand::Clear();
-
-                auto composite_shader = m_ShaderLibrary.Get("Composite");
-                composite_shader->Bind();
-
-                composite_shader->SetInt("g_DirectLightinging_diffuse", 0);
-                m_FrameRenderBuffer_DirectLighting_diffuse_Baking->BindTexture(0);
-                composite_shader->SetInt("g_DirectLightinging_specular", 1);
-                m_FrameRenderBuffer_DirectLighting_specular_Baking->BindTexture(1);
-                composite_shader->SetInt("g_EnvironmentLighting_diffuse", 2);
-                m_FrameRenderBuffer_EnvironmentLighting_diffuse_Baking->BindTexture(2);
-                composite_shader->SetInt("g_EnvironmentLighting_specular", 3);
-                m_FrameRenderBuffer_EnvironmentLighting_specular_Baking->BindTexture(3);
-                composite_shader->SetInt("g_Skybox", 4);
-                m_FrameRenderBuffer_skybox_Baking->BindTexture(4);
-                composite_shader->SetInt("g_ScreenSpaceReflection", 5);
-                m_FrameRenderBuffer_ssr_blur_Baking->BindTexture(5);
-                composite_shader->SetInt("g_AO", 6);
-                m_SSAOBuffer_Baking->BindSSAOTexture(6);
-
-                RenderCommand::RenderToQuad();
-
-                m_SSAOBuffer_Baking->UnBindTexture(6);
-                m_FrameRenderBuffer_ssr_blur_Baking->UnBindTexture(5);
-                m_FrameRenderBuffer_skybox_Baking->UnBindTexture(4);
-                m_FrameRenderBuffer_EnvironmentLighting_specular_Baking->UnBindTexture(3);
-                m_FrameRenderBuffer_EnvironmentLighting_diffuse_Baking->UnBindTexture(2);
-                m_FrameRenderBuffer_DirectLighting_specular_Baking->UnBindTexture(1);
-                m_FrameRenderBuffer_DirectLighting_diffuse_Baking->UnBindTexture(0);
-
-                composite_shader->UnBind();
-                Renderer::EndScene(m_FrameRenderBuffer_Baking);
-                glEnable(GL_DEPTH_TEST);
-            }
-
-            {
-                // copy to cubeMapData
-                glBindTexture(GL_TEXTURE_2D, (GLuint)(size_t)m_FrameRenderBuffer_Baking->GetTextureID());
-                glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, cubeMapData[i].data());
-                glBindTexture(GL_TEXTURE_2D, 0);
-
-                glBindTexture(GL_TEXTURE_CUBE_MAP, (GLuint)(size_t)m_Probe_CubeMap->GetTextureID());
-                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-                             0,
-                             GL_RGB16F,
-                             cubeMapSize,
-                             cubeMapSize,
-                             0,
-                             GL_RGB,
-                             GL_FLOAT,
-                             cubeMapData[i].data());
-                glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
-                glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-            }
+            lightprobe.SetSphereHarmonicsParameters(probeCubeMap->GetSphereHarmonicsParametersRef());
+            m_LightProbeComponent = std::make_shared<ULightProbeComponent>(lightprobe);
         }
-
-        m_Probe_CubeMap->ComputeIrradianceTexture();
-        m_Probe_CubeMap->ComputeSphereHarmonicsParameters();
-        m_Probe_CubeMap->ComputePrefilterTexture();
-
-        sphereHarmonicsParameters_a = m_Probe_CubeMap->GetSphereHarmonicsParametersRef();
     }
 
     void UWorld::TickLogic(float timeStep, float nowTime, bool isWindowFocused)
@@ -1380,7 +1393,6 @@ namespace Engine
 
         m_SSAOBuffer->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
         m_FrameRenderBuffer_shadowMapViewport->SetViewPort(256, 256);
-        m_FrameRenderBuffer_shadowCubeMapViewport->SetViewPort(512, 256);
 
         // set point light cube shadow map viewport
         for (auto [entity, name, trans, light] : pointlight_view.each())
@@ -1664,11 +1676,10 @@ namespace Engine
 
                     shader->SetInt("irradianceMap", 15);
                     sky_cubeMap->BindIrradianceTexture(15);
-                    const auto& sphericlaHarmonicsParameters = sky_cubeMap->GetSphereHarmonicsParametersRef();
                     for (int i = 0; i < 9; ++i)
                     {
                         shader->SetFloat3("sphericlaHarmonicsParameters[" + std::to_string(i) + "]",
-                                          sphereHarmonicsParameters_a[i]);
+                                          m_LightProbeComponent->GetSphereHarmonicsParametersRef()[i]);
                     }
 
                     shader->SetInt("prefilterMap", 16);
@@ -2006,7 +2017,7 @@ namespace Engine
                 for (auto [entity, name, trans, skybox] : skybox_view.each())
                 {
                     auto shader = m_ShaderLibrary.Get("Skybox");
-                    Renderer::SetShaderUniform(shader, "mipLevel", m_VisPrePrefilterMipLevel);
+                    shader->SetFloat("mipLevel", 0.0f);
 
                     auto vpmat = m_PMatrix * glm::mat4(glm::mat3(m_VMatrix));
                     skybox.Draw(shader, vpmat);
@@ -2279,13 +2290,10 @@ namespace Engine
 
             auto sky_cubeMap = m_MainSkybox->GetSkyboxComponent().GetCubeMap();
 
-            // deferred_shader->SetInt("irradianceMap", 15);
-            // sky_cubeMap->BindIrradianceTexture(15);
-            const auto& sphericlaHarmonicsParameters = sky_cubeMap->GetSphereHarmonicsParametersRef();
             for (int i = 0; i < 9; ++i)
             {
                 deferred_shader->SetFloat3("sphericlaHarmonicsParameters[" + std::to_string(i) + "]",
-                                           sphereHarmonicsParameters_a[i]);
+                                           m_LightProbeComponent->GetSphereHarmonicsParametersRef()[i]);
             }
 
             deferred_shader->SetInt("prefilterMap", 16);
@@ -2361,7 +2369,7 @@ namespace Engine
             deferred_shader->SetInt("irradianceMap", 15);
             sky_cubeMap->BindIrradianceTexture(15);
             deferred_shader->SetInt("prefilterMap", 16);
-            m_Probe_CubeMap->BindPrefilterTexture(16);
+            m_LightProbeComponent->GetCubeMapPtr()->BindPrefilterTexture(16);
             deferred_shader->SetInt("brdfLUT", 17);
             sky_cubeMap->BindBrdfLutTexture(17);
 
@@ -3155,6 +3163,7 @@ namespace Engine
         auto skybox_view          = m_Registry.view<UTagComponent, UTransformComponent, USkyboxComponent>();
         auto skeleton_view        = m_Registry.view<UTagComponent, UTransformComponent, USkeletonComponent>();
         auto skinnedmesh_view     = m_Registry.view<UTagComponent, UTransformComponent, USkinnedMeshComponent>();
+        auto lightprobe_view      = m_Registry.view<UTagComponent, UTransformComponent, ULightProbeComponent>();
 
         static ImGuiTreeNodeFlags base_flags =
             ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
@@ -3308,79 +3317,86 @@ namespace Engine
                 Gui::SliderFloat("Intensity", pointLightComponent.GetIntensityRef(), 0.0f, 30.0f);
 
                 // Render texture to ShadowCube Viewport
-                ShadowCubeMapBuffer& shadowCubeMapBuffer = pointLightComponent.GetShadowCubeMapBufferRef();
-                m_FrameRenderBuffer_shadowCubeMapViewport->Bind();
-                RenderCommand::SetViewPort(0, 0, 512, 256);
-                RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
-                RenderCommand::Clear();
-
-                auto shader = m_ShaderLibrary.Get("VisCubeDepth");
-                shader->Bind();
-
-                shader->SetInt("g_Depth", 0);
-                shadowCubeMapBuffer.BindTexture(0);
-
-                shader->SetFloat("u_NearPlane", 0.1f);
-                shader->SetFloat("u_FarPlane", 33.0f);
-
-                RenderCommand::RenderToQuad();
-
-                shadowCubeMapBuffer.UnBindTexture(0);
-
-                shader->UnBind();
-                m_FrameRenderBuffer_shadowCubeMapViewport->UnBind();
-
-                ImGui::Text("ShadowCubeMap");
-
-                ImGuiIO& io         = ImGui::GetIO();
-                ImVec2   pos        = ImGui::GetCursorScreenPos();
-                int      my_tex_w   = 512;
-                int      my_tex_h   = 256;
-                ImVec4   tint_col   = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-                ImVec4   border_col = ImGui::GetStyleColorVec4(ImGuiCol_Border);
-
-                ImGui::Image(m_FrameRenderBuffer_shadowCubeMapViewport->GetTextureID(),
-                             ImVec2(512, 256),
-                             ImVec2(0, 1),
-                             ImVec2(1, 0),
-                             tint_col,
-                             border_col);
-
-                if (ImGui::BeginItemTooltip())
                 {
-                    float region_sz = 32.0f;
-                    float region_x  = io.MousePos.x - pos.x - region_sz * 0.5f;
-                    float region_y  = io.MousePos.y - pos.y - region_sz * 0.5f;
-                    float zoom      = 4.0f;
-                    if (region_x < 0.0f)
-                    {
-                        region_x = 0.0f;
-                    }
-                    else if (region_x > my_tex_w - region_sz)
-                    {
-                        region_x = my_tex_w - region_sz;
-                    }
-                    if (region_y < 0.0f)
-                    {
-                        region_y = 0.0f;
-                    }
-                    else if (region_y > my_tex_h - region_sz)
-                    {
-                        region_y = my_tex_h - region_sz;
-                    }
-                    ImGui::Text("Min: (%.2f, %.2f)", region_x, region_y);
-                    ImGui::Text("Max: (%.2f, %.2f)", region_x + region_sz, region_y + region_sz);
-                    ImVec2 uv0 = ImVec2((region_x) / my_tex_w, (region_y) / my_tex_h);
-                    uv0.y      = 1.0f - uv0.y;
-                    ImVec2 uv1 = ImVec2((region_x + region_sz) / my_tex_w, (region_y + region_sz) / my_tex_h);
-                    uv1.y      = 1.0f - uv1.y;
+                    ImGui::Text("ShadowCubeMap");
+
+                    static auto m_FrameRenderBuffer_shadowCubeMapViewport = FrameRenderBuffer::Create();
+                    m_FrameRenderBuffer_shadowCubeMapViewport->SetViewPort(512, 256);
+                    ShadowCubeMapBuffer& shadowCubeMapBuffer = pointLightComponent.GetShadowCubeMapBufferRef();
+                    m_FrameRenderBuffer_shadowCubeMapViewport->Bind();
+                    RenderCommand::SetViewPort(0, 0, 512, 256);
+                    RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+                    RenderCommand::Clear();
+
+                    auto shader = m_ShaderLibrary.Get("VisCubeMap");
+                    shader->Bind();
+
+                    shader->SetInt("g_Texture", 0);
+                    shadowCubeMapBuffer.BindTexture(0);
+
+                    shader->SetFloat("u_NearPlane", 0.1f);
+                    shader->SetFloat("u_FarPlane", 33.0f);
+
+                    shader->SetInt("u_VisMode", 0);
+                    shader->SetFloat("u_MipLevel", 0.0);
+
+                    RenderCommand::RenderToQuad();
+
+                    shadowCubeMapBuffer.UnBindTexture(0);
+
+                    shader->UnBind();
+                    m_FrameRenderBuffer_shadowCubeMapViewport->UnBind();
+
+                    ImGuiIO& io         = ImGui::GetIO();
+                    ImVec2   pos        = ImGui::GetCursorScreenPos();
+                    int      my_tex_w   = 512;
+                    int      my_tex_h   = 256;
+                    ImVec4   tint_col   = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+                    ImVec4   border_col = ImGui::GetStyleColorVec4(ImGuiCol_Border);
+
                     ImGui::Image(m_FrameRenderBuffer_shadowCubeMapViewport->GetTextureID(),
-                                 ImVec2(region_sz * zoom, region_sz * zoom),
-                                 uv0,
-                                 uv1,
+                                 ImVec2(512, 256),
+                                 ImVec2(0, 1),
+                                 ImVec2(1, 0),
                                  tint_col,
                                  border_col);
-                    ImGui::EndTooltip();
+
+                    if (ImGui::BeginItemTooltip())
+                    {
+                        float region_sz = 32.0f;
+                        float region_x  = io.MousePos.x - pos.x - region_sz * 0.5f;
+                        float region_y  = io.MousePos.y - pos.y - region_sz * 0.5f;
+                        float zoom      = 4.0f;
+                        if (region_x < 0.0f)
+                        {
+                            region_x = 0.0f;
+                        }
+                        else if (region_x > my_tex_w - region_sz)
+                        {
+                            region_x = my_tex_w - region_sz;
+                        }
+                        if (region_y < 0.0f)
+                        {
+                            region_y = 0.0f;
+                        }
+                        else if (region_y > my_tex_h - region_sz)
+                        {
+                            region_y = my_tex_h - region_sz;
+                        }
+                        ImGui::Text("Min: (%.2f, %.2f)", region_x, region_y);
+                        ImGui::Text("Max: (%.2f, %.2f)", region_x + region_sz, region_y + region_sz);
+                        ImVec2 uv0 = ImVec2((region_x) / my_tex_w, (region_y) / my_tex_h);
+                        uv0.y      = 1.0f - uv0.y;
+                        ImVec2 uv1 = ImVec2((region_x + region_sz) / my_tex_w, (region_y + region_sz) / my_tex_h);
+                        uv1.y      = 1.0f - uv1.y;
+                        ImGui::Image(m_FrameRenderBuffer_shadowCubeMapViewport->GetTextureID(),
+                                     ImVec2(region_sz * zoom, region_sz * zoom),
+                                     uv0,
+                                     uv1,
+                                     tint_col,
+                                     border_col);
+                        ImGui::EndTooltip();
+                    }
                 }
             }
 
@@ -3479,12 +3495,244 @@ namespace Engine
                 ImGui::Separator();
 
                 // Skybox
-                // use imgui add a bool selector
+                static float m_VisCubeMapMipLevel = 0.0f;
+                Gui::SliderFloat("Mipmap Level", m_VisCubeMapMipLevel, 0.0f, 32.0f);
 
-                const char* items[] = {"CubeMap", "Irradiance", "Prefilter"};
-                ImGui::Combo("Show Map", &skyboxComponent.GetCruuentTextureIndexRef(), items, IM_ARRAYSIZE(items));
+                const char* items[]        = {"CubeMap", "Irradiance", "Prefilter"};
+                static int  current_skymap = 0;
+                ImGui::Combo("Show Map", &current_skymap, items, IM_ARRAYSIZE(items));
 
-                Gui::SliderFloat("Mipmap Level", m_VisPrePrefilterMipLevel, 0.0f, 32.0f);
+                // Render CubeMap texture to ShadowCube Viewport
+                if (current_skymap == 0)
+                {
+                    static auto m_FrameRenderBuffer_shadowCubeMapViewport = FrameRenderBuffer::Create();
+                    m_FrameRenderBuffer_shadowCubeMapViewport->SetViewPort(512, 256);
+                    m_FrameRenderBuffer_shadowCubeMapViewport->Bind();
+                    RenderCommand::SetViewPort(0, 0, 512, 256);
+                    RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+                    RenderCommand::Clear();
+
+                    auto shader = m_ShaderLibrary.Get("VisCubeMap");
+                    shader->Bind();
+
+                    shader->SetInt("g_Texture", 0);
+                    skyboxComponent.GetCubeMap()->Bind(0);
+
+                    shader->SetInt("u_VisMode", 1);
+                    shader->SetFloat("u_MipLevel", m_VisCubeMapMipLevel);
+
+                    RenderCommand::RenderToQuad();
+
+                    skyboxComponent.GetCubeMap()->UnBind(0);
+
+                    shader->UnBind();
+                    m_FrameRenderBuffer_shadowCubeMapViewport->UnBind();
+
+                    ImGuiIO& io         = ImGui::GetIO();
+                    ImVec2   pos        = ImGui::GetCursorScreenPos();
+                    int      my_tex_w   = 512;
+                    int      my_tex_h   = 256;
+                    ImVec4   tint_col   = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+                    ImVec4   border_col = ImGui::GetStyleColorVec4(ImGuiCol_Border);
+
+                    ImGui::Image(m_FrameRenderBuffer_shadowCubeMapViewport->GetTextureID(),
+                                 ImVec2(512, 256),
+                                 ImVec2(0, 1),
+                                 ImVec2(1, 0),
+                                 tint_col,
+                                 border_col);
+
+                    if (ImGui::BeginItemTooltip())
+                    {
+                        float region_sz = 32.0f;
+                        float region_x  = io.MousePos.x - pos.x - region_sz * 0.5f;
+                        float region_y  = io.MousePos.y - pos.y - region_sz * 0.5f;
+                        float zoom      = 4.0f;
+                        if (region_x < 0.0f)
+                        {
+                            region_x = 0.0f;
+                        }
+                        else if (region_x > my_tex_w - region_sz)
+                        {
+                            region_x = my_tex_w - region_sz;
+                        }
+                        if (region_y < 0.0f)
+                        {
+                            region_y = 0.0f;
+                        }
+                        else if (region_y > my_tex_h - region_sz)
+                        {
+                            region_y = my_tex_h - region_sz;
+                        }
+                        ImGui::Text("Min: (%.2f, %.2f)", region_x, region_y);
+                        ImGui::Text("Max: (%.2f, %.2f)", region_x + region_sz, region_y + region_sz);
+                        ImVec2 uv0 = ImVec2((region_x) / my_tex_w, (region_y) / my_tex_h);
+                        uv0.y      = 1.0f - uv0.y;
+                        ImVec2 uv1 = ImVec2((region_x + region_sz) / my_tex_w, (region_y + region_sz) / my_tex_h);
+                        uv1.y      = 1.0f - uv1.y;
+                        ImGui::Image(m_FrameRenderBuffer_shadowCubeMapViewport->GetTextureID(),
+                                     ImVec2(region_sz * zoom, region_sz * zoom),
+                                     uv0,
+                                     uv1,
+                                     tint_col,
+                                     border_col);
+                        ImGui::EndTooltip();
+                    }
+                }
+                // Render Irradiance texture to ShadowCube Viewport
+                else if (current_skymap == 1)
+                {
+                    static auto m_FrameRenderBuffer_shadowCubeMapViewport = FrameRenderBuffer::Create();
+                    m_FrameRenderBuffer_shadowCubeMapViewport->SetViewPort(512, 256);
+                    m_FrameRenderBuffer_shadowCubeMapViewport->Bind();
+                    RenderCommand::SetViewPort(0, 0, 512, 256);
+                    RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+                    RenderCommand::Clear();
+
+                    auto shader = m_ShaderLibrary.Get("VisCubeMap");
+                    shader->Bind();
+
+                    shader->SetInt("g_Texture", 0);
+                    skyboxComponent.GetCubeMap()->BindIrradianceTexture(0);
+
+                    shader->SetInt("u_VisMode", 1);
+                    shader->SetFloat("u_MipLevel", m_VisCubeMapMipLevel);
+
+                    RenderCommand::RenderToQuad();
+
+                    skyboxComponent.GetCubeMap()->UnBind(0);
+
+                    shader->UnBind();
+                    m_FrameRenderBuffer_shadowCubeMapViewport->UnBind();
+
+                    ImGuiIO& io         = ImGui::GetIO();
+                    ImVec2   pos        = ImGui::GetCursorScreenPos();
+                    int      my_tex_w   = 512;
+                    int      my_tex_h   = 256;
+                    ImVec4   tint_col   = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+                    ImVec4   border_col = ImGui::GetStyleColorVec4(ImGuiCol_Border);
+
+                    ImGui::Image(m_FrameRenderBuffer_shadowCubeMapViewport->GetTextureID(),
+                                 ImVec2(512, 256),
+                                 ImVec2(0, 1),
+                                 ImVec2(1, 0),
+                                 tint_col,
+                                 border_col);
+
+                    if (ImGui::BeginItemTooltip())
+                    {
+                        float region_sz = 32.0f;
+                        float region_x  = io.MousePos.x - pos.x - region_sz * 0.5f;
+                        float region_y  = io.MousePos.y - pos.y - region_sz * 0.5f;
+                        float zoom      = 4.0f;
+                        if (region_x < 0.0f)
+                        {
+                            region_x = 0.0f;
+                        }
+                        else if (region_x > my_tex_w - region_sz)
+                        {
+                            region_x = my_tex_w - region_sz;
+                        }
+                        if (region_y < 0.0f)
+                        {
+                            region_y = 0.0f;
+                        }
+                        else if (region_y > my_tex_h - region_sz)
+                        {
+                            region_y = my_tex_h - region_sz;
+                        }
+                        ImGui::Text("Min: (%.2f, %.2f)", region_x, region_y);
+                        ImGui::Text("Max: (%.2f, %.2f)", region_x + region_sz, region_y + region_sz);
+                        ImVec2 uv0 = ImVec2((region_x) / my_tex_w, (region_y) / my_tex_h);
+                        uv0.y      = 1.0f - uv0.y;
+                        ImVec2 uv1 = ImVec2((region_x + region_sz) / my_tex_w, (region_y + region_sz) / my_tex_h);
+                        uv1.y      = 1.0f - uv1.y;
+                        ImGui::Image(m_FrameRenderBuffer_shadowCubeMapViewport->GetTextureID(),
+                                     ImVec2(region_sz * zoom, region_sz * zoom),
+                                     uv0,
+                                     uv1,
+                                     tint_col,
+                                     border_col);
+                        ImGui::EndTooltip();
+                    }
+                }
+                // Render Prefilter texture to ShadowCube Viewport
+                else if (current_skymap == 2)
+                {
+                    static auto m_FrameRenderBuffer_shadowCubeMapViewport = FrameRenderBuffer::Create();
+                    m_FrameRenderBuffer_shadowCubeMapViewport->SetViewPort(512, 256);
+                    m_FrameRenderBuffer_shadowCubeMapViewport->Bind();
+                    RenderCommand::SetViewPort(0, 0, 512, 256);
+                    RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+                    RenderCommand::Clear();
+
+                    auto shader = m_ShaderLibrary.Get("VisCubeMap");
+                    shader->Bind();
+
+                    shader->SetInt("g_Texture", 0);
+                    skyboxComponent.GetCubeMap()->BindPrefilterTexture(0);
+
+                    shader->SetInt("u_VisMode", 1);
+                    shader->SetFloat("u_MipLevel", m_VisCubeMapMipLevel);
+
+                    RenderCommand::RenderToQuad();
+
+                    skyboxComponent.GetCubeMap()->UnBind(0);
+
+                    shader->UnBind();
+                    m_FrameRenderBuffer_shadowCubeMapViewport->UnBind();
+
+                    ImGuiIO& io         = ImGui::GetIO();
+                    ImVec2   pos        = ImGui::GetCursorScreenPos();
+                    int      my_tex_w   = 512;
+                    int      my_tex_h   = 256;
+                    ImVec4   tint_col   = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+                    ImVec4   border_col = ImGui::GetStyleColorVec4(ImGuiCol_Border);
+
+                    ImGui::Image(m_FrameRenderBuffer_shadowCubeMapViewport->GetTextureID(),
+                                 ImVec2(512, 256),
+                                 ImVec2(0, 1),
+                                 ImVec2(1, 0),
+                                 tint_col,
+                                 border_col);
+
+                    if (ImGui::BeginItemTooltip())
+                    {
+                        float region_sz = 32.0f;
+                        float region_x  = io.MousePos.x - pos.x - region_sz * 0.5f;
+                        float region_y  = io.MousePos.y - pos.y - region_sz * 0.5f;
+                        float zoom      = 4.0f;
+                        if (region_x < 0.0f)
+                        {
+                            region_x = 0.0f;
+                        }
+                        else if (region_x > my_tex_w - region_sz)
+                        {
+                            region_x = my_tex_w - region_sz;
+                        }
+                        if (region_y < 0.0f)
+                        {
+                            region_y = 0.0f;
+                        }
+                        else if (region_y > my_tex_h - region_sz)
+                        {
+                            region_y = my_tex_h - region_sz;
+                        }
+                        ImGui::Text("Min: (%.2f, %.2f)", region_x, region_y);
+                        ImGui::Text("Max: (%.2f, %.2f)", region_x + region_sz, region_y + region_sz);
+                        ImVec2 uv0 = ImVec2((region_x) / my_tex_w, (region_y) / my_tex_h);
+                        uv0.y      = 1.0f - uv0.y;
+                        ImVec2 uv1 = ImVec2((region_x + region_sz) / my_tex_w, (region_y + region_sz) / my_tex_h);
+                        uv1.y      = 1.0f - uv1.y;
+                        ImGui::Image(m_FrameRenderBuffer_shadowCubeMapViewport->GetTextureID(),
+                                     ImVec2(region_sz * zoom, region_sz * zoom),
+                                     uv0,
+                                     uv1,
+                                     tint_col,
+                                     border_col);
+                        ImGui::EndTooltip();
+                    }
+                }
             }
 
             if (m_Registry.any_of<USkeletonComponent>(entity_selected) == true)
@@ -3548,6 +3796,256 @@ namespace Engine
                 Gui::SliderFloat("PawnMoveSpeed", pawnComponent.GetPawnMoveSpeedRef(), 0.0f, 10.0f);
                 Gui::SliderFloat("MouseSensitivityX", pawnComponent.GetMouseSensitivityXRef(), 0.0f, 0.1f);
                 Gui::SliderFloat("MouseSensitivityY", pawnComponent.GetMouseSensitivityYRef(), 0.0f, 0.1f);
+            }
+
+            if (m_Registry.any_of<ULightProbeComponent>(entity_selected) == true)
+            {
+                auto& lightProbeComponent = m_Registry.get<ULightProbeComponent>(entity_selected);
+                Gui::Text("Light Probe");
+                ImGui::Separator();
+
+                Gui::DragFloat3("Position", lightProbeComponent.GetPositionRef(), 0.005f, -100.0f, 100.0f);
+                static float m_VisCubeMapMipLevel = 0.0f;
+                Gui::SliderFloat("Mipmap Level", m_VisCubeMapMipLevel, 0.0f, 32.0f);
+
+                const char* items[]        = {"CubeMap", "SphericlaHarmonics", "Prefilter"};
+                static int  current_skymap = 0;
+                ImGui::Combo("Show Map", &current_skymap, items, IM_ARRAYSIZE(items));
+
+                // Render CubeMap texture to ShadowCube Viewport
+                if (current_skymap == 0)
+                {
+                    static auto m_FrameRenderBuffer_shadowCubeMapViewport = FrameRenderBuffer::Create();
+                    m_FrameRenderBuffer_shadowCubeMapViewport->SetViewPort(512, 256);
+                    m_FrameRenderBuffer_shadowCubeMapViewport->Bind();
+                    RenderCommand::SetViewPort(0, 0, 512, 256);
+                    RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+                    RenderCommand::Clear();
+
+                    auto shader = m_ShaderLibrary.Get("VisCubeMap");
+                    shader->Bind();
+
+                    shader->SetInt("g_Texture", 0);
+                    lightProbeComponent.GetCubeMapPtr()->Bind(0);
+
+                    shader->SetInt("u_VisMode", 1);
+                    shader->SetFloat("u_MipLevel", m_VisCubeMapMipLevel);
+
+                    RenderCommand::RenderToQuad();
+
+                    lightProbeComponent.GetCubeMapPtr()->UnBind(0);
+
+                    shader->UnBind();
+                    m_FrameRenderBuffer_shadowCubeMapViewport->UnBind();
+
+                    ImGuiIO& io         = ImGui::GetIO();
+                    ImVec2   pos        = ImGui::GetCursorScreenPos();
+                    int      my_tex_w   = 512;
+                    int      my_tex_h   = 256;
+                    ImVec4   tint_col   = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+                    ImVec4   border_col = ImGui::GetStyleColorVec4(ImGuiCol_Border);
+
+                    ImGui::Image(m_FrameRenderBuffer_shadowCubeMapViewport->GetTextureID(),
+                                 ImVec2(512, 256),
+                                 ImVec2(0, 1),
+                                 ImVec2(1, 0),
+                                 tint_col,
+                                 border_col);
+
+                    if (ImGui::BeginItemTooltip())
+                    {
+                        float region_sz = 32.0f;
+                        float region_x  = io.MousePos.x - pos.x - region_sz * 0.5f;
+                        float region_y  = io.MousePos.y - pos.y - region_sz * 0.5f;
+                        float zoom      = 4.0f;
+                        if (region_x < 0.0f)
+                        {
+                            region_x = 0.0f;
+                        }
+                        else if (region_x > my_tex_w - region_sz)
+                        {
+                            region_x = my_tex_w - region_sz;
+                        }
+                        if (region_y < 0.0f)
+                        {
+                            region_y = 0.0f;
+                        }
+                        else if (region_y > my_tex_h - region_sz)
+                        {
+                            region_y = my_tex_h - region_sz;
+                        }
+                        ImGui::Text("Min: (%.2f, %.2f)", region_x, region_y);
+                        ImGui::Text("Max: (%.2f, %.2f)", region_x + region_sz, region_y + region_sz);
+                        ImVec2 uv0 = ImVec2((region_x) / my_tex_w, (region_y) / my_tex_h);
+                        uv0.y      = 1.0f - uv0.y;
+                        ImVec2 uv1 = ImVec2((region_x + region_sz) / my_tex_w, (region_y + region_sz) / my_tex_h);
+                        uv1.y      = 1.0f - uv1.y;
+                        ImGui::Image(m_FrameRenderBuffer_shadowCubeMapViewport->GetTextureID(),
+                                     ImVec2(region_sz * zoom, region_sz * zoom),
+                                     uv0,
+                                     uv1,
+                                     tint_col,
+                                     border_col);
+                        ImGui::EndTooltip();
+                    }
+                }
+                // Render Irradiance texture to ShadowCube Viewport
+                else if (current_skymap == 1)
+                {
+                    static auto m_FrameRenderBuffer_shadowCubeMapViewport = FrameRenderBuffer::Create();
+                    m_FrameRenderBuffer_shadowCubeMapViewport->SetViewPort(512, 256);
+                    m_FrameRenderBuffer_shadowCubeMapViewport->Bind();
+                    RenderCommand::SetViewPort(0, 0, 512, 256);
+                    RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+                    RenderCommand::Clear();
+
+                    auto shader = m_ShaderLibrary.Get("VisCubeMap");
+                    shader->Bind();
+
+                    shader->SetInt("u_VisMode", 2);
+                    shader->SetFloat("u_MipLevel", m_VisCubeMapMipLevel);
+
+                    for (int i = 0; i < 9; ++i)
+                    {
+                        shader->SetFloat3("sphericlaHarmonicsParameters[" + std::to_string(i) + "]",
+                                          lightProbeComponent.GetSphereHarmonicsParametersRef()[i]);
+                    }
+
+                    RenderCommand::RenderToQuad();
+
+                    lightProbeComponent.GetCubeMapPtr()->UnBind(0);
+
+                    shader->UnBind();
+                    m_FrameRenderBuffer_shadowCubeMapViewport->UnBind();
+
+                    ImGuiIO& io         = ImGui::GetIO();
+                    ImVec2   pos        = ImGui::GetCursorScreenPos();
+                    int      my_tex_w   = 512;
+                    int      my_tex_h   = 256;
+                    ImVec4   tint_col   = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+                    ImVec4   border_col = ImGui::GetStyleColorVec4(ImGuiCol_Border);
+
+                    ImGui::Image(m_FrameRenderBuffer_shadowCubeMapViewport->GetTextureID(),
+                                 ImVec2(512, 256),
+                                 ImVec2(0, 1),
+                                 ImVec2(1, 0),
+                                 tint_col,
+                                 border_col);
+
+                    if (ImGui::BeginItemTooltip())
+                    {
+                        float region_sz = 32.0f;
+                        float region_x  = io.MousePos.x - pos.x - region_sz * 0.5f;
+                        float region_y  = io.MousePos.y - pos.y - region_sz * 0.5f;
+                        float zoom      = 4.0f;
+                        if (region_x < 0.0f)
+                        {
+                            region_x = 0.0f;
+                        }
+                        else if (region_x > my_tex_w - region_sz)
+                        {
+                            region_x = my_tex_w - region_sz;
+                        }
+                        if (region_y < 0.0f)
+                        {
+                            region_y = 0.0f;
+                        }
+                        else if (region_y > my_tex_h - region_sz)
+                        {
+                            region_y = my_tex_h - region_sz;
+                        }
+                        ImGui::Text("Min: (%.2f, %.2f)", region_x, region_y);
+                        ImGui::Text("Max: (%.2f, %.2f)", region_x + region_sz, region_y + region_sz);
+                        ImVec2 uv0 = ImVec2((region_x) / my_tex_w, (region_y) / my_tex_h);
+                        uv0.y      = 1.0f - uv0.y;
+                        ImVec2 uv1 = ImVec2((region_x + region_sz) / my_tex_w, (region_y + region_sz) / my_tex_h);
+                        uv1.y      = 1.0f - uv1.y;
+                        ImGui::Image(m_FrameRenderBuffer_shadowCubeMapViewport->GetTextureID(),
+                                     ImVec2(region_sz * zoom, region_sz * zoom),
+                                     uv0,
+                                     uv1,
+                                     tint_col,
+                                     border_col);
+                        ImGui::EndTooltip();
+                    }
+                }
+                // Render Prefilter texture to ShadowCube Viewport
+                else if (current_skymap == 2)
+                {
+                    static auto m_FrameRenderBuffer_shadowCubeMapViewport = FrameRenderBuffer::Create();
+                    m_FrameRenderBuffer_shadowCubeMapViewport->SetViewPort(512, 256);
+                    m_FrameRenderBuffer_shadowCubeMapViewport->Bind();
+                    RenderCommand::SetViewPort(0, 0, 512, 256);
+                    RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+                    RenderCommand::Clear();
+
+                    auto shader = m_ShaderLibrary.Get("VisCubeMap");
+                    shader->Bind();
+
+                    shader->SetInt("g_Texture", 0);
+                    lightProbeComponent.GetCubeMapPtr()->BindPrefilterTexture(0);
+
+                    shader->SetInt("u_VisMode", 1);
+                    shader->SetFloat("u_MipLevel", m_VisCubeMapMipLevel);
+
+                    RenderCommand::RenderToQuad();
+
+                    lightProbeComponent.GetCubeMapPtr()->UnBind(0);
+
+                    shader->UnBind();
+                    m_FrameRenderBuffer_shadowCubeMapViewport->UnBind();
+
+                    ImGuiIO& io         = ImGui::GetIO();
+                    ImVec2   pos        = ImGui::GetCursorScreenPos();
+                    int      my_tex_w   = 512;
+                    int      my_tex_h   = 256;
+                    ImVec4   tint_col   = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+                    ImVec4   border_col = ImGui::GetStyleColorVec4(ImGuiCol_Border);
+
+                    ImGui::Image(m_FrameRenderBuffer_shadowCubeMapViewport->GetTextureID(),
+                                 ImVec2(512, 256),
+                                 ImVec2(0, 1),
+                                 ImVec2(1, 0),
+                                 tint_col,
+                                 border_col);
+
+                    if (ImGui::BeginItemTooltip())
+                    {
+                        float region_sz = 32.0f;
+                        float region_x  = io.MousePos.x - pos.x - region_sz * 0.5f;
+                        float region_y  = io.MousePos.y - pos.y - region_sz * 0.5f;
+                        float zoom      = 4.0f;
+                        if (region_x < 0.0f)
+                        {
+                            region_x = 0.0f;
+                        }
+                        else if (region_x > my_tex_w - region_sz)
+                        {
+                            region_x = my_tex_w - region_sz;
+                        }
+                        if (region_y < 0.0f)
+                        {
+                            region_y = 0.0f;
+                        }
+                        else if (region_y > my_tex_h - region_sz)
+                        {
+                            region_y = my_tex_h - region_sz;
+                        }
+                        ImGui::Text("Min: (%.2f, %.2f)", region_x, region_y);
+                        ImGui::Text("Max: (%.2f, %.2f)", region_x + region_sz, region_y + region_sz);
+                        ImVec2 uv0 = ImVec2((region_x) / my_tex_w, (region_y) / my_tex_h);
+                        uv0.y      = 1.0f - uv0.y;
+                        ImVec2 uv1 = ImVec2((region_x + region_sz) / my_tex_w, (region_y + region_sz) / my_tex_h);
+                        uv1.y      = 1.0f - uv1.y;
+                        ImGui::Image(m_FrameRenderBuffer_shadowCubeMapViewport->GetTextureID(),
+                                     ImVec2(region_sz * zoom, region_sz * zoom),
+                                     uv0,
+                                     uv1,
+                                     tint_col,
+                                     border_col);
+                        ImGui::EndTooltip();
+                    }
+                }
             }
         }
 

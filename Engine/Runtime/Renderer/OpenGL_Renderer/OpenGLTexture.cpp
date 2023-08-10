@@ -525,7 +525,6 @@ namespace Engine
 
         typedef std::array<std::array<std::array<unsigned char, 3>, 32>, 32> cube_image;
         std::vector<cube_image>                                              cubeMapData(6);
-        sh_data.resize(9);
 
         for (int i = 0; i < 6; i++)
         {

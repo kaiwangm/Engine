@@ -8,6 +8,9 @@
 #include <Engine/Runtime/GameFramework/Camera/UCameraComponent.h>
 #include <Engine/Runtime/Renderer/Renderer.h>
 
+#include <Engine/Runtime/GameFramework/Skybox/ULightProbeComponent.h>
+#include <Engine/Runtime/GameFramework/Skybox/USkyboxComponent.h>
+
 namespace Engine
 {
     class AActor;
@@ -43,12 +46,10 @@ namespace Engine
 
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_bufferViewport;
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_shadowMapViewport;
-        Ref<FrameRenderBuffer> m_FrameRenderBuffer_shadowCubeMapViewport;
 
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_VoxelGIViewport;
 
-        Ref<CubeMap>     m_Probe_CubeMap;
-        std::vector<glm::vec3> sphereHarmonicsParameters_a;
+        Ref<ULightProbeComponent> m_LightProbeComponent;
 
         const char* viewport_items[21] = {
             "ViewPosition",
@@ -89,7 +90,6 @@ namespace Engine
         glm::mat4 m_VPMatrix;
 
         float m_Exposure                = 1.0f;
-        float m_VisPrePrefilterMipLevel = 0.0f;
         int   m_ViewportGBufferMap      = 0;
 
         float m_Dir_Diffuse  = 0.21f;

@@ -26,6 +26,8 @@
 #include <Engine/Runtime/GameFramework/Camera/ACamera.h>
 #include <Engine/Runtime/GameFramework/Pawn/APawn.h>
 
+#include <Engine/Runtime/GameFramework/Skybox/ALightProbe.h>
+
 #include <Engine/Runtime/GameFramework/Skybox/ASkybox.h>
 #include <Engine/Runtime/GameFramework/Light/APointLight.h>
 #include <Engine/Runtime/GameFramework/Light/ADirectionalLight.h>

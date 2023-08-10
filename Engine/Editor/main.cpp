@@ -35,6 +35,9 @@ namespace Engine
 
             auto skybox =
                 m_World->AddActor<ASkybox>("skybox", "Assets/Editor/Object/bistro/moonless_golf_4k.hdr");
+            
+            auto lightprobe = m_World->AddActor<ALightProbe>("lightprobe");
+            lightprobe.GetLightProbeComponent().SetPosition(glm::vec3 {-9.0f, 5.0f, 3.0f});
 
             // m_World->AddActor<AActor>("Actor");
 
