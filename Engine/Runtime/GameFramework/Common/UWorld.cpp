@@ -6,7 +6,6 @@
 #include <Engine/Runtime/Renderer/Buffer.h>
 #include <Engine/Runtime/Gui/GuiCommand.h>
 #include <Engine/Runtime/Core/Input/Input.h>
-
 #include <Engine/Runtime/GameFramework/Common/UComponent.h>
 #include <Engine/Runtime/GameFramework/Camera/UCameraComponent.h>
 #include <Engine/Runtime/GameFramework/StaticMesh/AStaticMesh.h>
@@ -135,6 +134,11 @@ namespace Engine
         LoadShader("VisMetallic",
                    "Assets/Editor/Shader/screen_quad_vertex.glsl",
                    "Assets/Editor/Shader/viewport/metallic.glsl",
+                   "Path");
+
+        LoadShader("VisEmissive",
+                   "Assets/Editor/Shader/screen_quad_vertex.glsl",
+                   "Assets/Editor/Shader/viewport/emissive.glsl",
                    "Path");
 
         LoadShader("Deferred",
@@ -290,7 +294,7 @@ namespace Engine
         // set point light cube shadow map viewport
         for (auto [entity, name, trans, light] : pointlight_view.each())
         {
-            light.SetShadowCubeMapViewPort(3072, 3072);
+            light.SetShadowCubeMapViewPort(512, 512);
         }
 
         // set directional light shadow map viewport
@@ -319,7 +323,7 @@ namespace Engine
             };
 
             glm::vec3                lightPosition      = trans.GetPosition();
-            glm::mat4                projectionMatrices = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+            glm::mat4                projectionMatrices = glm::perspective(glm::radians(90.0f), 1.0f, 1.0f, 10.0f);
             std::array<glm::mat4, 6> viewMatrices       = {
                 glm::lookAt(lightPosition, lightPosition + glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
                 glm::lookAt(lightPosition, lightPosition + glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)),
@@ -334,7 +338,7 @@ namespace Engine
                 const std::function<void()>& bindFunc = renderFuncs[i];
                 bindFunc();
 
-                RenderCommand::SetViewPort(0, 0, 3072, 3072);
+                RenderCommand::SetViewPort(0, 0, 512, 512);
                 RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
                 RenderCommand::Clear();
 
@@ -373,9 +377,8 @@ namespace Engine
             RenderCommand::Clear();
 
             const glm::mat4 lightProjection = glm::ortho(-70.0f, 70.0f, -70.0f, 70.0f, 0.5f, 120.0f);
-            ;
-            const glm::vec3 lightPosition  = trans.GetPosition();
-            const glm::vec3 lightDirection = light.GetDirectionRef();
+            const glm::vec3 lightPosition   = trans.GetPosition();
+            const glm::vec3 lightDirection  = light.GetDirectionRef();
             const glm::mat4 lightView =
                 glm::lookAt(lightPosition, lightPosition + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
             const glm::mat4 lightSpaceMatrix = lightProjection * lightView;
@@ -403,7 +406,7 @@ namespace Engine
             shadowMapBuffer.UnBind();
         }
 
-        glm::vec3 probePosition = glm::vec3(0.0f, 18.0f, 0.0f);
+        glm::vec3 probePosition = glm::vec3(-9.0f, 5.0f, 3.0f);
 
         glm::mat4                projectionMatrices = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 100.0f);
         std::array<glm::mat4, 6> viewMatrices       = {
@@ -415,7 +418,7 @@ namespace Engine
             glm::lookAt(probePosition, probePosition + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
         };
 
-        Ref<CubeMap>                                                   cubeMap = CubeMap::Create();
+        m_Probe_CubeMap = CubeMap::Create();
         typedef std::array<std::array<std::array<float, 3>, 512>, 512> cube_image;
         std::vector<cube_image>                                        cubeMapData(6);
 
@@ -446,27 +449,33 @@ namespace Engine
 
                 if (materialType == "BasicPbr")
                 {
-                    const auto meshes = model.GetStaticMesh().m_Meshes;
-                    for (const auto& mesh : meshes)
-                    {
-                        auto shader = m_ShaderLibrary.Get("GBuffer");
-                        shader->Bind();
+                    auto shader = m_ShaderLibrary.Get("GBuffer");
+                    shader->Bind();
 
-                        MBasicPbr* material_basicPbr = static_cast<MBasicPbr*>(material);
+                    shader->SetMat4("u_MProjection", m_PMatrix);
+                    shader->SetMat4("u_MView", m_VMatrix);
+                    shader->SetMat4("u_MTransform", trans.GetTransform());
+
+                    const auto& materials = model.GetStaticMesh().m_LoadedMaterials;
+                    const auto& meshes    = model.GetStaticMesh().m_LoadedMeshes;
+
+                    for (const auto& meshArray : meshes)
+                    {
+                        std::string materialName      = meshArray.first;
+                        const auto  material_basicPbr = static_cast<MBasicPbr*>(materials.at(materialName));
                         material_basicPbr->BindAllMap(shader);
 
-                        shader->Bind();
-                        shader->SetMat4("u_MProjection", m_PMatrix);
-                        shader->SetMat4("u_MView", m_VMatrix);
-                        shader->SetMat4("u_MTransform", trans.GetTransform());
-                        // shader->UnBind();
+                        uint32_t drawedMeshCount = 0;
+                        for (const auto& mesh : meshArray.second)
+                        {
+                            const FrustumVolume* frustumVolume = mesh->GetFrustumVolume();
 
-                        Renderer::Submit(mesh->m_VertexArray, shader, m_VPMatrix, trans.GetTransform());
-
+                            Renderer::Submit(mesh->m_VertexArray, shader, m_VPMatrix, trans.GetTransform());
+                            drawedMeshCount++;
+                        }
                         material_basicPbr->UnBindAllMap(shader);
-
-                        shader->UnBind();
                     }
+                    shader->UnBind();
                 }
             }
 
@@ -597,7 +606,7 @@ namespace Engine
 
                     deferred_shader->SetInt("pointShadowCubeMaps[" + std::to_string(ligth_num) + "]", 50 + ligth_num);
                     light.GetShadowCubeMapBufferRef().BindTexture(50 + ligth_num);
-                    deferred_shader->SetFloat("pointShadowCubeMapsNearPlane[" + std::to_string(ligth_num) + "]", 0.1f);
+                    deferred_shader->SetFloat("pointShadowCubeMapsNearPlane[" + std::to_string(ligth_num) + "]", 1.0f);
                     deferred_shader->SetFloat("pointShadowCubeMapsFarPlane[" + std::to_string(ligth_num) + "]", 10.0f);
 
                     ligth_num++;
@@ -608,9 +617,8 @@ namespace Engine
                 for (auto [entity, name, trans, light] : dirctionallight_view.each())
                 {
                     const glm::mat4 lightProjection = glm::ortho(-70.0f, 70.0f, -70.0f, 70.0f, 0.5f, 120.0f);
-                    ;
-                    const glm::vec3 lightPosition  = trans.GetPosition();
-                    const glm::vec3 lightDirection = light.GetDirectionRef();
+                    const glm::vec3 lightPosition   = trans.GetPosition();
+                    const glm::vec3 lightDirection  = light.GetDirectionRef();
                     const glm::mat4 lightView =
                         glm::lookAt(lightPosition, lightPosition + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
                     const glm::mat4 lightSpaceMatrix = lightProjection * lightView;
@@ -708,7 +716,7 @@ namespace Engine
 
                     deferred_shader->SetInt("pointShadowCubeMaps[" + std::to_string(ligth_num) + "]", 50 + ligth_num);
                     light.GetShadowCubeMapBufferRef().BindTexture(50 + ligth_num);
-                    deferred_shader->SetFloat("pointShadowCubeMapsNearPlane[" + std::to_string(ligth_num) + "]", 0.1f);
+                    deferred_shader->SetFloat("pointShadowCubeMapsNearPlane[" + std::to_string(ligth_num) + "]", 1.0f);
                     deferred_shader->SetFloat("pointShadowCubeMapsFarPlane[" + std::to_string(ligth_num) + "]", 10.0f);
 
                     ligth_num++;
@@ -719,9 +727,8 @@ namespace Engine
                 for (auto [entity, name, trans, light] : dirctionallight_view.each())
                 {
                     const glm::mat4 lightProjection = glm::ortho(-70.0f, 70.0f, -70.0f, 70.0f, 0.5f, 120.0f);
-                    ;
-                    const glm::vec3 lightPosition  = trans.GetPosition();
-                    const glm::vec3 lightDirection = light.GetDirectionRef();
+                    const glm::vec3 lightPosition   = trans.GetPosition();
+                    const glm::vec3 lightDirection  = light.GetDirectionRef();
                     const glm::mat4 lightView =
                         glm::lookAt(lightPosition, lightPosition + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
                     const glm::mat4 lightSpaceMatrix = lightProjection * lightView;
@@ -824,14 +831,12 @@ namespace Engine
 
                 auto sky_cubeMap = m_MainSkybox->GetSkyboxComponent().GetCubeMap();
 
-                // deferred_shader->SetInt("irradianceMap", 15);
-                // sky_cubeMap->BindIrradianceTexture(15);
-                // const auto& sphericlaHarmonicsParameters = sky_cubeMap->GetSphereHarmonicsParametersRef();
-                // for (int i = 0; i < 9; ++i)
-                // {
-                //     deferred_shader->SetFloat3("sphericlaHarmonicsParameters[" + std::to_string(i) + "]",
-                //                                sphericlaHarmonicsParameters[i]);
-                // }
+                const auto& sphericlaHarmonicsParameters = sky_cubeMap->GetSphereHarmonicsParametersRef();
+                for (int i = 0; i < 9; ++i)
+                {
+                    deferred_shader->SetFloat3("sphericlaHarmonicsParameters[" + std::to_string(i) + "]",
+                                               sphericlaHarmonicsParameters[i]);
+                }
 
                 deferred_shader->SetInt("prefilterMap", 16);
                 sky_cubeMap->BindPrefilterTexture(16);
@@ -865,6 +870,69 @@ namespace Engine
                 RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
                 RenderCommand::Clear();
 
+                auto deferred_shader = m_ShaderLibrary.Get("EnvironmentLighting_specular");
+                deferred_shader->Bind();
+
+                deferred_shader->SetInt("g_ViewPosition", 0);
+                m_GeometryBuffer_Baking->BindViewPositionTexture(0);
+                deferred_shader->SetInt("g_ViewNormal", 1);
+                m_GeometryBuffer_Baking->BindViewNormalTexture(1);
+                deferred_shader->SetInt("g_Diffuse", 2);
+                m_GeometryBuffer_Baking->BindDiffuseTexture(2);
+                deferred_shader->SetInt("g_Depth", 3);
+                m_GeometryBuffer_Baking->BindDepthTexture(3);
+                deferred_shader->SetInt("g_Roughness", 4);
+                m_GeometryBuffer_Baking->BindRoughnessTexture(4);
+                deferred_shader->SetInt("g_Specular", 5);
+                m_GeometryBuffer_Baking->BindSpecularTexture(5);
+                deferred_shader->SetInt("g_WorldPosition", 6);
+                m_GeometryBuffer_Baking->BindWorldPositionTexture(6);
+                deferred_shader->SetInt("g_WorldNormal", 7);
+                m_GeometryBuffer_Baking->BindWorldNormalTexture(7);
+                deferred_shader->SetInt("g_AO", 8);
+                m_SSAOBuffer->BindSSAOTexture(8);
+
+                int ligth_num = 0;
+                for (auto [entity, name, trans, light] : pointlight_view.each())
+                {
+                    deferred_shader->SetFloat3("pointLightPositions[" + std::to_string(ligth_num) + "]",
+                                               trans.GetPosition());
+                    deferred_shader->SetFloat3("pointLightColors[" + std::to_string(ligth_num) + "]",
+                                               light.GetColorRef());
+
+                    ligth_num++;
+                }
+                deferred_shader->SetInt("numPointLights", ligth_num);
+
+                glm::vec3 camPos = glm::vec3(glm::inverse(m_VMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+                deferred_shader->SetFloat3("camPos", camPos);
+
+                auto sky_cubeMap = m_MainSkybox->GetSkyboxComponent().GetCubeMap();
+
+                deferred_shader->SetInt("irradianceMap", 15);
+                sky_cubeMap->BindIrradianceTexture(15);
+                deferred_shader->SetInt("prefilterMap", 16);
+                m_Probe_CubeMap->BindPrefilterTexture(16);
+                deferred_shader->SetInt("brdfLUT", 17);
+                sky_cubeMap->BindBrdfLutTexture(17);
+
+                RenderCommand::RenderToQuad();
+
+                sky_cubeMap->UnBind(17);
+                sky_cubeMap->UnBind(16);
+                sky_cubeMap->UnBind(15);
+
+                m_SSAOBuffer->UnBindTexture(8);
+                m_GeometryBuffer->UnBindTexture(7);
+                m_GeometryBuffer->UnBindTexture(6);
+                m_GeometryBuffer->UnBindTexture(5);
+                m_GeometryBuffer->UnBindTexture(4);
+                m_GeometryBuffer->UnBindTexture(3);
+                m_GeometryBuffer->UnBindTexture(2);
+                m_GeometryBuffer->UnBindTexture(1);
+                m_GeometryBuffer->UnBindTexture(0);
+
+                deferred_shader->UnBind();
                 m_FrameRenderBuffer_EnvironmentLighting_specular_Baking->UnBind();
             }
 
@@ -1002,7 +1070,7 @@ namespace Engine
                 glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, cubeMapData[i].data());
                 glBindTexture(GL_TEXTURE_2D, 0);
 
-                glBindTexture(GL_TEXTURE_CUBE_MAP, (GLuint)(size_t)cubeMap->GetTextureID());
+                glBindTexture(GL_TEXTURE_CUBE_MAP, (GLuint)(size_t)m_Probe_CubeMap->GetTextureID());
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
                              0,
                              GL_RGB16F,
@@ -1017,10 +1085,11 @@ namespace Engine
             }
         }
 
-        cubeMap->ComputeIrradianceTexture();
-        cubeMap->ComputeSphereHarmonicsParameters();
+        m_Probe_CubeMap->ComputeIrradianceTexture();
+        m_Probe_CubeMap->ComputeSphereHarmonicsParameters();
+        m_Probe_CubeMap->ComputePrefilterTexture();
 
-        sphereHarmonicsParameters_a = cubeMap->GetSphereHarmonicsParametersRef();
+        sphereHarmonicsParameters_a = m_Probe_CubeMap->GetSphereHarmonicsParametersRef();
     }
 
     void UWorld::TickLogic(float timeStep, float nowTime, bool isWindowFocused)
@@ -1316,7 +1385,7 @@ namespace Engine
         // set point light cube shadow map viewport
         for (auto [entity, name, trans, light] : pointlight_view.each())
         {
-            light.SetShadowCubeMapViewPort(3072, 3072);
+            light.SetShadowCubeMapViewPort(512, 512);
         }
 
         // set directional light shadow map viewport
@@ -1362,7 +1431,7 @@ namespace Engine
                     };
 
                     glm::vec3 lightPosition               = trans.GetPosition();
-                    glm::mat4 projectionMatrices          = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+                    glm::mat4 projectionMatrices          = glm::perspective(glm::radians(90.0f), 1.0f, 1.0f, 10.0f);
                     std::array<glm::mat4, 6> viewMatrices = {
                         glm::lookAt(
                             lightPosition, lightPosition + glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
@@ -1383,7 +1452,7 @@ namespace Engine
                         const std::function<void()>& bindFunc = renderFuncs[i];
                         bindFunc();
 
-                        RenderCommand::SetViewPort(0, 0, 3072, 3072);
+                        RenderCommand::SetViewPort(0, 0, 512, 512);
                         RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
                         RenderCommand::Clear();
 
@@ -1588,6 +1657,25 @@ namespace Engine
                                        GL_WRITE_ONLY,
                                        GL_RGBA16F);
 
+                    glm::vec3 camPos = glm::vec3(glm::inverse(m_VMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+                    shader->SetFloat3("camPos", camPos);
+
+                    auto sky_cubeMap = m_MainSkybox->GetSkyboxComponent().GetCubeMap();
+
+                    shader->SetInt("irradianceMap", 15);
+                    sky_cubeMap->BindIrradianceTexture(15);
+                    const auto& sphericlaHarmonicsParameters = sky_cubeMap->GetSphereHarmonicsParametersRef();
+                    for (int i = 0; i < 9; ++i)
+                    {
+                        shader->SetFloat3("sphericlaHarmonicsParameters[" + std::to_string(i) + "]",
+                                          sphereHarmonicsParameters_a[i]);
+                    }
+
+                    shader->SetInt("prefilterMap", 16);
+                    sky_cubeMap->BindPrefilterTexture(16);
+                    shader->SetInt("brdfLUT", 17);
+                    sky_cubeMap->BindBrdfLutTexture(17);
+
                     if (materialType == "BasicPbr")
                     {
                         material_basicPbr->BindAllMap(shader);
@@ -1604,7 +1692,7 @@ namespace Engine
 
                         shader->SetInt("pointShadowCubeMaps[" + std::to_string(ligth_num) + "]", 50 + ligth_num);
                         light.GetShadowCubeMapBufferRef().BindTexture(50 + ligth_num);
-                        shader->SetFloat("pointShadowCubeMapsNearPlane[" + std::to_string(ligth_num) + "]", 0.1f);
+                        shader->SetFloat("pointShadowCubeMapsNearPlane[" + std::to_string(ligth_num) + "]", 1.0f);
                         shader->SetFloat("pointShadowCubeMapsFarPlane[" + std::to_string(ligth_num) + "]", 10.0f);
 
                         ligth_num++;
@@ -1969,7 +2057,7 @@ namespace Engine
 
                 deferred_shader->SetInt("pointShadowCubeMaps[" + std::to_string(ligth_num) + "]", 50 + ligth_num);
                 light.GetShadowCubeMapBufferRef().BindTexture(50 + ligth_num);
-                deferred_shader->SetFloat("pointShadowCubeMapsNearPlane[" + std::to_string(ligth_num) + "]", 0.1f);
+                deferred_shader->SetFloat("pointShadowCubeMapsNearPlane[" + std::to_string(ligth_num) + "]", 1.0f);
                 deferred_shader->SetFloat("pointShadowCubeMapsFarPlane[" + std::to_string(ligth_num) + "]", 10.0f);
 
                 ligth_num++;
@@ -2079,7 +2167,7 @@ namespace Engine
 
                 deferred_shader->SetInt("pointShadowCubeMaps[" + std::to_string(ligth_num) + "]", 50 + ligth_num);
                 light.GetShadowCubeMapBufferRef().BindTexture(50 + ligth_num);
-                deferred_shader->SetFloat("pointShadowCubeMapsNearPlane[" + std::to_string(ligth_num) + "]", 0.1f);
+                deferred_shader->SetFloat("pointShadowCubeMapsNearPlane[" + std::to_string(ligth_num) + "]", 1.0f);
                 deferred_shader->SetFloat("pointShadowCubeMapsFarPlane[" + std::to_string(ligth_num) + "]", 10.0f);
 
                 ligth_num++;
@@ -2090,11 +2178,8 @@ namespace Engine
             for (auto [entity, name, trans, light] : dirctionallight_view.each())
             {
                 const glm::mat4 lightProjection = glm::ortho(-70.0f, 70.0f, -70.0f, 70.0f, 0.5f, 120.0f);
-                ;
-                glm::vec3 cameraPosition       = actor_mainCamera->GetTransformComponent().GetPosition();
-                cameraPosition.y               = 0.0f;
-                const glm::vec3 lightPosition  = trans.GetPosition();
-                const glm::vec3 lightDirection = light.GetDirectionRef();
+                const glm::vec3 lightPosition   = trans.GetPosition();
+                const glm::vec3 lightDirection  = light.GetDirectionRef();
                 const glm::mat4 lightView =
                     glm::lookAt(lightPosition, lightPosition + lightDirection, glm::vec3(0.0f, 1.0f, 0.0f));
                 const glm::mat4 lightSpaceMatrix = lightProjection * lightView;
@@ -2276,7 +2361,7 @@ namespace Engine
             deferred_shader->SetInt("irradianceMap", 15);
             sky_cubeMap->BindIrradianceTexture(15);
             deferred_shader->SetInt("prefilterMap", 16);
-            sky_cubeMap->BindPrefilterTexture(16);
+            m_Probe_CubeMap->BindPrefilterTexture(16);
             deferred_shader->SetInt("brdfLUT", 17);
             sky_cubeMap->BindBrdfLutTexture(17);
 
@@ -2429,7 +2514,7 @@ namespace Engine
             blur_shader->SetInt("g_Color", 0);
             m_FrameRenderBuffer_ssr->BindTexture(0);
             blur_shader->SetFloat2("screenSize",
-                                   glm::vec2(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight()) / 1.0f);
+                                   glm::vec2(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight()) / 3.0f);
 
             RenderCommand::RenderToQuad();
 
@@ -2845,9 +2930,9 @@ namespace Engine
         RenderCommand::Clear();
 
         std::string gbuffer_shader_name[] = {
-            "VisPosition", "VisNormal", "Screen", "VisDepth", "VisAO",  "VisRoughness", "Screen",
-            "VisPosition", "VisNormal", "Screen", "Screen",   "Screen", "Screen",       "Screen",
-            "Screen",      "Screen",    "Screen", "Screen",   "Screen", "Screen",
+            "VisPosition", "VisNormal", "Screen",      "VisDepth", "VisAO",  "VisRoughness", "Screen",
+            "VisPosition", "VisNormal", "VisEmissive", "Screen",   "Screen", "Screen",       "Screen",
+            "Screen",      "Screen",    "Screen",      "Screen",   "Screen", "Screen",       "Screen",
         };
 
         const std::string viewport_buffer_name    = viewport_items[m_ViewportGBufferMap];
@@ -2899,6 +2984,11 @@ namespace Engine
         {
             gbuffer_viewport_shader->SetInt("g_Normal", 0);
             m_GeometryBuffer->BindWorldNormalTexture(0);
+        }
+        if (viewport_buffer_name == "Emissive")
+        {
+            gbuffer_viewport_shader->SetInt("g_Emissive", 0);
+            m_GeometryBuffer->BindSpecularTexture(0);
         }
         if (viewport_buffer_name == "Skybox")
         {

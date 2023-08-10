@@ -47,9 +47,10 @@ namespace Engine
 
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_VoxelGIViewport;
 
+        Ref<CubeMap>     m_Probe_CubeMap;
         std::vector<glm::vec3> sphereHarmonicsParameters_a;
 
-        const char* viewport_items[20] = {
+        const char* viewport_items[21] = {
             "ViewPosition",
             "ViewNormal",
             "Diffuse",
@@ -59,6 +60,7 @@ namespace Engine
             "Specular",
             "WorldPosition",
             "WorldNormal",
+            "Emissive",
             "Skybox",
             "DirectLighting_Diffuse",
             "DirectLighting_Specular",
@@ -86,7 +88,7 @@ namespace Engine
         glm::mat4 m_PMatrix;
         glm::mat4 m_VPMatrix;
 
-        float m_Exposure                = 0.8f;
+        float m_Exposure                = 1.0f;
         float m_VisPrePrefilterMipLevel = 0.0f;
         int   m_ViewportGBufferMap      = 0;
 
@@ -102,9 +104,9 @@ namespace Engine
             bool  debug                             = false;
             float rayStep                           = 0.03f;
             float minRayStep                        = 0.1f;
-            float maxSteps                          = 75.0f;
+            float maxSteps                          = 300.0f;
             int   numBinarySearchSteps              = 5;
-            float reflectionSpecularFalloffExponent = 1.0f;
+            float reflectionSpecularFalloffExponent = 5.0f;
             float refBias                           = 0.001f;
         } m_SSR_settings;
 
@@ -124,9 +126,10 @@ namespace Engine
 
             int                 voxel_grid_resolution = 300;
             int                 max_mipmap_level      = 8;
+            // glm::vec3           scene_voxel_scale     = glm::vec3(1.0f) / 75.0f;
             glm::vec3           scene_voxel_scale     = glm::vec3(1.0f) / 75.0f;
-            ConeTracingSettings diffuse               = {0.500f, 0.300f, 0.012f, 2.0f, 1.0f};
-            ConeTracingSettings specular              = {0.500f, 0.300f, 0.012f, 2.0f, 1.0f};
+            ConeTracingSettings diffuse               = {0.300f, 0.300f, 0.050f, 2.0f, 1.0f};
+            ConeTracingSettings specular              = {0.300f, 0.300f, 0.050f, 2.0f, 1.0f};
         } m_VoxelGI_settings;
 
         entt::entity entity_selected = entt::null;

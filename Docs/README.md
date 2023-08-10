@@ -38,6 +38,7 @@
 - 2023-08-01 ✨ Specular-Glossiness workflow
 - 2023-08-01 ✨ Frustum Culling
 - 2023-08-02 ✨ Static batching
+- 2023-08-10 ✨ Emissive Material
 - ......
 
 

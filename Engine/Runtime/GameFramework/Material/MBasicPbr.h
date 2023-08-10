@@ -13,6 +13,7 @@ namespace Engine
         float     m_AO        = 0.0f;
         glm::vec3 m_Diffuse   = glm::vec3(0.0f);
         glm::vec3 m_Specular  = glm::vec3(0.0f);
+        glm::vec3 m_Opacity   = glm::vec3(1.0f);
 
         Ref<Texture2D> m_AlbedoMap;
         Ref<Texture2D> m_NormalMap;
@@ -33,6 +34,10 @@ namespace Engine
         bool m_UseDiffuseMap   = false;
         bool m_UseSpecularMap  = false;
         bool m_UseOpacityMap   = false;
+
+        bool      m_EnableEmissive    = false;
+        float     m_EmissiveIntensity = 0.0f;
+        glm::vec3 m_Emissive          = glm::vec3(0.0f);
 
         int m_DiffuseMapChannels  = 0;
         int m_SpecularMapChannels = 0;
@@ -66,6 +71,10 @@ namespace Engine
         void SetSpecular(const glm::vec3& specular) { m_Specular = specular; }
         void SetDiffuseMapChannels(const int channels) { m_DiffuseMapChannels = channels; }
         void SetSpecularMapChannels(const int channels) { m_SpecularMapChannels = channels; }
+        void SetEnableEmissive(const bool enable) { m_EnableEmissive = enable; }
+        void SetEmissive(const glm::vec3& emissive) { m_Emissive = emissive; }
+        void SetEmissiveIntensity(const float power) { m_EmissiveIntensity = power; }
+        void SetOpacity(const glm::vec3& opacity) { m_Opacity = opacity; }
 
         glm::vec3& GetAlbedoRef() { return m_Albedo; }
         float&     GetMetallicRef() { return m_Metallic; }
@@ -75,6 +84,10 @@ namespace Engine
         glm::vec3& GetSpecularRef() { return m_Specular; }
         int&       GetDiffuseMapChannelsRef() { return m_DiffuseMapChannels; }
         int&       GetSpecularMapChannelsRef() { return m_SpecularMapChannels; }
+        void       SetEnableEmissiveRef(const bool enable) { m_EnableEmissive = enable; }
+        glm::vec3& GetEmissiveRef() { return m_Emissive; }
+        float&     GetEmissiveIntensityRef() { return m_EmissiveIntensity; }
+        glm::vec3& GetOpacityRef() { return m_Opacity; }
 
         void LoadAlbedoMap(const std::string& path)
         {
@@ -239,6 +252,7 @@ namespace Engine
             shader->SetInt("diffuseMapChannels", m_DiffuseMapChannels);
             shader->SetInt("specularMapChannels", m_SpecularMapChannels);
 
+            shader->SetFloat3("in_opacity", m_Opacity);
             shader->SetBool("useOpacityMap", m_UseOpacityMap);
             shader->SetInt("opacityMap", 7);
 
@@ -274,6 +288,10 @@ namespace Engine
             {
                 m_OpacityMap->Bind(7);
             }
+
+            shader->SetBool("enableEmissive", m_EnableEmissive);
+            shader->SetFloat3("in_emissive", m_Emissive);
+            shader->SetFloat("in_emissiveIntensity", m_EmissiveIntensity);
         }
 
         void UnBindAllMap(const Ref<Shader> shader)
@@ -309,26 +327,6 @@ namespace Engine
             if (m_UseOpacityMap == true)
             {
                 m_OpacityMap->UnBind(7);
-            }
-        }
-
-        void BindAlbedo(const Ref<Shader> shader, uint32_t slot)
-        {
-            shader->SetFloat3("in_albedo", m_Albedo);
-            shader->SetBool("useAlbedoMap", m_UseAlbedoMap);
-            shader->SetInt("albedoMap", slot);
-
-            if (m_UseAlbedoMap == true)
-            {
-                m_AlbedoMap->Bind(slot);
-            }
-        }
-
-        void UnBindAlbedo(const Ref<Shader> shader, uint32_t slot)
-        {
-            if (m_UseAlbedoMap == true)
-            {
-                m_AlbedoMap->UnBind(slot);
             }
         }
     };

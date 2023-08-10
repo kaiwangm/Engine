@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 project(EngineProject
-    VERSION 0.0.6
+    VERSION 0.1.0
     DESCRIPTION "My Toy Modern OpenGL Game Engine."
     LANGUAGES C CXX
 )

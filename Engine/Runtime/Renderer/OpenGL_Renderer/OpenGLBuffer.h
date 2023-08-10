@@ -143,6 +143,7 @@ namespace Engine
         virtual void*    GetSpecularTextureID() const override;
         virtual void*    GetWorldPositionTextureID() const override;
         virtual void*    GetWorldNormalTextureID() const override;
+        virtual void*    GetEmissiveTextureID() const override;
 
         virtual void BindViewPositionTexture(const uint32_t& slot) const override;
         virtual void BindViewNormalTexture(const uint32_t& slot) const override;
@@ -152,6 +153,7 @@ namespace Engine
         virtual void BindSpecularTexture(const uint32_t& slot) const override;
         virtual void BindWorldPositionTexture(const uint32_t& slot) const override;
         virtual void BindWorldNormalTexture(const uint32_t& slot) const override;
+        virtual void BindEmissiveTexture(const uint32_t& slot) const override;
         virtual void UnBindTexture(const uint32_t& slot) const override;
 
     private:
@@ -169,6 +171,7 @@ namespace Engine
         GLuint m_Specular_RendererID;
         GLuint m_WorldPosition_RendererID;
         GLuint m_WorldNormal_RendererID;
+        GLuint m_Emissive_RendererID;
     };
 
     class OpenGLSSAOBuffer : public SSAOBuffer

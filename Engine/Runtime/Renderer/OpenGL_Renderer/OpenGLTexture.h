@@ -77,11 +77,15 @@ namespace Engine
         GLuint      m_CubeMap, m_Irradiance, m_Prefilter;
         GLuint      m_BrdfLut;
 
-    public:
+    private:
         std::vector<glm::vec3> sh_data;
 
-        virtual void                          ComputeIrradianceTexture() override;
-        virtual void                          ComputeSphereHarmonicsParameters() override;
+    public:
+        virtual void ComputeIrradianceTexture() override;
+        virtual void ComputeSphereHarmonicsParameters() override;
+        virtual void ComputePrefilterTexture() override;
+
+    public:
         virtual const std::vector<glm::vec3>& GetSphereHarmonicsParametersRef() const override { return sh_data; }
     };
 } // namespace Engine

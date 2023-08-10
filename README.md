@@ -6,7 +6,7 @@
 
 My toy modern OpenGL game engine.
 
-![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Docs/Screenshots/Bistro.png)
+![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Docs/Screenshots/Bistro_Moonless.png)
 
 ## Getting Started
 

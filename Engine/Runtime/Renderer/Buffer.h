@@ -262,6 +262,7 @@ namespace Engine
         virtual void*    GetSpecularTextureID() const      = 0;
         virtual void*    GetWorldPositionTextureID() const = 0;
         virtual void*    GetWorldNormalTextureID() const   = 0;
+        virtual void*    GetEmissiveTextureID() const      = 0;
 
         virtual void BindViewPositionTexture(const uint32_t& slot) const  = 0;
         virtual void BindViewNormalTexture(const uint32_t& slot) const    = 0;
@@ -271,6 +272,7 @@ namespace Engine
         virtual void BindSpecularTexture(const uint32_t& slot) const      = 0;
         virtual void BindWorldPositionTexture(const uint32_t& slot) const = 0;
         virtual void BindWorldNormalTexture(const uint32_t& slot) const   = 0;
+        virtual void BindEmissiveTexture(const uint32_t& slot) const      = 0;
         virtual void UnBindTexture(const uint32_t& slot) const            = 0;
 
         static Ref<GeometryBuffer> Create();

@@ -15,8 +15,8 @@ namespace Engine
 
             auto  camera_viewport = std::make_shared<PerspectiveCamera>(60.0f, 1.778f, 0.01f, 800.0f);
             auto& camera_s        = m_World->AddActor<ACamera>("viewport camera", camera_viewport);
-            camera_s.GetTransformComponent().SetPosition(glm::vec3 {-12.205f, 6.758f, -3.085f});
-            camera_s.GetTransformComponent().SetRotation(glm::vec3 {-0.593f, -1.878f, 0.000f});
+            camera_s.GetTransformComponent().SetPosition(glm::vec3 {-15.000f, 3.000f, -3.000f});
+            camera_s.GetTransformComponent().SetRotation(glm::vec3 {-0.150f, -1.700f, 0.000f});
             camera_s.GetTransformComponent().SetScale(glm::vec3 {1.000f, 1.000f, 1.000f});
             camera_s.SetIsControlled(true);
             camera_s.SetIsViewportCamera(true);
@@ -34,7 +34,7 @@ namespace Engine
             m_Camera                   = camera_viewport;
 
             auto skybox =
-                m_World->AddActor<ASkybox>("skybox", "Assets/Editor/Object/bistro/san_giuseppe_bridge_4k.hdr");
+                m_World->AddActor<ASkybox>("skybox", "Assets/Editor/Object/bistro/moonless_golf_4k.hdr");
 
             // m_World->AddActor<AActor>("Actor");
 
@@ -189,28 +189,67 @@ namespace Engine
             //                                                     "Assets/Editor/Animation/ruby_mesh.ozz");
             // skinned_mesh.GetTransformComponent().SetPosition(glm::vec3 {1.0f, 0.8f, 3.3f});
 
-            // auto light0 = m_World->AddActor<APointLight>("point light_0");
-            // light0.GetTransformComponent().SetPosition(glm::vec3 {0.0f, 1.5f, 1.5f});
-            // light0.GetPointLightComponentRef().SetIntensity(5.0f);
+            auto light1 = m_World->AddActor<APointLight>("point light_1");
+            light1.GetTransformComponent().SetPosition(glm::vec3 {1.728f, 2.39f, 2.153f});
+            light1.GetPointLightComponentRef().SetColor(glm::vec3 {0.9f, 0.63f, 0.50f});
+            light1.GetPointLightComponentRef().SetIntensity(15.0f);
 
-            // auto light1 = m_World->AddActor<APointLight>("point light_1");
-            // light1.GetTransformComponent().SetPosition(glm::vec3 {1.0f, 1.5f, 1.5f});
-            // light1.GetPointLightComponentRef().SetIntensity(5.0f);
+            auto light2 = m_World->AddActor<APointLight>("point light_2");
+            light2.GetTransformComponent().SetPosition(glm::vec3 {4.514f, 2.39f, 3.257f});
+            light2.GetPointLightComponentRef().SetColor(glm::vec3 {0.9f, 0.63f, 0.50f});
+            light2.GetPointLightComponentRef().SetIntensity(15.0f);
 
-            // auto light2 = m_World->AddActor<APointLight>("point light_2");
-            // light2.GetTransformComponent().SetPosition(glm::vec3 {0.0f, 2.5f, 1.5f});
-            // light2.GetPointLightComponentRef().SetIntensity(5.0f);
+            auto light3 = m_World->AddActor<APointLight>("point light_3");
+            light3.GetTransformComponent().SetPosition(glm::vec3 {7.286f, 2.39f, 4.352f});
+            light3.GetPointLightComponentRef().SetColor(glm::vec3 {0.9f, 0.63f, 0.50f});
+            light3.GetPointLightComponentRef().SetIntensity(15.0f);
 
-            // auto light3 = m_World->AddActor<APointLight>("point light_3");
-            // light3.GetTransformComponent().SetPosition(glm::vec3 {0.0f, 3.0f, 0.0f});
-            // light3.GetPointLightComponentRef().SetIntensity(5.0f);
+            auto light4 = m_World->AddActor<APointLight>("point light_4");
+            light4.GetTransformComponent().SetPosition(glm::vec3 {-1.106f, 2.39f, -4.739f});
+            light4.GetPointLightComponentRef().SetColor(glm::vec3 {0.9f, 0.63f, 0.50f});
+            light4.GetPointLightComponentRef().SetIntensity(15.0f);
+
+            auto light5 = m_World->AddActor<APointLight>("point light_5");
+            light5.GetTransformComponent().SetPosition(glm::vec3 {0.256f, 2.39f, -7.251f});
+            light5.GetPointLightComponentRef().SetColor(glm::vec3 {0.9f, 0.63f, 0.50f});
+            light5.GetPointLightComponentRef().SetIntensity(15.0f);
+
+            auto lanterne1 = m_World->AddActor<APointLight>("lanterne_1");
+            lanterne1.GetTransformComponent().SetPosition(glm::vec3 {-4.344f, 4.330f, -4.202f});
+            lanterne1.GetPointLightComponentRef().SetColor(glm::vec3 {0.9f, 0.63f, 0.50f});
+            lanterne1.GetPointLightComponentRef().SetIntensity(15.0f);
+
+            auto lanterne2 = m_World->AddActor<APointLight>("lanterne_2");
+            lanterne2.GetTransformComponent().SetPosition(glm::vec3 {-9.672f, 4.330f, 2.145f});
+            lanterne2.GetPointLightComponentRef().SetColor(glm::vec3 {0.9f, 0.63f, 0.50f});
+            lanterne2.GetPointLightComponentRef().SetIntensity(15.0f);
+
+            auto lanterne3 = m_World->AddActor<APointLight>("lanterne_3");
+            lanterne3.GetTransformComponent().SetPosition(glm::vec3 {-2.146f, 4.330f, 4.697f});
+            lanterne3.GetPointLightComponentRef().SetColor(glm::vec3 {0.9f, 0.63f, 0.50f});
+            lanterne3.GetPointLightComponentRef().SetIntensity(15.0f);
+
+            auto lanterne4 = m_World->AddActor<APointLight>("lanterne_4");
+            lanterne4.GetTransformComponent().SetPosition(glm::vec3 {-1.792f, 4.330f, 10.030f});
+            lanterne4.GetPointLightComponentRef().SetColor(glm::vec3 {0.9f, 0.63f, 0.50f});
+            lanterne4.GetPointLightComponentRef().SetIntensity(15.0f);
+
+            auto lanterne5 = m_World->AddActor<APointLight>("lanterne_5");
+            lanterne5.GetTransformComponent().SetPosition(glm::vec3 {7.738f, 4.330f, 8.674f});
+            lanterne5.GetPointLightComponentRef().SetColor(glm::vec3 {0.9f, 0.63f, 0.50f});
+            lanterne5.GetPointLightComponentRef().SetIntensity(15.0f);
+
+            auto walllamp1 = m_World->AddActor<APointLight>("walllamp_1");
+            walllamp1.GetTransformComponent().SetPosition(glm::vec3 {-13.429f, 3.900f, 1.226f});
+            walllamp1.GetPointLightComponentRef().SetColor(glm::vec3 {0.9f, 0.63f, 0.50f});
+            walllamp1.GetPointLightComponentRef().SetIntensity(15.0f);
 
             auto sky_light = m_World->AddActor<ADirectionalLight>("sky light");
             sky_light.GetTransformComponent().SetPosition(glm::vec3 {50.0f, 70.0f, 23.0f});
 
             sky_light.GetDirectionalLightComponentRef().SetColor(glm::vec3 {0.9f, 0.9f, 0.85f});
             sky_light.GetDirectionalLightComponentRef().SetDirection(glm::vec3 {-0.330f, -0.885f, -0.330f});
-            sky_light.GetDirectionalLightComponentRef().SetIntensity(6.0f);
+            sky_light.GetDirectionalLightComponentRef().SetIntensity(0.0f);
 
             // auto pointcloud =
             //     m_World->AddActor<APointCloud>("pointcloud",
@@ -225,6 +264,20 @@ namespace Engine
                                                          "streaky-metal1",
                                                          true);
             bistro.GetTransformComponent().SetScale(glm::vec3 {0.01f, 0.01f, 0.01f});
+
+            // auto livingroom = m_World->AddActor<AStaticMesh>("livingroom", //
+            //                                                  "Assets/Editor/Object/living_room/living_room.obj",
+            //                                                  "Texture",
+            //                                                  "livingroom",
+            //                                                  "livingroom",
+            //                                                  true);
+
+            // auto sanmiguel = m_World->AddActor<AStaticMesh>("sanmiguel", //
+            //                                                 "Assets/Editor/Object/San_Miguel/san-miguel-low-poly.obj",
+            //                                                 "Texture",
+            //                                                 "sanmiguel",
+            //                                                 "sanmiguel",
+            //                                                 true);
 
             // auto sponza = m_World->AddActor<AStaticMesh>("sponza", //
             //                                              "Assets/Editor/Object/sponza/sponza.obj",

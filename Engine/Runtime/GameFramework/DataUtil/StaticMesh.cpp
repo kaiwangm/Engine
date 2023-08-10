@@ -213,9 +213,25 @@ namespace Engine
                 float roughness = glm::clamp(1.0f - shininess / 150.0f, 0.05f, 0.97f);
                 material->SetRoughness(roughness);
 
+                aiColor3D emissive;
+                mat->Get(AI_MATKEY_COLOR_EMISSIVE, emissive);
+                if (emissive.r > 0.0f || emissive.g > 0.0f || emissive.b > 0.0f)
+                {
+                    material->SetEnableEmissive(true);
+                    material->SetEmissive(glm::vec3(emissive.r, emissive.g, emissive.b));
+                    material->SetEmissiveIntensity(10.0f);
+                }
+
+                aiColor3D opacity;
+                mat->Get(AI_MATKEY_COLOR_TRANSPARENT, opacity);
+                material->SetOpacity(glm::vec3(opacity.r, opacity.g, opacity.b));
+
                 Log::Info(fmt::format("Material Diffuse: {0}, {1}, {2}", diffuse.r, diffuse.g, diffuse.b));
                 Log::Info(fmt::format("Material Specular: {0}, {1}, {2}", specular.r, specular.g, specular.b));
+                Log::Info(fmt::format("Material Shininess: {0}", shininess));
                 Log::Info(fmt::format("Material Roughness: {0}", roughness));
+                Log::Info(fmt::format("Material Emissive: {0}, {1}, {2}", emissive.r, emissive.g, emissive.b));
+                Log::Info(fmt::format("Material Opacity: {0}, {1}, {2}", opacity.r, opacity.g, opacity.b));
 
                 aiString diffuseTexturePath;
                 if (mat->GetTexture(aiTextureType_DIFFUSE, 0, &diffuseTexturePath) == AI_SUCCESS)

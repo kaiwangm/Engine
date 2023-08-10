@@ -332,10 +332,12 @@ namespace Engine
         glGenTextures(1, &m_Specular_RendererID);
         glGenTextures(1, &m_WorldPosition_RendererID);
         glGenTextures(1, &m_WorldNormal_RendererID);
+        glGenTextures(1, &m_Emissive_RendererID);
     }
 
     OpenGLGeometryBuffer::~OpenGLGeometryBuffer()
     {
+        glDeleteTextures(1, &m_Emissive_RendererID);
         glDeleteTextures(1, &m_WorldNormal_RendererID);
         glDeleteTextures(1, &m_WorldPosition_RendererID);
         glDeleteTextures(1, &m_Specular_RendererID);
@@ -378,7 +380,7 @@ namespace Engine
             glBindTexture(GL_TEXTURE_2D, 0);
 
             glBindTexture(GL_TEXTURE_2D, m_Diffuse_RendererID);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -405,7 +407,7 @@ namespace Engine
             glBindTexture(GL_TEXTURE_2D, 0);
 
             glBindTexture(GL_TEXTURE_2D, m_Specular_RendererID);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -431,6 +433,15 @@ namespace Engine
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT7, GL_TEXTURE_2D, m_WorldNormal_RendererID, 0);
             glBindTexture(GL_TEXTURE_2D, 0);
 
+            glBindTexture(GL_TEXTURE_2D, m_Emissive_RendererID);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            // glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT8, GL_TEXTURE_2D, m_Emissive_RendererID, 0);
+            glBindTexture(GL_TEXTURE_2D, 0);
+
             const int num_attachments              = 8;
             GLuint    attachments[num_attachments] = {
                 GL_COLOR_ATTACHMENT0,
@@ -441,6 +452,7 @@ namespace Engine
                 GL_COLOR_ATTACHMENT5,
                 GL_COLOR_ATTACHMENT6,
                 GL_COLOR_ATTACHMENT7,
+                // GL_COLOR_ATTACHMENT8,
             };
             glDrawBuffers(num_attachments, attachments);
 
@@ -482,6 +494,8 @@ namespace Engine
 
     void* OpenGLGeometryBuffer::GetWorldNormalTextureID() const { return (void*)(uint64_t)m_WorldNormal_RendererID; }
 
+    void* OpenGLGeometryBuffer::GetEmissiveTextureID() const { return (void*)(uint64_t)m_Emissive_RendererID; }
+
     void OpenGLGeometryBuffer::BindViewPositionTexture(const uint32_t& slot) const
     {
         glBindTextureUnit(slot, m_ViewPosition_RendererID);
@@ -520,6 +534,11 @@ namespace Engine
     void OpenGLGeometryBuffer::BindWorldNormalTexture(const uint32_t& slot) const
     {
         glBindTextureUnit(slot, m_WorldNormal_RendererID);
+    }
+
+    void OpenGLGeometryBuffer::BindEmissiveTexture(const uint32_t& slot) const
+    {
+        glBindTextureUnit(slot, m_Emissive_RendererID);
     }
 
     void OpenGLGeometryBuffer::UnBindTexture(const uint32_t& slot) const { glBindTextureUnit(slot, 0); }
