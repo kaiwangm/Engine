@@ -33,10 +33,10 @@ namespace Engine
             m_World->m_MainCamera      = &camera_s.GetCameraComponent();
             m_Camera                   = camera_viewport;
 
-            auto skybox =
-                m_World->AddActor<ASkybox>("skybox", "Assets/Editor/Object/bistro/moonless_golf_4k.hdr");
-            
+            auto skybox = m_World->AddActor<ASkybox>("skybox", "Assets/Editor/Object/bistro/moonless_golf_4k.hdr");
+
             auto lightprobe = m_World->AddActor<ALightProbe>("lightprobe");
+            lightprobe.GetTransformComponent().SetPosition(glm::vec3 {0.0f, 30.0f, 0.0f});
             lightprobe.GetLightProbeComponent().SetPosition(glm::vec3 {-9.0f, 5.0f, 3.0f});
 
             // m_World->AddActor<AActor>("Actor");

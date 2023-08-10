@@ -649,7 +649,7 @@ namespace Engine
                         dirctionallight_num++;
                     }
                     deferred_shader->SetInt("numDirectionalLights", dirctionallight_num);
-                    deferred_shader->SetFloat("PCSS_FilterRadius", m_PCSS_FilterRadius);
+                    deferred_shader->SetFloat("PCSS_FilterRadius", m_Shadow_settings.PCSS_FilterRadius);
 
                     glm::vec3 camPos = glm::vec3(glm::inverse(m_VMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
                     deferred_shader->SetFloat3("camPos", camPos);
@@ -762,7 +762,7 @@ namespace Engine
                         dirctionallight_num++;
                     }
                     deferred_shader->SetInt("numDirectionalLights", dirctionallight_num);
-                    deferred_shader->SetFloat("PCSS_FilterRadius", m_PCSS_FilterRadius);
+                    deferred_shader->SetFloat("PCSS_FilterRadius", m_Shadow_settings.PCSS_FilterRadius);
 
                     glm::vec3 camPos = glm::vec3(glm::inverse(m_VMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
                     deferred_shader->SetFloat3("camPos", camPos);
@@ -1375,16 +1375,16 @@ namespace Engine
         m_FrameRenderBuffer_highLight->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
         for (int i = 0; i < 7; ++i)
         {
-            m_FrameRenderBuffer_highLight_downSampled[i]->SetViewPort(m_FrameRenderBuffer->GetWidth() / (32 << i),
-                                                                      m_FrameRenderBuffer->GetHeight() / (32 << i));
+            m_FrameRenderBuffer_highLight_downSampled[i]->SetViewPort(m_FrameRenderBuffer->GetWidth() / (1 << i),
+                                                                      m_FrameRenderBuffer->GetHeight() / (1 << i));
         }
 
         for (int i = 0; i < 6; ++i)
         {
-            m_FrameRenderBuffer_highLight_blur[i]->SetViewPort(m_FrameRenderBuffer->GetWidth() / (32 << i),
-                                                               m_FrameRenderBuffer->GetHeight() / (32 << i));
-            m_FrameRenderBuffer_highLight_upSampled[i]->SetViewPort(m_FrameRenderBuffer->GetWidth() / (32 << i),
-                                                                    m_FrameRenderBuffer->GetHeight() / (32 << i));
+            m_FrameRenderBuffer_highLight_blur[i]->SetViewPort(m_FrameRenderBuffer->GetWidth() / (1 << i),
+                                                               m_FrameRenderBuffer->GetHeight() / (1 << i));
+            m_FrameRenderBuffer_highLight_upSampled[i]->SetViewPort(m_FrameRenderBuffer->GetWidth() / (1 << i),
+                                                                    m_FrameRenderBuffer->GetHeight() / (1 << i));
         }
         m_FrameRenderBuffer_bloom->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
         m_FrameRenderBuffer_fxaa->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
@@ -1423,8 +1423,7 @@ namespace Engine
         m_VPMatrix = m_PMatrix * m_VMatrix;
 
         // Generate ShadowMap
-        static bool isShadowMapGenerated = false;
-        if (isShadowMapGenerated == false)
+        if (m_Shadow_settings.rebuild_shadow_map == true)
         {
             {
                 glCullFace(GL_FRONT);
@@ -1619,12 +1618,11 @@ namespace Engine
                 glCullFace(GL_BACK);
             }
 
-            isShadowMapGenerated = true;
+            m_Shadow_settings.rebuild_shadow_map = false;
         }
 
         // VoxelGI_VoxelTexture
-        static bool isVoxelGI_VoxelTextureInitialized = false;
-        if (isVoxelGI_VoxelTextureInitialized == false)
+        if (m_VoxelGI_settings.rebuild_voxel_grid == true)
         {
             glViewport(0, 0, m_VoxelGI_settings.voxel_grid_resolution, m_VoxelGI_settings.voxel_grid_resolution);
             glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
@@ -1739,7 +1737,7 @@ namespace Engine
                         dirctionallight_num++;
                     }
                     shader->SetInt("numDirectionalLights", dirctionallight_num);
-                    shader->SetFloat("PCSS_FilterRadius", m_PCSS_FilterRadius);
+                    shader->SetFloat("PCSS_FilterRadius", m_Shadow_settings.PCSS_FilterRadius);
 
                     mesh->m_VertexArray->Bind();
                     RenderCommand::DrawIndexed(mesh->m_VertexArray);
@@ -1758,7 +1756,7 @@ namespace Engine
             glEnable(GL_DEPTH_TEST);
             glEnable(GL_BLEND);
 
-            isVoxelGI_VoxelTextureInitialized = true;
+            m_VoxelGI_settings.rebuild_voxel_grid = false;
         }
 
         // Render to GeometryBuffer
@@ -2104,7 +2102,7 @@ namespace Engine
                 dirctionallight_num++;
             }
             deferred_shader->SetInt("numDirectionalLights", dirctionallight_num);
-            deferred_shader->SetFloat("PCSS_FilterRadius", m_PCSS_FilterRadius);
+            deferred_shader->SetFloat("PCSS_FilterRadius", m_Shadow_settings.PCSS_FilterRadius);
 
             glm::vec3 camPos = glm::vec3(glm::inverse(m_VMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
             deferred_shader->SetFloat3("camPos", camPos);
@@ -2211,7 +2209,7 @@ namespace Engine
                 dirctionallight_num++;
             }
             deferred_shader->SetInt("numDirectionalLights", dirctionallight_num);
-            deferred_shader->SetFloat("PCSS_FilterRadius", m_PCSS_FilterRadius);
+            deferred_shader->SetFloat("PCSS_FilterRadius", m_Shadow_settings.PCSS_FilterRadius);
 
             glm::vec3 camPos = glm::vec3(glm::inverse(m_VMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
             deferred_shader->SetFloat3("camPos", camPos);
@@ -2475,8 +2473,8 @@ namespace Engine
             m_GeometryBuffer->BindRoughnessTexture(7);
             ssr_shader->SetInt("g_Specular", 8);
             m_GeometryBuffer->BindSpecularTexture(8);
-            ssr_shader->SetInt("g_WorldPosition", 9);
-            m_GeometryBuffer->BindWorldPositionTexture(9);
+            ssr_shader->SetInt("g_VoxelGI", 9);
+            m_FrameRenderBuffer_VoxelGI->BindTexture(9);
 
             ssr_shader->SetFloat("rayStep", m_SSR_settings.rayStep);
             ssr_shader->SetFloat("minRayStep", m_SSR_settings.minRayStep);
@@ -2493,7 +2491,7 @@ namespace Engine
 
             RenderCommand::RenderToQuad();
 
-            m_GeometryBuffer->UnBindTexture(9);
+            m_FrameRenderBuffer_VoxelGI->UnBindTexture(9);
             m_GeometryBuffer->UnBindTexture(8);
             m_GeometryBuffer->UnBindTexture(7);
             m_GeometryBuffer->UnBindTexture(6);
@@ -3106,6 +3104,11 @@ namespace Engine
         ImGui::Separator();
 
         Gui::Text("Voxel-Based Global Illumination (VXGI)");
+        if (ImGui::Button("Rebuild Voxel Grid"))
+        {
+            m_VoxelGI_settings.rebuild_voxel_grid = true;
+        }
+
         ImGui::SliderInt("Voxel Grid Resolution", &m_VoxelGI_settings.voxel_grid_resolution, 1, 256);
         ImGui::SliderInt("Max Mipmap Level", &m_VoxelGI_settings.max_mipmap_level, 1, 10);
         ImGui::SliderFloat3("Scene Voxel Scale", &m_VoxelGI_settings.scene_voxel_scale[0], 0.05f, 1.0f);
@@ -3122,8 +3125,13 @@ namespace Engine
 
         ImGui::Separator();
 
+        Gui::Text("Shadow");
+        if (ImGui::Button("Rebuild ShadowMap"))
+        {
+            m_Shadow_settings.rebuild_shadow_map = true;
+        }
         Gui::Text("Percentage-Closer Soft Shadows (PCSS)");
-        ImGui::SliderFloat("FilterRadius", &m_PCSS_FilterRadius, 0.0f, 30.0f);
+        ImGui::SliderFloat("FilterRadius", &m_Shadow_settings.PCSS_FilterRadius, 0.0f, 30.0f);
 
         ImGui::Separator();
 

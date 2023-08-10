@@ -89,15 +89,15 @@ namespace Engine
         glm::mat4 m_PMatrix;
         glm::mat4 m_VPMatrix;
 
-        float m_Exposure                = 1.0f;
-        int   m_ViewportGBufferMap      = 0;
+        float m_Exposure           = 1.5f;
+        int   m_ViewportGBufferMap = 0;
 
-        float m_Dir_Diffuse  = 0.21f;
-        float m_Dir_Specular = 0.21f;
-        float m_Env_Diffuse  = 0.21f;
-        float m_Env_Specular = 0.21f;
-        float m_VoxelGI      = 0.21f;
-        float m_SSR_Factor   = 0.21f;
+        float m_Dir_Diffuse  = 0.20f;
+        float m_Dir_Specular = 0.20f;
+        float m_Env_Diffuse  = 0.20f;
+        float m_Env_Specular = 0.20f;
+        float m_VoxelGI      = 0.20f;
+        float m_SSR_Factor   = 0.20f;
 
         struct ScreenSpaceReflection
         {
@@ -106,12 +106,17 @@ namespace Engine
             float minRayStep                        = 0.1f;
             float maxSteps                          = 300.0f;
             int   numBinarySearchSteps              = 5;
-            float reflectionSpecularFalloffExponent = 5.0f;
+            float reflectionSpecularFalloffExponent = 0.3f;
             float refBias                           = 0.001f;
         } m_SSR_settings;
 
-        float m_Bloom_Intensity   = 0.08f;
-        float m_PCSS_FilterRadius = 9.0f;
+        float m_Bloom_Intensity = 0.18f;
+
+        struct Shadow
+        {
+            bool rebuild_shadow_map = true;
+            float PCSS_FilterRadius = 9.0f;
+        } m_Shadow_settings;
 
         struct VoxelGI
         {
@@ -124,12 +129,13 @@ namespace Engine
                 float result_intensity;
             };
 
-            int                 voxel_grid_resolution = 300;
-            int                 max_mipmap_level      = 8;
+            bool rebuild_voxel_grid    = true;
+            int  voxel_grid_resolution = 300;
+            int  max_mipmap_level      = 8;
             // glm::vec3           scene_voxel_scale     = glm::vec3(1.0f) / 75.0f;
-            glm::vec3           scene_voxel_scale     = glm::vec3(1.0f) / 75.0f;
-            ConeTracingSettings diffuse               = {0.300f, 0.300f, 0.050f, 2.0f, 1.0f};
-            ConeTracingSettings specular              = {0.300f, 0.300f, 0.050f, 2.0f, 1.0f};
+            glm::vec3           scene_voxel_scale = glm::vec3(1.0f) / 75.0f;
+            ConeTracingSettings diffuse           = {0.300f, 0.300f, 0.050f, 2.0f, 1.0f};
+            ConeTracingSettings specular          = {0.300f, 0.300f, 0.050f, 2.0f, 1.0f};
         } m_VoxelGI_settings;
 
         entt::entity entity_selected = entt::null;
