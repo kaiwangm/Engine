@@ -133,22 +133,22 @@ namespace Engine
         m_Channels = channels;
         if (m_Channels == 4)
         {
-            internalFormate = GL_RGBA8;
+            internalFormate = GL_COMPRESSED_RGBA;
             dataFormate     = GL_RGBA;
         }
         else if (m_Channels == 3)
         {
-            internalFormate = GL_RGB8;
+            internalFormate = GL_COMPRESSED_RGB;
             dataFormate     = GL_RGB;
         }
         else if (m_Channels == 2)
         {
-            internalFormate = GL_RG8;
+            internalFormate = GL_COMPRESSED_RG;
             dataFormate     = GL_RG;
         }
         else if (m_Channels == 1)
         {
-            internalFormate = GL_R8;
+            internalFormate = GL_COMPRESSED_RED;
             dataFormate     = GL_RED;
         }
     }
@@ -171,8 +171,17 @@ namespace Engine
         glTextureParameteri(m_TextureID, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTextureParameteri(m_TextureID, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTextureParameteri(m_TextureID, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTextureStorage2D(m_TextureID, std::log2(std::max(m_Width, m_Height)), internalFormate, m_Width, m_Height);
-        glTextureSubImage2D(m_TextureID, 0, 0, 0, m_Width, m_Height, dataFormate, GL_UNSIGNED_BYTE, data);
+        // glTextureStorage2D(m_TextureID, std::log2(std::max(m_Width, m_Height)), internalFormate, m_Width, m_Height);
+        // glTextureSubImage2D(m_TextureID, 0, 0, 0, m_Width, m_Height, dataFormate, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D,
+                     0,
+                     internalFormate,
+                     m_Width,
+                     m_Height,
+                     0,
+                     dataFormate,
+                     GL_UNSIGNED_BYTE,
+                     data);
 
         glGenerateTextureMipmap(m_TextureID);
         glBindTexture(GL_TEXTURE_2D, 0);

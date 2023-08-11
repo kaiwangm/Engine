@@ -246,7 +246,7 @@ namespace Engine
                 {
                     std::string texturePath = m_Directory + "/" + normalTexturePath.C_Str();
                     Log::Info(fmt::format("Material Normal Texture Path: {0}", texturePath));
-                    // material->LoadNormalMap(texturePath);
+                    material->LoadNormalMap(texturePath);
                 }
 
                 aiString specularTexturePath;
