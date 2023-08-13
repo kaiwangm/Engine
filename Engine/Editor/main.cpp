@@ -36,22 +36,22 @@ namespace Engine
             auto skybox = m_World->AddActor<ASkybox>("skybox", "Assets/Editor/Object/bistro/moonless_golf_4k.hdr");
 
             auto lightprobe = m_World->AddActor<ALightProbe>("lightprobe");
-            lightprobe.GetTransformComponent().SetPosition(glm::vec3 {0.0f, 30.0f, 0.0f});
-            lightprobe.GetLightProbeComponent().SetPosition(glm::vec3 {-9.0f, 5.0f, 3.0f});
+            lightprobe.GetTransformComponent().SetPosition(glm::vec3 {0.0f, 0.0f, 0.0f});
+            lightprobe.GetLightProbeComponent().SetProbePosition(glm::vec3 {-9.0f, 5.0f, 3.0f});
 
             // m_World->AddActor<AActor>("Actor");
 
-            // const std::vector<std::string> animation_filepaths {
-            //     "Assets/Editor/Animation/geula/geula_walk1_subject1.ozz",
-            //     "Assets/Editor/Animation/geula/geula_walk1_subject2.ozz",
-            //     "Assets/Editor/Animation/geula/geula_walk1_subject5.ozz",
-            // };
+            const std::vector<std::string> animation_filepaths {
+                "Assets/Editor/Animation/geula/geula_walk1_subject1.ozz",
+                "Assets/Editor/Animation/geula/geula_walk1_subject2.ozz",
+                "Assets/Editor/Animation/geula/geula_walk1_subject5.ozz",
+            };
 
-            // auto apawn = m_World->AddActor<APawn>("pawn",
-            //                                       "Assets/Editor/Animation/geula/geula_skeleton.ozz",
-            //                                       animation_filepaths,
-            //                                       "Assets/Editor/Animation/geula/geula_meshes.ozz");
-            // apawn.GetTransformComponent().SetPosition(glm::vec3 {1.0f, 0.0f, 3.3f});
+            auto apawn = m_World->AddActor<APawn>("pawn",
+                                                  "Assets/Editor/Animation/geula/geula_skeleton.ozz",
+                                                  animation_filepaths,
+                                                  "Assets/Editor/Animation/geula/geula_meshes.ozz");
+            apawn.GetTransformComponent().SetPosition(glm::vec3 {1.0f, 0.0f, 3.3f});
 
             // auto red_triangle = m_World->AddActor<AStaticMesh>("red_triangle", //
             //                                                    "Assets/Editor/Object/triangle/triangle.obj",
@@ -247,6 +247,11 @@ namespace Engine
             walllamp1.GetPointLightComponentRef().SetColor(glm::vec3 {0.9f, 0.63f, 0.50f});
             walllamp1.GetPointLightComponentRef().SetIntensity(15.0f);
 
+            auto walllamp2 = m_World->AddActor<APointLight>("walllamp_2");
+            walllamp2.GetTransformComponent().SetPosition(glm::vec3 {-17.309f, 3.900f, -3.782f});
+            walllamp2.GetPointLightComponentRef().SetColor(glm::vec3 {0.9f, 0.63f, 0.50f});
+            walllamp2.GetPointLightComponentRef().SetIntensity(15.0f);
+
             auto sky_light = m_World->AddActor<ADirectionalLight>("sky light");
             sky_light.GetTransformComponent().SetPosition(glm::vec3 {50.0f, 70.0f, 23.0f});
 
@@ -301,8 +306,6 @@ namespace Engine
                     pointcloud.GetTransformComponent().SetScale(glm::vec3 {0.01f, 0.01f, 0.01f});
                 }
             });
-
-            m_World->Initialize();
         }
 
         void OnAttach() override {}

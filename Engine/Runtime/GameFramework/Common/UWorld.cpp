@@ -55,9 +55,9 @@ namespace Engine
         m_FrameRenderBuffer_bloom = FrameRenderBuffer::Create();
         m_FrameRenderBuffer_fxaa  = FrameRenderBuffer::Create();
 
+        m_FrameRenderBuffer_gui               = FrameRenderBuffer::Create();
         m_FrameRenderBuffer_bufferViewport    = FrameRenderBuffer::Create();
         m_FrameRenderBuffer_shadowMapViewport = FrameRenderBuffer::Create();
-        // m_FrameRenderBuffer_shadowCubeMapViewport = FrameRenderBuffer::Create();
 
         m_FrameRenderBuffer_VoxelGIViewport = FrameRenderBuffer::Create();
 
@@ -253,7 +253,7 @@ namespace Engine
                    "Path");
     }
 
-    void UWorld::Initialize()
+    void UWorld::BuildLightingProbe()
     {
         auto actor_view           = m_Registry.view<UTagComponent, UTransformComponent>();
         auto camrea_view          = m_Registry.view<UTagComponent, UTransformComponent, UCameraComponent>();
@@ -411,7 +411,7 @@ namespace Engine
         // Precompute lightprobe
         for (auto [entity, name, trans, lightprobe] : lightprobe_view.each())
         {
-            glm::vec3 probePosition = lightprobe.GetPosition();
+            glm::vec3 probePosition = lightprobe.GetProbePosition();
 
             glm::mat4                projectionMatrices = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 100.0f);
             std::array<glm::mat4, 6> viewMatrices       = {
@@ -955,58 +955,6 @@ namespace Engine
                     RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
                     RenderCommand::Clear();
 
-                    // auto ssr_shader = m_ShaderLibrary.Get("ScreenSpaceReflection");
-                    // ssr_shader->Bind();
-
-                    // ssr_shader->SetInt("g_DirectLightinging_diffuse", 0);
-                    // m_FrameRenderBuffer_DirectLighting_diffuse_Baking->BindTexture(0);
-                    // ssr_shader->SetInt("g_DirectLightinging_specular", 1);
-                    // m_FrameRenderBuffer_DirectLighting_specular_Baking->BindTexture(1);
-                    // ssr_shader->SetInt("g_EnvironmentLighting_diffuse", 2);
-                    // m_FrameRenderBuffer_EnvironmentLighting_diffuse_Baking->BindTexture(2);
-                    // ssr_shader->SetInt("g_EnvironmentLighting_specular", 3);
-                    // m_FrameRenderBuffer_EnvironmentLighting_specular_Baking->BindTexture(3);
-                    // ssr_shader->SetInt("g_ViewPosition", 4);
-                    // m_GeometryBuffer_Baking->BindViewPositionTexture(4);
-                    // ssr_shader->SetInt("g_ViewNormal", 5);
-                    // m_GeometryBuffer_Baking->BindViewNormalTexture(5);
-                    // ssr_shader->SetInt("g_Depth", 6);
-                    // m_GeometryBuffer_Baking->BindDepthTexture(6);
-                    // ssr_shader->SetInt("g_Specular", 7);
-                    // m_GeometryBuffer_Baking->BindSpecularTexture(7);
-                    // ssr_shader->SetInt("g_WorldPosition", 8);
-                    // m_GeometryBuffer_Baking->BindWorldPositionTexture(8);
-                    // ssr_shader->SetInt("g_Roughness", 9);
-                    // m_GeometryBuffer_Baking->BindRoughnessTexture(9);
-
-                    // ssr_shader->SetFloat("rayStep", m_SSR_settings.rayStep);
-                    // ssr_shader->SetFloat("minRayStep", m_SSR_settings.minRayStep);
-                    // ssr_shader->SetFloat("maxSteps", m_SSR_settings.maxSteps);
-                    // ssr_shader->SetInt("numBinarySearchSteps", m_SSR_settings.numBinarySearchSteps);
-                    // ssr_shader->SetFloat("reflectionSpecularFalloffExponent",
-                    //                      m_SSR_settings.reflectionSpecularFalloffExponent);
-                    // ssr_shader->SetBool("debug", m_SSR_settings.debug);
-                    // ssr_shader->SetFloat("refBias", m_SSR_settings.refBias);
-
-                    // ssr_shader->SetMat4("u_MProjection", m_PMatrix);
-                    // ssr_shader->SetMat4("u_MView", m_VMatrix);
-                    // ssr_shader->SetMat4("u_MInvProjection", glm::inverse(m_PMatrix));
-                    // ssr_shader->SetMat4("u_MInvView", glm::inverse(m_VMatrix));
-
-                    // RenderCommand::RenderToQuad();
-
-                    // m_GeometryBuffer_Baking->UnBindTexture(9);
-                    // m_GeometryBuffer_Baking->UnBindTexture(8);
-                    // m_GeometryBuffer_Baking->UnBindTexture(7);
-                    // m_GeometryBuffer_Baking->UnBindTexture(6);
-                    // m_GeometryBuffer_Baking->UnBindTexture(5);
-                    // m_GeometryBuffer_Baking->UnBindTexture(4);
-                    // m_FrameRenderBuffer_EnvironmentLighting_specular_Baking->UnBindTexture(3);
-                    // m_FrameRenderBuffer_EnvironmentLighting_diffuse_Baking->UnBindTexture(2);
-                    // m_FrameRenderBuffer_DirectLighting_specular_Baking->UnBindTexture(1);
-                    // m_FrameRenderBuffer_DirectLighting_diffuse_Baking->UnBindTexture(0);
-
-                    // ssr_shader->UnBind();
                     Renderer::EndScene(m_FrameRenderBuffer_ssr_Baking);
                     glEnable(GL_DEPTH_TEST);
                 }
@@ -1018,18 +966,6 @@ namespace Engine
                     RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
                     RenderCommand::Clear();
 
-                    // auto blur_shader = m_ShaderLibrary.Get("GaussianBlur");
-                    // blur_shader->Bind();
-
-                    // blur_shader->SetInt("g_Color", 0);
-                    // m_FrameRenderBuffer_ssr_Baking->BindTexture(0);
-                    // blur_shader->SetFloat2("screenSize", glm::vec2(cubeMapSize, cubeMapSize) / 1.0f);
-
-                    // RenderCommand::RenderToQuad();
-
-                    // m_FrameRenderBuffer_ssr_Baking->UnBindTexture(0);
-
-                    // blur_shader->UnBind();
                     Renderer::EndScene(m_FrameRenderBuffer_ssr_blur_Baking);
                     glEnable(GL_DEPTH_TEST);
                 }
@@ -1341,6 +1277,12 @@ namespace Engine
 
     void UWorld::TickRender(float timeStep)
     {
+        if (m_LightingProbe_settings.rebuild_lighting_probe == true)
+        {
+            BuildLightingProbe();
+            m_LightingProbe_settings.rebuild_lighting_probe = false;
+        }
+
         // Initialize();
         auto actor_view           = m_Registry.view<UTagComponent, UTransformComponent>();
         auto camrea_view          = m_Registry.view<UTagComponent, UTransformComponent, UCameraComponent>();
@@ -1391,6 +1333,7 @@ namespace Engine
         m_FrameRenderBuffer_VoxelGIViewport->SetViewPort(m_FrameRenderBuffer->GetWidth(),
                                                          m_FrameRenderBuffer->GetHeight());
 
+        m_FrameRenderBuffer_gui->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
         m_SSAOBuffer->SetViewPort(m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
         m_FrameRenderBuffer_shadowMapViewport->SetViewPort(256, 256);
 
@@ -2797,9 +2740,13 @@ namespace Engine
             glEnable(GL_DEPTH_TEST);
         }
 
-        // forward
+        // ForwardUI
         // Point Cloud
-        m_FrameRenderBuffer->Bind();
+        glDisable(GL_DEPTH_TEST);
+        m_FrameRenderBuffer_gui->Bind();
+        RenderCommand::SetViewPort(0, 0, m_FrameRenderBuffer_gui->GetWidth(), m_FrameRenderBuffer_gui->GetHeight());
+        RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+        RenderCommand::Clear();
 
         for (auto [entity, name, trans, pointcloud] : pointcloud_view.each())
         {
@@ -2866,7 +2813,6 @@ namespace Engine
             skeletonShader->UnBind();
         }
 
-        glDisable(GL_DEPTH_TEST);
         // draw pawn
         for (auto [entity, name, trans, pawn] : pawn_view.each())
         {
@@ -2888,9 +2834,40 @@ namespace Engine
             motionmatching.DrawTrajectory(shader, m_VPMatrix, trans.GetTransform());
         }
 
+        m_FrameRenderBuffer_gui->UnBind();
         glEnable(GL_DEPTH_TEST);
 
+        // Render to Screen
+        glDisable(GL_DEPTH_TEST);
+        glEnable(GL_BLEND);
+        m_FrameRenderBuffer->Bind();
+        RenderCommand::SetViewPort(0, 0, m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
+        RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+        RenderCommand::Clear();
+
+        auto screen_shader = m_ShaderLibrary.Get("Screen");
+        screen_shader->Bind();
+        
+        glBlendFunc(GL_ONE, GL_ZERO);
+        screen_shader->SetInt("g_Color", 0);
+        m_FrameRenderBuffer_fxaa->BindTexture(0);
+
+        RenderCommand::RenderToQuad();
+
+        m_FrameRenderBuffer_fxaa->UnBindTexture(0);
+
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        screen_shader->SetInt("g_Color", 0);
+        m_FrameRenderBuffer_gui->BindTexture(0);
+
+        RenderCommand::RenderToQuad();
+
+        m_FrameRenderBuffer_gui->UnBindTexture(0);
+
+        screen_shader->UnBind();
         Renderer::EndScene(m_FrameRenderBuffer);
+        glDisable(GL_BLEND);
+        glEnable(GL_DEPTH_TEST);
 
         // Render to VoxelGIViewport
         if (viewport_items[m_ViewportGBufferMap] == "VoxelGI_VoxelTexture")
@@ -2936,9 +2913,9 @@ namespace Engine
         RenderCommand::Clear();
 
         std::string gbuffer_shader_name[] = {
-            "VisPosition", "VisNormal", "Screen",      "VisDepth", "VisAO",  "VisRoughness", "Screen",
-            "VisPosition", "VisNormal", "VisEmissive", "Screen",   "Screen", "Screen",       "Screen",
-            "Screen",      "Screen",    "Screen",      "Screen",   "Screen", "Screen",       "Screen",
+            "VisPosition", "VisNormal",   "Screen", "VisDepth", "VisAO",  "VisRoughness", "Screen", "VisPosition",
+            "VisNormal",   "VisEmissive", "Screen", "Screen",   "Screen", "Screen",       "Screen", "Screen",
+            "Screen",      "Screen",      "Screen", "Screen",   "Screen", "Screen",       "Screen",
         };
 
         const std::string viewport_buffer_name    = viewport_items[m_ViewportGBufferMap];
@@ -3051,6 +3028,16 @@ namespace Engine
             gbuffer_viewport_shader->SetInt("g_Color", 0);
             m_FrameRenderBuffer_VoxelGI->BindTexture(0);
         }
+        if (viewport_buffer_name == "ForwardUI")
+        {
+            gbuffer_viewport_shader->SetInt("g_Color", 0);
+            m_FrameRenderBuffer_gui->BindTexture(0);
+        }
+        if (viewport_buffer_name == "Viewport")
+        {
+            gbuffer_viewport_shader->SetInt("g_Color", 0);
+            m_FrameRenderBuffer_fxaa->BindTexture(0);
+        }
 
         RenderCommand::RenderToQuad();
 
@@ -3058,27 +3045,6 @@ namespace Engine
         gbuffer_viewport_shader->UnBind();
 
         Renderer::EndScene(m_FrameRenderBuffer_bufferViewport);
-
-        // Render to Screen
-        glDisable(GL_DEPTH_TEST);
-        m_FrameRenderBuffer->Bind();
-        RenderCommand::SetViewPort(0, 0, m_FrameRenderBuffer->GetWidth(), m_FrameRenderBuffer->GetHeight());
-        RenderCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
-        RenderCommand::Clear();
-
-        auto screen_shader = m_ShaderLibrary.Get("Screen");
-        screen_shader->Bind();
-
-        screen_shader->SetInt("g_Color", 0);
-        m_FrameRenderBuffer_fxaa->BindTexture(0);
-
-        RenderCommand::RenderToQuad();
-
-        m_FrameRenderBuffer_fxaa->UnBindTexture(0);
-
-        screen_shader->UnBind();
-        Renderer::EndScene(m_FrameRenderBuffer);
-        glEnable(GL_DEPTH_TEST);
     }
 
     void UWorld::TickGui(float timeStep)
@@ -3100,6 +3066,14 @@ namespace Engine
         ImGui::SliderFloat("Environment Specular", &m_Env_Specular, 0.0f, 5.0f);
         ImGui::SliderFloat("VoxelGI", &m_VoxelGI, 0.0f, 5.0f);
         ImGui::SliderFloat("SSR Factor", &m_SSR_Factor, 0.0f, 5.0f);
+
+        ImGui::Separator();
+
+        Gui::Text("Lighting Probe");
+        if (ImGui::Button("Rebuild Lighting Probe"))
+        {
+            m_LightingProbe_settings.rebuild_lighting_probe = true;
+        }
 
         ImGui::Separator();
 
@@ -3812,7 +3786,7 @@ namespace Engine
                 Gui::Text("Light Probe");
                 ImGui::Separator();
 
-                Gui::DragFloat3("Position", lightProbeComponent.GetPositionRef(), 0.005f, -100.0f, 100.0f);
+                Gui::DragFloat3("Probe Position", lightProbeComponent.GetProbePositionRef(), 0.005f, -100.0f, 100.0f);
                 static float m_VisCubeMapMipLevel = 0.0f;
                 Gui::SliderFloat("Mipmap Level", m_VisCubeMapMipLevel, 0.0f, 32.0f);
 

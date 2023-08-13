@@ -44,6 +44,7 @@ namespace Engine
         Ref<FrameRenderBuffer>                m_FrameRenderBuffer_bloom;
         Ref<FrameRenderBuffer>                m_FrameRenderBuffer_fxaa;
 
+        Ref<FrameRenderBuffer> m_FrameRenderBuffer_gui;
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_bufferViewport;
         Ref<FrameRenderBuffer> m_FrameRenderBuffer_shadowMapViewport;
 
@@ -51,7 +52,7 @@ namespace Engine
 
         Ref<ULightProbeComponent> m_LightProbeComponent;
 
-        const char* viewport_items[21] = {
+        const char* viewport_items[23] = {
             "ViewPosition",
             "ViewNormal",
             "Diffuse",
@@ -73,6 +74,8 @@ namespace Engine
             "Exposure",
             "VoxelGI_VoxelTexture",
             "VoxelGI",
+            "ForwardUI",
+            "Viewport",
         };
 
         Ref<GeometryBuffer> m_GeometryBuffer;
@@ -114,8 +117,8 @@ namespace Engine
 
         struct Shadow
         {
-            bool rebuild_shadow_map = true;
-            float PCSS_FilterRadius = 9.0f;
+            bool  rebuild_shadow_map = true;
+            float PCSS_FilterRadius  = 9.0f;
         } m_Shadow_settings;
 
         struct VoxelGI
@@ -138,6 +141,11 @@ namespace Engine
             ConeTracingSettings specular          = {0.300f, 0.300f, 0.050f, 2.0f, 1.0f};
         } m_VoxelGI_settings;
 
+        struct LightingProbe
+        {
+            bool rebuild_lighting_probe = true;
+        } m_LightingProbe_settings;
+
         entt::entity entity_selected = entt::null;
 
     public:
@@ -147,7 +155,7 @@ namespace Engine
 
     public:
         UWorld();
-        void Initialize();
+        void BuildLightingProbe();
 
         template<class T, class... Args>
         T& AddActor(const std::string& name, Args... args)

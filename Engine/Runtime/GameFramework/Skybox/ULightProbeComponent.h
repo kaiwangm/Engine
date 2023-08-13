@@ -14,9 +14,9 @@ namespace Engine
     public:
         ULightProbeComponent() { m_Probe_CubeMap = CubeMap::Create(); }
 
-        void       SetPosition(const glm::vec3& position) { m_Position = position; }
-        glm::vec3& GetPositionRef() { return m_Position; }
-        glm::vec3  GetPosition() const { return m_Position; }
+        void       SetProbePosition(const glm::vec3& position) { m_Position = position; }
+        glm::vec3& GetProbePositionRef() { return m_Position; }
+        glm::vec3  GetProbePosition() const { return m_Position; }
 
         Ref<CubeMap>& GetCubeMapPtr() { return m_Probe_CubeMap; }
 
