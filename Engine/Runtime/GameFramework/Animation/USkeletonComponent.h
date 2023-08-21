@@ -3,6 +3,7 @@
 #include <Engine/Runtime/Core/Log/Log.h>
 #include <Engine/Runtime/Renderer/Renderer.h>
 
+#include <ozz/animation/runtime/sampling_job.h>
 #include <ozz/animation/runtime/skeleton.h>
 #include <ozz/animation/runtime/animation.h>
 #include <ozz/base/containers/vector.h>
@@ -32,6 +33,9 @@ namespace Engine
         std::vector<int>                     parents;
         ozz::math::Float3                    color;
 
+        std::vector<std::string> m_JointNames;
+        std::vector<uint32_t>    m_JointTypeIndex;
+
         float m_FrameTime;
         float m_NowTime;
         bool  m_UseRootMotion = true;
@@ -51,7 +55,8 @@ namespace Engine
         ~USkeletonComponent();
 
     public:
-        void Update(float ratio);
+        void Update(float ratio, bool useRootMotion = false);
+        bool GetLocals(ozz::vector<ozz::math::SoaTransform>& inLocals, float ratio);
         void Draw(Ref<Shader> shader,
                   glm::mat4   vpMat,
                   glm::mat4   transform,
@@ -77,6 +82,11 @@ namespace Engine
 
         void SetModels(const ozz::vector<ozz::math::Float4x4>& models) { this->models = models; }
         ozz::vector<ozz::math::Float4x4> GetModels() const { return models; }
+
+        std::string GetJointName(int index) const { return m_JointNames[index]; }
+        uint32_t    GetJointTypeIndex(int index) const { return m_JointTypeIndex[index]; }
+
+        ozz::animation::Skeleton& GetSkeletonRef() { return skeleton; }
 
     public:
         glm::vec3 GetNowRootPosition() const
@@ -105,6 +115,62 @@ namespace Engine
             glm::quat q = glm::quat_cast(model);
 
             return q;
+        }
+
+        glm::vec3 GetVelocity(float deltaTime)
+        {
+            float nowRatio  = m_NowTime / m_FrameTime;
+            float lastRatio = glm::max(m_NowTime - deltaTime, 0.0f) / m_FrameTime;
+
+            std::vector<JointFeature> result(num_joints);
+            std::vector<glm::vec3>    nowRootSpacePosition(num_joints);
+            std::vector<glm::vec3>    lastRootSpacePosition(num_joints);
+
+            Update(nowRatio, true);
+            glm::vec3 nowRootPosition;
+            {
+                const ozz::math::Float4x4& model_mat = models[0];
+                glm::mat4                  model;
+                memcpy(&model, &model_mat.cols[0], sizeof(glm::mat4));
+                nowRootPosition = glm::vec3(model[3][0], model[3][1], model[3][2]);
+                for (int i = 0; i < num_joints; ++i)
+                {
+                    const ozz::math::Float4x4& model_mat = models[i];
+                    glm::mat4                  model;
+                    memcpy(&model, &model_mat.cols[0], sizeof(glm::mat4));
+                    nowRootSpacePosition[i] = glm::vec3(model[3][0], model[3][1], model[3][2]) - nowRootPosition;
+                }
+                // nowRootSpacePosition[0] = glm::vec3(0.0f);
+            }
+
+            Update(lastRatio, true);
+            glm::vec3 lastRootPosition;
+            {
+                const ozz::math::Float4x4& model_mat = models[0];
+                glm::mat4                  model;
+                memcpy(&model, &model_mat.cols[0], sizeof(glm::mat4));
+                lastRootPosition = glm::vec3(model[3][0], model[3][1], model[3][2]);
+                for (int i = 0; i < num_joints; ++i)
+                {
+                    const ozz::math::Float4x4& model_mat = models[i];
+                    glm::mat4                  model;
+                    memcpy(&model, &model_mat.cols[0], sizeof(glm::mat4));
+                    lastRootSpacePosition[i] = glm::vec3(model[3][0], model[3][1], model[3][2]) - lastRootPosition;
+                }
+                // lastRootSpacePosition[0] = glm::vec3(0.0f);
+            }
+
+            for (int i = 0; i < num_joints; ++i)
+            {
+                result[i].rootSpacePosition = nowRootSpacePosition[i];
+                result[i].rootSpaceVelocity = (nowRootSpacePosition[i] - lastRootSpacePosition[i]) / deltaTime;
+            }
+
+            result[0].rootSpaceVelocity = (nowRootPosition - lastRootPosition) / deltaTime;
+
+            Update(nowRatio);
+
+            return result[0].rootSpaceVelocity;
         }
 
         std::vector<std::array<float, 7>> GetNowPose();

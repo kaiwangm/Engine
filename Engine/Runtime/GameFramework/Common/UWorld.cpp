@@ -1218,7 +1218,7 @@ namespace Engine
         // Update MotionMatching
         for (auto [entity, name, trans, motionmatching] : motionmatching_view.each())
         {
-            motionmatching.Update0(nowTime, timeStep);
+            // motionmatching.Update0(nowTime, timeStep);
         }
 
         // Update ChunkWorld
@@ -1846,35 +1846,35 @@ namespace Engine
         }
 
         // draw MotionMatching
-        for (auto [entity, name, trans, motionmatching] : motionmatching_view.each())
-        {
-            USkinnedMeshComponent& skinnedmesh = motionmatching.GetSkinnedMeshComponent0Ref();
+        // for (auto [entity, name, trans, motionmatching] : motionmatching_view.each())
+        // {
+        //     USkinnedMeshComponent& skinnedmesh = motionmatching.GetSkinnedMeshComponent0Ref();
 
-            APawn&      skinnedmesh_actor = *static_cast<APawn*>(motionmatching.GetOwner());
-            MMaterial*  material          = static_cast<MMaterial*>(skinnedmesh.GetMaterial());
-            std::string materialType      = material->GetMaterialType();
+        //     APawn&      skinnedmesh_actor = *static_cast<APawn*>(motionmatching.GetOwner());
+        //     MMaterial*  material          = static_cast<MMaterial*>(skinnedmesh.GetMaterial());
+        //     std::string materialType      = material->GetMaterialType();
 
-            if (skinnedmesh_actor.GetVisible() == false)
-            {
-                continue;
-            }
+        //     if (skinnedmesh_actor.GetVisible() == false)
+        //     {
+        //         continue;
+        //     }
 
-            if (materialType == "BasicPbr")
-            {
-                auto skinnedMeshShader = m_ShaderLibrary.Get("Skinned");
-                skinnedMeshShader->Bind();
+        //     if (materialType == "BasicPbr")
+        //     {
+        //         auto skinnedMeshShader = m_ShaderLibrary.Get("Skinned");
+        //         skinnedMeshShader->Bind();
 
-                MBasicPbr* material_basicPbr = static_cast<MBasicPbr*>(material);
-                material_basicPbr->BindAllMap(skinnedMeshShader);
+        //         MBasicPbr* material_basicPbr = static_cast<MBasicPbr*>(material);
+        //         material_basicPbr->BindAllMap(skinnedMeshShader);
 
-                glm::mat4 transform = skinnedmesh.GetTransformComponentRef().GetTransform();
-                skinnedmesh.DrawSkinnedMesh(skinnedMeshShader, transform, m_PMatrix, m_VMatrix);
+        //         glm::mat4 transform = skinnedmesh.GetTransformComponentRef().GetTransform();
+        //         skinnedmesh.DrawSkinnedMesh(skinnedMeshShader, transform, m_PMatrix, m_VMatrix);
 
-                material_basicPbr->UnBindAllMap(skinnedMeshShader);
+        //         material_basicPbr->UnBindAllMap(skinnedMeshShader);
 
-                skinnedMeshShader->UnBind();
-            }
-        }
+        //         skinnedMeshShader->UnBind();
+        //     }
+        // }
 
         m_GeometryBuffer->UnBind();
         glDisable(GL_CULL_FACE);
@@ -2828,11 +2828,11 @@ namespace Engine
         }
 
         // draw motionmatching
-        for (auto [entity, name, trans, motionmatching] : motionmatching_view.each())
-        {
-            auto shader = m_ShaderLibrary.Get("Trajectory");
-            motionmatching.DrawTrajectory(shader, m_VPMatrix, trans.GetTransform());
-        }
+        // for (auto [entity, name, trans, motionmatching] : motionmatching_view.each())
+        // {
+        //     auto shader = m_ShaderLibrary.Get("Trajectory");
+        //     motionmatching.DrawTrajectory(shader, m_VPMatrix, trans.GetTransform());
+        // }
 
         m_FrameRenderBuffer_gui->UnBind();
         glEnable(GL_DEPTH_TEST);
@@ -3775,7 +3775,7 @@ namespace Engine
 
                 Gui::SliderFloat3("CameraLookAt", pawnComponent.GetCameraLookAtRef(), -10.0f, 10.0f);
 
-                Gui::SliderFloat("PawnMoveSpeed", pawnComponent.GetPawnMoveSpeedRef(), 0.0f, 10.0f);
+                // Gui::SliderFloat("PawnMoveSpeed", pawnComponent.GetPawnMoveSpeedRef(), 0.0f, 10.0f);
                 Gui::SliderFloat("MouseSensitivityX", pawnComponent.GetMouseSensitivityXRef(), 0.0f, 0.1f);
                 Gui::SliderFloat("MouseSensitivityY", pawnComponent.GetMouseSensitivityYRef(), 0.0f, 0.1f);
             }

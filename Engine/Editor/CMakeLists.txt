@@ -5,12 +5,7 @@ add_executable(Editor main.cpp)
 
 target_link_libraries(Editor PRIVATE Engine)
 
-# add_custom_command(
-# TARGET Editor POST_BUILD
-# COMMAND ${CMAKE_COMMAND} -E copy_directory
-# $<TARGET_FILE_DIR:Engine>
-# $<TARGET_FILE_DIR:Editor>
-# )
+
 add_custom_command(
     TARGET Editor POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory

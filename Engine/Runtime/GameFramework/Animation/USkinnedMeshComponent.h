@@ -6,6 +6,8 @@
 #include <Engine/Runtime/GameFramework/Material/MBasicPbr.h>
 
 #include <Engine/Runtime/GameFramework/Animation/ozz/mesh.h>
+
+#include <ozz/animation/runtime/sampling_job.h>
 #include <ozz/base/containers/vector.h>
 #include <ozz/base/maths/math_ex.h>
 
@@ -59,6 +61,7 @@ namespace Engine
 
     public:
         void Update(float ratio);
+        bool GetLocals(ozz::vector<ozz::math::SoaTransform>& inLocals, float ratio) { return m_Skeleton.GetLocals(inLocals, ratio); }
         void DrawSkeleton(Ref<Shader> skeletonShader,
                           glm::mat4   vpMat,
                           glm::mat4   transform,
@@ -96,5 +99,9 @@ namespace Engine
         {
             return m_Skeleton.GetNowJointFeature(deltaTime);
         }
+
+        glm::vec3 GetVelocity(float deltaTime) { return m_Skeleton.GetVelocity(deltaTime); }
+
+        ozz::animation::Skeleton& GetSkeletonRef() { return m_Skeleton.GetSkeletonRef(); }
     };
 } // namespace Engine

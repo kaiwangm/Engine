@@ -12,7 +12,7 @@ namespace Engine
     void UTrajectoryComponent::TickLogic(float deltaTime, const glm::mat4& cameraTransform)
     {
         m_TrajectoryPointArray_Back.push_front(
-            {m_nowPosition, m_nowPawnFoward, glm::vec3(0.0f, 0.0f, 0.0f), deltaTime});
+            {m_nowMeshPosition, m_nowPawnFoward, glm::vec3(0.0f, 0.0f, 0.0f), deltaTime});
 
         if (m_TrajectoryPointArray_Back.size() > 300)
         {
@@ -62,18 +62,15 @@ namespace Engine
             initlized = true;
         }
 
-        float distance = glm::distance(
-            m_TrajectoryPointArray_Back.getTrajectoryPoint(m_TrajectorySampleStep).m_Position, m_nowPosition);
-        float pawnMoveSpeed = distance / m_TrajectorySampleStep;
-
         m_TrajectoryPointArray_Forward.clear();
         m_TrajectoryPointArray_Forward.push_front(
             {m_nowPosition, m_nowPawnFoward, glm::vec3(0.0f, 0.0f, 0.0f), deltaTime});
         for (int i = 1; i < m_TrajectorySampleNum * 2; ++i)
         {
-            float nowTime = i * m_TrajectorySampleStep;
-            float nowSpeed =
-                glm::mix(pawnMoveSpeed, m_DesiredMoveSpeed, glm::min((float)i / 2.0f / m_TrajectorySampleNum, 1.0f));
+            float nowTime  = i * m_TrajectorySampleStep;
+            float nowSpeed = glm::mix(glm::length(m_NowMeshVelocity),
+                                      m_DesiredNowMoveSpeed,
+                                      glm::min((float)i * 3.0f / m_TrajectorySampleNum, 1.0f));
 
             glm::quat mixForward =
                 glm::slerp(m_nowPawnFoward, m_nowDesiredFoward, (float)i * 5.0f / m_TrajectorySampleNum);
@@ -114,11 +111,11 @@ namespace Engine
 
         UMotionMatchingComponent& motionMatchingComponent =
             static_cast<APawn*>(m_Owner)->GetMotionMatchingComponentRef();
-        USkinnedMeshComponent& skinnedMeshComponent = static_cast<APawn*>(m_Owner)->GetSkinnedMeshComponentRef();
+        USkinnedMeshComponent& skinnedMeshComponent = motionMatchingComponent.GetNowSkinnedMeshComponentRef();
 
         static float                      accumTime       = 0.0f;
         std::vector<std::array<float, 7>> nowPose         = skinnedMeshComponent.GetNowPose();
-        std::vector<JointFeature>         nowJointFeature = skinnedMeshComponent.GetNowJointFeature(0.016f);
+        std::vector<JointFeature>         nowJointFeature = skinnedMeshComponent.GetNowJointFeature(0.001f);
 
         float nowPhase =
             glm::sin(m_SearchResult.nowRatio * motionMatchingComponent.GetFrameTime() * glm::pi<float>() * 2.0f);
@@ -126,24 +123,41 @@ namespace Engine
         KnnResult result = motionMatchingComponent.Search(
             m_TrajecotryPoints_Back, m_TrajecotryPoints_Forward, nowPose, nowPhase, nowJointFeature);
 
-        if (accumTime > 3.0f || (accumTime > 0.08f && accumTime < 3.0f))
+        if (accumTime > 0.00f)
         {
             float nowTime    = m_SearchResult.nowRatio * motionMatchingComponent.GetFrameTime();
             float resultTime = result.nowRatio * motionMatchingComponent.GetFrameTime();
-            if (result.index != m_SearchResult.index ||
-                result.index == m_SearchResult.index &&
-                    ((resultTime - nowTime) < -0.8 || (resultTime - nowTime) > 0.08))
+
+            bool nowUpdate = false;
+
+            nowUpdate = nowUpdate || (result.index != m_SearchResult.index);
+            nowUpdate = nowUpdate || (result.index == m_SearchResult.index &&
+                                      ((resultTime - nowTime) < -0.10 || (resultTime - nowTime) > 0.00));
+            // nowUpdate = nowUpdate || (result.loss > 0.3f);
+            nowUpdate = nowUpdate || (accumTime > 1.0f);
+            nowUpdate = nowUpdate && (accumTime > 0.15f);
+
+            if (nowUpdate == true)
             {
                 Log::Info(fmt::format("nowTime: {}, resultTime: {}, loss: {}", nowTime, resultTime, result.loss));
                 m_SearchResult = result;
                 accumTime      = 0.0f;
             }
         }
-        float nowRatio = deltaTime / motionMatchingComponent.GetFrameTime();
-        m_SearchResult = {m_SearchResult.index, m_SearchResult.nowRatio + nowRatio};
-        motionMatchingComponent.SetNowAnimationClipKnnResult(m_SearchResult);
 
-        Log::Info(fmt::format("AnimationClip: {}, nowRatio: {}", m_SearchResult.index, m_SearchResult.nowRatio));
+        float addRatio = deltaTime / motionMatchingComponent.GetFrameTime();
+        m_SearchResult = {m_SearchResult.index, m_SearchResult.nowRatio + addRatio};
+
+        motionMatchingComponent.AddNowAnimationClipKnnResult(m_SearchResult);
+        // motionMatchingComponent.UpdateNowAnimationClipKnnResult(deltaTime);
+
+        // Log::Info(fmt::format("AnimationClip: {}, nowRatio: {}", m_SearchResult.index, m_SearchResult.nowRatio));
+
+        glm::vec3 velocity = motionMatchingComponent.GetVelocity(0.001f);
+        velocity.y         = 0.0f;
+        m_NowMeshVelocity  = glm::mix(m_NowMeshVelocity, velocity, glm::min(5.0f * deltaTime, 1.0f));
+
+        m_DesiredNowMoveSpeed = glm::mix(m_DesiredNowMoveSpeed, m_DesiredMoveSpeed, glm::min(5.0f * deltaTime, 1.0f));
 
         accumTime += deltaTime;
     }
@@ -469,8 +483,9 @@ namespace Engine
         AActor* actor = static_cast<AActor*>(m_Owner);
         APawn*  aPawn = static_cast<APawn*>(actor);
 
-        UTransformComponent&  transformComponent  = actor->GetTransformComponent();
-        UTrajectoryComponent& trajectoryComponent = aPawn->GetTrajectoryComponentRef();
+        UTransformComponent&      transformComponent      = actor->GetTransformComponent();
+        UTrajectoryComponent&     trajectoryComponent     = aPawn->GetTrajectoryComponentRef();
+        UMotionMatchingComponent& motionMatchingComponent = aPawn->GetMotionMatchingComponentRef();
 
         glm::vec3 worldPosition = transformComponent.GetPosition();
 
@@ -529,7 +544,14 @@ namespace Engine
             {
                 movement += forward;
                 movement = glm::normalize(movement);
-                trajectoryComponent.SetDesiredMoveSpeed(m_PawnMoveSpeed);
+                if (Input::IsKeyPressed(GLFW_KEY_LEFT_SHIFT))
+                {
+                    trajectoryComponent.SetDesiredMoveSpeed(m_PawnRunSpeed);
+                }
+                else
+                {
+                    trajectoryComponent.SetDesiredMoveSpeed(m_PawnWalkSpeed);
+                }
             }
             else
             {
@@ -543,9 +565,21 @@ namespace Engine
                 m_CameraLatitude -= deltaY * m_MouseSensitivityY * deltaTime;
             }
 
-            auto newPosition = transformComponent.GetPosition() + movement * m_PawnMoveSpeed * deltaTime;
+            auto newPosition =
+                transformComponent.GetPosition() + trajectoryComponent.GetNowMeshVelocityRef() * deltaTime;
             transformComponent.SetPosition(newPosition);
         }
+
+        // update SkinnedMesh
+        glm::vec3& meshPosition = trajectoryComponent.GetNowMeshPositionRef();
+        glm::quat& meshFoward   = trajectoryComponent.GetNowMeshFowardRef();
+        glm::quat& meshRight    = trajectoryComponent.GetNowMeshRightRef();
+
+        // meshPosition = glm::mix(meshPosition, worldPosition, glm::min(1.0f * deltaTime, 1.0f));
+
+        meshPosition = meshPosition + trajectoryComponent.GetNowMeshVelocityRef() * deltaTime;
+        meshFoward   = glm::slerp(meshFoward, desiredFoward, glm::min(3.0f * deltaTime, 1.0f));
+        meshRight    = glm::rotate(meshFoward, glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 
         // Update trajectory
         if (isMoved == false)
@@ -554,23 +588,18 @@ namespace Engine
         }
         desiredRight = glm::rotate(desiredFoward, glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 
-        pawnPosition = glm::mix(pawnPosition, worldPosition, glm::min(10.0f * deltaTime, 1.0f));
+        pawnPosition = meshPosition;
+        pawnFoward   = glm::slerp(pawnFoward, desiredFoward, glm::min(10.0f * deltaTime, 1.0f));
+        pawnRight    = glm::rotate(pawnFoward, glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 
-        pawnFoward = glm::slerp(pawnFoward, desiredFoward, glm::min(10.0f * deltaTime, 1.0f));
-        pawnRight  = glm::rotate(pawnFoward, glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
-
-        // update SkinnedMesh
-        glm::vec3& meshPosition = trajectoryComponent.GetNowMeshPositionRef();
-        glm::quat& meshFoward   = trajectoryComponent.GetNowMeshFowardRef();
-        glm::quat& meshRight    = trajectoryComponent.GetNowMeshRightRef();
-
-        meshPosition = glm::mix(meshPosition, worldPosition, glm::min(7.0f * deltaTime, 1.0f));
-        meshFoward   = glm::slerp(meshFoward, desiredFoward, glm::min(7.0f * deltaTime, 1.0f));
-        meshRight    = glm::rotate(meshFoward, glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+        glm::vec3 nowComponentPosition = transformComponent.GetPosition();
+        nowComponentPosition           = glm::mix(nowComponentPosition, meshPosition, glm::min(3.0f * deltaTime, 1.0f));
+        transformComponent.SetPosition(nowComponentPosition);
 
         USkinnedMeshComponent& skinnedMeshComponent = aPawn->GetSkinnedMeshComponentRef();
 
         skinnedMeshComponent.GetTransformComponentRef().SetPosition(meshPosition);
+        motionMatchingComponent.SetRootRotation(meshFoward);
         // skinnedMeshComponent.GetTransformComponentRef().SetRotation(glm::eulerAngles(meshFoward));
 
         // Update camera
@@ -591,11 +620,7 @@ namespace Engine
         cameraComponent.SetRotation(orientation);
 
         // update skinnedMesh
-        UMotionMatchingComponent&        motionMatchingComponent = aPawn->GetMotionMatchingComponentRef();
-        ozz::vector<ozz::math::Float4x4> nowModels               = motionMatchingComponent.GetNowAnimationClipModels();
-        // skinnedMeshComponent.SetModels(nowModels);
-
-        skinnedMeshComponent.Update(trajectoryComponent.GetSearchResult().nowRatio);
+        ozz::vector<ozz::math::Float4x4> nowModels = motionMatchingComponent.GetNowAnimationClipModels();
         skinnedMeshComponent.SetModels(nowModels);
     }
 

@@ -42,9 +42,9 @@ namespace Engine
             // m_World->AddActor<AActor>("Actor");
 
             const std::vector<std::string> animation_filepaths {
-                "Assets/Editor/Animation/geula/geula_walk1_subject1.ozz",
-                "Assets/Editor/Animation/geula/geula_walk1_subject2.ozz",
+                // "Assets/Editor/Animation/geula/geula_walk1_subject1.ozz",
                 "Assets/Editor/Animation/geula/geula_walk1_subject5.ozz",
+                "Assets/Editor/Animation/geula/geula_run1_subject5.ozz",
             };
 
             auto apawn = m_World->AddActor<APawn>("pawn",
@@ -162,7 +162,7 @@ namespace Engine
             //                                              "BasicPbr",
             //                                              "basic_ground",
             //                                              "basic_ground");
-            // ground.GetTransformComponent().SetPosition(glm::vec3 {0.0f, -0.15f, 0.0f});
+            // ground.GetTransformComponent().SetPosition(glm::vec3 {0.0f, -0.0f, 0.0f});
             // MBasicPbr* ground_material = static_cast<MBasicPbr*>(ground.GetMaterial());
             // ground_material->SetAlbedo(glm::vec3 {0.3f, 0.3f, 0.3f});
             // ground_material->SetMetallic(0.3f);

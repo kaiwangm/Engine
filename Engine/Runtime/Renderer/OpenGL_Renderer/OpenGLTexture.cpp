@@ -173,15 +173,7 @@ namespace Engine
         glTextureParameteri(m_TextureID, GL_TEXTURE_WRAP_T, GL_REPEAT);
         // glTextureStorage2D(m_TextureID, std::log2(std::max(m_Width, m_Height)), internalFormate, m_Width, m_Height);
         // glTextureSubImage2D(m_TextureID, 0, 0, 0, m_Width, m_Height, dataFormate, GL_UNSIGNED_BYTE, data);
-        glTexImage2D(GL_TEXTURE_2D,
-                     0,
-                     internalFormate,
-                     m_Width,
-                     m_Height,
-                     0,
-                     dataFormate,
-                     GL_UNSIGNED_BYTE,
-                     data);
+        glTexImage2D(GL_TEXTURE_2D, 0, internalFormate, m_Width, m_Height, 0, dataFormate, GL_UNSIGNED_BYTE, data);
 
         glGenerateTextureMipmap(m_TextureID);
         glBindTexture(GL_TEXTURE_2D, 0);
@@ -244,7 +236,7 @@ namespace Engine
 
     void* OpenGLTexture3D::GetTextureID() const { return (void*)(uint64_t)m_TextureID; }
 
-    OpenGLCubeMap::OpenGLCubeMap(const std::string& path) : m_Path(path)
+    OpenGLCubeMap::OpenGLCubeMap(const std::string& path) : m_Path(path), sh_data(glm::vec3(0.0f))
     {
         if (path == "")
         {

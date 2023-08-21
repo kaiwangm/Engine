@@ -110,7 +110,7 @@ namespace Engine
             int                             clip_id  = data_raw_clip_index[i];
             int                             frame_id = data_raw_frame_id[i];
 
-            float sampleStep = 1.0f / 24.0f;
+            float sampleStep = 1.0f / 30.0f;
 
             ManiflowPoint<dimDeepPhase> maniflowPoint {
                 sample,
@@ -125,7 +125,7 @@ namespace Engine
     {
         {
             std::vector<std::array<float, dimRawTrajectory>> data_raw_trajecotry {};
-            std::vector<std::array<float, dimDeepPhase>>     data_raw_pose {};
+            std::vector<std::array<float, dimRawPose>>       data_raw_pose {};
             std::vector<std::array<float, dimRawPawn>>       data_raw_pawn {};
             std::vector<std::array<float, 1>>                data_raw_phase {};
             std::vector<std::vector<JointFeature>>           nowJointFeatures {};
@@ -135,7 +135,7 @@ namespace Engine
             // {
             //     USkinnedMeshComponent& skinnedMesh = *m_SkinnedMeshArray[i];
             //     float                  frameTime   = skinnedMesh.GetFrameTime();
-            //     float                  sampleStep  = 1.0f / 24.0f;
+            //     float                  sampleStep  = 1.0f / 30.0f;
 
             //     for (float nowtime = 0.0f; nowtime < frameTime; nowtime += sampleStep)
             //     {
@@ -143,38 +143,38 @@ namespace Engine
 
             //         skinnedMesh.Update(ratio);
 
-            //         std::vector<JointFeature> nowJointFeature = skinnedMesh.GetNowJointFeature(0.016f);
+            //         std::vector<JointFeature> nowJointFeature = skinnedMesh.GetNowJointFeature(0.001f);
             //         nowJointFeatures.push_back(nowJointFeature);
             //         nowClipFrameIndexs.push_back({i + 1, (int)nowJointFeatures.size() - 1});
             //     }
             // }
             // SaveAsJson(nowClipFrameIndexs, nowJointFeatures, "./nowJointFeatures.json");
 
-            LoadPhaseManifold("Assets/Editor/Animation/geula/deepPhase.json");
+            // LoadPhaseManifold("Assets/Editor/Animation/geula/deepPhase.json");
+
+            // for (int i = 0; i < m_SkinnedMeshArray.size(); ++i)
+            // {
+            //     USkinnedMeshComponent& skinnedMesh = *m_SkinnedMeshArray[i];
+            //     float                  frameTime   = skinnedMesh.GetFrameTime();
+            //     float                  sampleStep  = 1.0f / 30.0f;
+
+            //     for (float nowtime = 0.0f; nowtime < frameTime; nowtime += sampleStep)
+            //     {
+            //         std::array<float, dimDeepPhase> samplePose {};
+            //         ManiflowPoint<dimDeepPhase>     maniflowPoint = m_ManiflowArrays[i].getManiflowPoint(nowtime);
+            //         for (int i = 0; i < dimDeepPhase; ++i)
+            //         {
+            //             samplePose[i] = maniflowPoint.m_Maniflow[i];
+            //         }
+            //         data_raw_pose.push_back(samplePose);
+            //     }
+            // }
 
             for (int i = 0; i < m_SkinnedMeshArray.size(); ++i)
             {
                 USkinnedMeshComponent& skinnedMesh = *m_SkinnedMeshArray[i];
                 float                  frameTime   = skinnedMesh.GetFrameTime();
-                float                  sampleStep  = 1.0f / 24.0f;
-
-                for (float nowtime = 0.0f; nowtime < frameTime; nowtime += sampleStep)
-                {
-                    std::array<float, dimDeepPhase> samplePose {};
-                    ManiflowPoint<dimDeepPhase>     maniflowPoint = m_ManiflowArrays[i].getManiflowPoint(nowtime);
-                    for (int i = 0; i < dimDeepPhase; ++i)
-                    {
-                        samplePose[i] = maniflowPoint.m_Maniflow[i];
-                    }
-                    data_raw_pose.push_back(samplePose);
-                }
-            }
-
-            for (int i = 0; i < m_SkinnedMeshArray.size(); ++i)
-            {
-                USkinnedMeshComponent& skinnedMesh = *m_SkinnedMeshArray[i];
-                float                  frameTime   = skinnedMesh.GetFrameTime();
-                float                  sampleStep  = 1.0f / 24.0f;
+                float                  sampleStep  = 1.0f / 30.0f;
 
                 TrajectoryPointArray trajectoryPointArray;
                 for (float nowtime = 0.0f; nowtime < frameTime; nowtime += sampleStep)
@@ -224,55 +224,85 @@ namespace Engine
 
                     glm::vec3 rootPosition = trajecotryPoints_Forward[0].m_Position;
 
-                    std::array<float, dimRawTrajectory> sampleTrajectory {};
-                    for (int i = 0; i < m_TrajectorySampleNum; ++i)
-                    {
-                        TrajectoryPoint& trajectoryPoint = trajecotryPoints_Back[i];
+                    std::array<float, dimRawTrajectory> sampleTrajectory {0.0f};
+                    // for (int i = 0; i < m_TrajectorySampleNum; ++i)
+                    // {
+                    //     TrajectoryPoint& trajectoryPoint = trajecotryPoints_Back[i];
+                    //     glm::vec3        orientation     = glm::eulerAngles(trajectoryPoint.m_Orientation);
 
-                        sampleTrajectory[i * 10 + 0] = 0.0f;
-                        sampleTrajectory[i * 10 + 1] = 0.0f;
-                        sampleTrajectory[i * 10 + 2] = 0.0f;
-                        sampleTrajectory[i * 10 + 3] = trajectoryPoint.m_Orientation.x;
-                        sampleTrajectory[i * 10 + 4] = trajectoryPoint.m_Orientation.y;
-                        sampleTrajectory[i * 10 + 5] = trajectoryPoint.m_Orientation.z;
-                        sampleTrajectory[i * 10 + 6] = trajectoryPoint.m_Orientation.w;
-                        sampleTrajectory[i * 10 + 7] = trajectoryPoint.m_Velocity.x;
-                        sampleTrajectory[i * 10 + 8] = trajectoryPoint.m_Velocity.y;
-                        sampleTrajectory[i * 10 + 9] = trajectoryPoint.m_Velocity.z;
-                    }
+                    //     sampleTrajectory[i * 10 + 0] = 0.0f;
+                    //     sampleTrajectory[i * 10 + 1] = orientation.y;
+                    //     sampleTrajectory[i * 10 + 2] = 0.0f;
+                    //     sampleTrajectory[i * 10 + 3] = trajectoryPoint.m_Position.x - rootPosition.x;
+                    //     sampleTrajectory[i * 10 + 4] = 0.0f;
+                    //     sampleTrajectory[i * 10 + 5] = trajectoryPoint.m_Position.z - rootPosition.z;
+                    //     sampleTrajectory[i * 10 + 6] = 0.0f;
+                    //     sampleTrajectory[i * 10 + 7] = trajectoryPoint.m_Velocity.x;
+                    //     sampleTrajectory[i * 10 + 8] = 0.0f;
+                    //     sampleTrajectory[i * 10 + 9] = trajectoryPoint.m_Velocity.z;
+                    // }
 
                     for (int i = m_TrajectorySampleNum; i < m_TrajectorySampleNum * 2; ++i)
                     {
                         TrajectoryPoint& trajectoryPoint = trajecotryPoints_Forward[i - m_TrajectorySampleNum];
+                        glm::vec3        orientation     = glm::eulerAngles(trajectoryPoint.m_Orientation);
 
                         sampleTrajectory[i * 10 + 0] = 0.0f;
-                        sampleTrajectory[i * 10 + 1] = 0.0f;
+                        sampleTrajectory[i * 10 + 1] = orientation.y;
                         sampleTrajectory[i * 10 + 2] = 0.0f;
-                        sampleTrajectory[i * 10 + 3] = trajectoryPoint.m_Orientation.x;
-                        sampleTrajectory[i * 10 + 4] = trajectoryPoint.m_Orientation.y;
-                        sampleTrajectory[i * 10 + 5] = trajectoryPoint.m_Orientation.z;
-                        sampleTrajectory[i * 10 + 6] = trajectoryPoint.m_Orientation.w;
+                        sampleTrajectory[i * 10 + 3] = trajectoryPoint.m_Position.x - rootPosition.x;
+                        sampleTrajectory[i * 10 + 4] = 0.0f;
+                        sampleTrajectory[i * 10 + 5] = trajectoryPoint.m_Position.z - rootPosition.z;
+                        sampleTrajectory[i * 10 + 6] = 0.0f;
                         sampleTrajectory[i * 10 + 7] = trajectoryPoint.m_Velocity.x;
-                        sampleTrajectory[i * 10 + 8] = trajectoryPoint.m_Velocity.y;
+                        sampleTrajectory[i * 10 + 8] = 0.0f;
                         sampleTrajectory[i * 10 + 9] = trajectoryPoint.m_Velocity.z;
                     }
                     data_raw_trajecotry.push_back(sampleTrajectory);
 
+                    // bool isUseRootMotion = skinnedMesh.GetUseRootMotion();
+                    // skinnedMesh.SetUseRootMotion(false);
                     skinnedMesh.Update(nowtime / frameTime);
 
                     std::vector<std::array<float, 7>> nowPose = skinnedMesh.GetNowPose();
+                    float velocity = glm::length(skinnedMesh.GetVelocity(0.001f));
 
                     std::array<float, dimRawPawn> samplePawn {};
                     {
-                        samplePawn[0] = 0.0f;
-                        samplePawn[1] = 0.0f;
-                        samplePawn[2] = 0.0f;
-                        samplePawn[3] = nowPose[0][3];
-                        samplePawn[4] = nowPose[0][4];
-                        samplePawn[5] = nowPose[0][5];
-                        samplePawn[6] = nowPose[0][6];
+                        glm::quat orientation = glm::quat(nowPose[0][3], nowPose[0][4], nowPose[0][5], nowPose[0][6]);
+                        glm::vec3 orientationNormal = velocity * glm::rotate(orientation, glm::vec3(1.0f, 0.0f, 0.0f));
+                        samplePawn[0] = orientationNormal.x;
+                        samplePawn[1] = orientationNormal.y;
+                        samplePawn[2] = orientationNormal.z;
+                        samplePawn[3] = 0.0f;
+                        samplePawn[4] = 0.0f;
+                        samplePawn[5] = 0.0f;
+                        samplePawn[6] = 0.0f;
                     }
                     data_raw_pawn.push_back(samplePawn);
+
+                    // skinnedMesh.SetUseRootMotion(true);
+                    std::vector<JointFeature> nowJointFeature = skinnedMesh.GetNowJointFeature(0.001f);
+
+                    std::array<float, dimRawPose> samplePose {};
+                    for (int i = 1; i < nowJointFeature.size(); ++i)
+                    {
+                        std::string jointName      = skinnedMesh.GetSkeletonComponentRef().GetJointName(i);
+                        uint32_t    jointTypeIndex = skinnedMesh.GetSkeletonComponentRef().GetJointTypeIndex(i);
+
+                        if (jointTypeIndex == 1)
+                        {
+                            samplePose[i * 6 + 0] = nowJointFeature[i].rootSpacePosition.x;
+                            samplePose[i * 6 + 1] = nowJointFeature[i].rootSpacePosition.y;
+                            samplePose[i * 6 + 2] = nowJointFeature[i].rootSpacePosition.z;
+                            samplePose[i * 6 + 3] = nowJointFeature[i].rootSpaceVelocity.x;
+                            samplePose[i * 6 + 4] = nowJointFeature[i].rootSpaceVelocity.y;
+                            samplePose[i * 6 + 5] = nowJointFeature[i].rootSpaceVelocity.z;
+                        }
+                    }
+                    data_raw_pose.push_back(samplePose);
+
+                    // skinnedMesh.SetUseRootMotion(isUseRootMotion);
                 }
 
                 for (float nowtime = startTime; nowtime < frameTime; nowtime += sampleStep)
@@ -293,10 +323,10 @@ namespace Engine
                 }
             }
 
-            cv::Mat data_raw_pose_mat(data_raw_pose.size(), dimDeepPhase, CV_32FC1);
+            cv::Mat data_raw_pose_mat(data_raw_pose.size(), dimRawPose, CV_32FC1);
             for (int i = 0; i < data_raw_pose.size(); ++i)
             {
-                for (int j = 0; j < dimDeepPhase; ++j)
+                for (int j = 0; j < dimRawPose; ++j)
                 {
                     data_raw_pose_mat.at<float>(i, j) = data_raw_pose[i][j];
                 }
@@ -376,7 +406,7 @@ namespace Engine
         std::deque<TrajectoryPoint> m_TrajecotryPoints_Back;
         std::deque<TrajectoryPoint> m_TrajecotryPoints_Forward;
 
-        int m_nowAnimationClip = m_nowAnimationClipKnnResult.index;
+        int m_nowAnimationClip = m_nowAnimationClipKnnResults[0].index;
 
         USkinnedMeshComponent* m_SkinnedMesh = m_SkinnedMeshArray[m_nowAnimationClip].get();
         float                  frameTime     = m_SkinnedMesh->GetFrameTime();
@@ -609,73 +639,85 @@ namespace Engine
     {
         std::array<float, dim> query;
         glm::vec3              rootPosition     = trajecotryPointsForward[0].m_Position;
-        int                    nowAnimationClip = m_nowAnimationClipKnnResult.index;
+        int                    nowAnimationClip = m_nowAnimationClipKnnResults[0].index;
 
-        float nowRatio  = m_nowAnimationClipKnnResult.nowRatio;
+        float nowRatio  = m_nowAnimationClipKnnResults[0].nowRatio;
         float frameTime = m_SkinnedMeshArray[nowAnimationClip]->GetFrameTime();
         float nowTime   = nowRatio * frameTime;
 
-        std::array<float, dimRawTrajectory> data_raw_trajecotry {};
-        std::array<float, dimDeepPhase>     data_raw_pose {};
+        std::array<float, dimRawTrajectory> data_raw_trajecotry {0.0f};
+        std::array<float, dimRawPose>       data_raw_pose {};
         std::array<float, dimRawPawn>       data_raw_pawn {};
-        for (int i = 0; i < m_TrajectorySampleNum; ++i)
-        {
-            const TrajectoryPoint& trajectoryPoint = trajecotryPointsBack[i];
+        // for (int i = 0; i < m_TrajectorySampleNum; ++i)
+        // {
+        //     const TrajectoryPoint& trajectoryPoint = trajecotryPointsBack[i];
+        //     glm::vec3              orientation     = glm::eulerAngles(trajectoryPoint.m_Orientation);
 
-            data_raw_trajecotry[i * 10 + 0] = 0.0f;
-            data_raw_trajecotry[i * 10 + 1] = 0.0f;
-            data_raw_trajecotry[i * 10 + 2] = 0.0f;
-            data_raw_trajecotry[i * 10 + 3] = trajectoryPoint.m_Orientation.x;
-            data_raw_trajecotry[i * 10 + 4] = trajectoryPoint.m_Orientation.y;
-            data_raw_trajecotry[i * 10 + 5] = trajectoryPoint.m_Orientation.z;
-            data_raw_trajecotry[i * 10 + 6] = trajectoryPoint.m_Orientation.w;
-            data_raw_trajecotry[i * 10 + 7] = trajectoryPoint.m_Velocity.x;
-            data_raw_trajecotry[i * 10 + 8] = trajectoryPoint.m_Velocity.y;
-            data_raw_trajecotry[i * 10 + 9] = trajectoryPoint.m_Velocity.z;
-        }
+        //     data_raw_trajecotry[i * 10 + 0] = 0.0f;
+        //     data_raw_trajecotry[i * 10 + 1] = orientation.y;
+        //     data_raw_trajecotry[i * 10 + 2] = 0.0f;
+        //     data_raw_trajecotry[i * 10 + 3] = trajectoryPoint.m_Position.x - rootPosition.x;
+        //     data_raw_trajecotry[i * 10 + 4] = 0.0f;
+        //     data_raw_trajecotry[i * 10 + 5] = trajectoryPoint.m_Position.z - rootPosition.z;
+        //     data_raw_trajecotry[i * 10 + 6] = 0.0f;
+        //     data_raw_trajecotry[i * 10 + 7] = trajectoryPoint.m_Velocity.x;
+        //     data_raw_trajecotry[i * 10 + 8] = 0.0f;
+        //     data_raw_trajecotry[i * 10 + 9] = trajectoryPoint.m_Velocity.z;
+        // }
 
         for (int i = m_TrajectorySampleNum; i < m_TrajectorySampleNum * 2; ++i)
         {
             const TrajectoryPoint& trajectoryPoint = trajecotryPointsForward[i - m_TrajectorySampleNum];
+            glm::vec3              orientation     = glm::eulerAngles(trajectoryPoint.m_Orientation);
 
             data_raw_trajecotry[i * 10 + 0] = 0.0f;
-            data_raw_trajecotry[i * 10 + 1] = 0.0f;
+            data_raw_trajecotry[i * 10 + 1] = orientation.y;
             data_raw_trajecotry[i * 10 + 2] = 0.0f;
-            data_raw_trajecotry[i * 10 + 3] = trajectoryPoint.m_Orientation.x;
-            data_raw_trajecotry[i * 10 + 4] = trajectoryPoint.m_Orientation.y;
-            data_raw_trajecotry[i * 10 + 5] = trajectoryPoint.m_Orientation.z;
-            data_raw_trajecotry[i * 10 + 6] = trajectoryPoint.m_Orientation.w;
+            data_raw_trajecotry[i * 10 + 3] = trajectoryPoint.m_Position.x - rootPosition.x;
+            data_raw_trajecotry[i * 10 + 4] = 0.0f;
+            data_raw_trajecotry[i * 10 + 5] = trajectoryPoint.m_Position.z - rootPosition.z;
+            data_raw_trajecotry[i * 10 + 6] = 0.0f;
             data_raw_trajecotry[i * 10 + 7] = trajectoryPoint.m_Velocity.x;
-            data_raw_trajecotry[i * 10 + 8] = trajectoryPoint.m_Velocity.y;
+            data_raw_trajecotry[i * 10 + 8] = 0.0f;
             data_raw_trajecotry[i * 10 + 9] = trajectoryPoint.m_Velocity.z;
         }
 
-        // for (int i = 1; i < nowJointFeature.size(); ++i)
-        // {
-        //     data_raw_pose[i * 7 + 0] = 0.0f;
-        //     data_raw_pose[i * 7 + 1] = 0.0f;
-        //     data_raw_pose[i * 7 + 2] = 0.0f;
-        //     data_raw_pose[i * 7 + 3] = 0.0f;
-        //     data_raw_pose[i * 7 + 4] = nowJointFeature[i].rootSpaceVelocity.x;
-        //     data_raw_pose[i * 7 + 5] = nowJointFeature[i].rootSpaceVelocity.y;
-        //     data_raw_pose[i * 7 + 6] = nowJointFeature[i].rootSpaceVelocity.z;
-        // }
-
-        ManiflowPoint<dimDeepPhase> maniflowPoints = m_ManiflowArrays[nowAnimationClip].getManiflowPoint(nowTime);
-        for (int i = 0; i < dimDeepPhase; ++i)
+        for (int i = 1; i < nowJointFeature.size(); ++i)
         {
-            data_raw_pose[i] = maniflowPoints.m_Maniflow[i];
+            USkinnedMeshComponent& skinnedMesh    = *m_SkinnedMeshArray[0];
+            std::string            jointName      = skinnedMesh.GetSkeletonComponentRef().GetJointName(i);
+            uint32_t               jointTypeIndex = skinnedMesh.GetSkeletonComponentRef().GetJointTypeIndex(i);
+
+            if (jointTypeIndex == 1)
+            {
+                data_raw_pose[i * 6 + 0] = nowJointFeature[i].rootSpacePosition.x;
+                data_raw_pose[i * 6 + 1] = nowJointFeature[i].rootSpacePosition.y;
+                data_raw_pose[i * 6 + 2] = nowJointFeature[i].rootSpacePosition.z;
+                data_raw_pose[i * 6 + 3] = nowJointFeature[i].rootSpaceVelocity.x;
+                data_raw_pose[i * 6 + 4] = nowJointFeature[i].rootSpaceVelocity.y;
+                data_raw_pose[i * 6 + 5] = nowJointFeature[i].rootSpaceVelocity.z;
+            }
         }
 
+        // ManiflowPoint<dimDeepPhase> maniflowPoints = m_ManiflowArrays[nowAnimationClip].getManiflowPoint(nowTime);
+        // for (int i = 0; i < dimDeepPhase; ++i)
+        // {
+        //     data_raw_pose[i] = maniflowPoints.m_Maniflow[i];
+        // }
+
+        float velocity = glm::length(GetVelocity(0.001f));
         {
             const TrajectoryPoint& trajectoryPoint = trajecotryPointsForward[0];
-            data_raw_pawn[0]                       = 0.0f;
-            data_raw_pawn[1]                       = 0.0f;
-            data_raw_pawn[2]                       = 0.0f;
-            data_raw_pawn[3]                       = trajectoryPoint.m_Orientation.x;
-            data_raw_pawn[4]                       = trajectoryPoint.m_Orientation.y;
-            data_raw_pawn[5]                       = trajectoryPoint.m_Orientation.z;
-            data_raw_pawn[6]                       = trajectoryPoint.m_Orientation.w;
+            glm::quat orientation = trajectoryPoint.m_Orientation;
+            glm::vec3 orientationNormal = velocity * glm::rotate(orientation, glm::vec3(-1.0f, 0.0f, 0.0f));
+
+            data_raw_pawn[0] = orientationNormal.x;
+            data_raw_pawn[1] = orientationNormal.y;
+            data_raw_pawn[2] = orientationNormal.z;
+            data_raw_pawn[3] = 0.0f;
+            data_raw_pawn[4] = 0.0f;
+            data_raw_pawn[5] = 0.0f;
+            data_raw_pawn[6] = 0.0f;
         }
 
         cv::Mat data_raw_trajecotry_mat(1, dimRawTrajectory, CV_32FC1);
@@ -684,8 +726,8 @@ namespace Engine
             data_raw_trajecotry_mat.at<float>(0, i) = data_raw_trajecotry[i];
         }
 
-        cv::Mat data_raw_pose_mat(1, dimDeepPhase, CV_32FC1);
-        for (int i = 0; i < dimDeepPhase; ++i)
+        cv::Mat data_raw_pose_mat(1, dimRawPose, CV_32FC1);
+        for (int i = 0; i < dimRawPose; ++i)
         {
             data_raw_pose_mat.at<float>(0, i) = data_raw_pose[i];
         }
@@ -733,5 +775,23 @@ namespace Engine
         knnResult.loss      = result_vec[0].first;
 
         return knnResult;
+    }
+
+    USkinnedMeshComponent& UMotionMatchingComponent::GetNowSkinnedMeshComponentRef()
+    {
+        int                    m_nowAnimationClip = m_nowAnimationClipKnnResults[0].index;
+        USkinnedMeshComponent* m_SkinnedMesh      = m_SkinnedMeshArray[m_nowAnimationClip].get();
+        return *m_SkinnedMesh;
+    }
+
+    glm::vec3 UMotionMatchingComponent::GetVelocity(float delta)
+    {
+        int                    m_nowAnimationClip = m_nowAnimationClipKnnResults[0].index;
+        float                  ratio              = m_nowAnimationClipKnnResults[0].nowRatio;
+        USkinnedMeshComponent* m_SkinnedMesh      = m_SkinnedMeshArray[m_nowAnimationClip].get();
+        m_SkinnedMesh->Update(ratio);
+        glm::vec3 velocity = m_SkinnedMesh->GetVelocity(delta);
+
+        return velocity;
     }
 } // namespace Engine

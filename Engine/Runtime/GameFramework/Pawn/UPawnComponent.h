@@ -301,6 +301,10 @@ namespace Engine
         float m_TrajectorySampleStep = 0.15f;
         float m_DesiredMoveSpeed     = 0.0f;
 
+        float m_DesiredNowMoveSpeed = 0.0f;
+
+        glm::vec3 m_NowMeshVelocity = glm::vec3(0.0f, 0.0f, 0.0f);
+
     public:
         UTrajectoryComponent();
         ~UTrajectoryComponent();
@@ -335,7 +339,8 @@ namespace Engine
         void SetTrajectorySampleStep(float step) { m_TrajectorySampleStep = step; }
         void SetDesiredMoveSpeed(float speed) { m_DesiredMoveSpeed = speed; }
 
-        KnnResult GetSearchResult() { return m_SearchResult; }
+        KnnResult  GetSearchResult() { return m_SearchResult; }
+        glm::vec3& GetNowMeshVelocityRef() { return m_NowMeshVelocity; }
     };
 
     class UPawnComponent : public UComponent
@@ -344,13 +349,15 @@ namespace Engine
         UStaticMeshComponent m_PawnStaticMesh;
 
     public:
-        float m_CameraDistance  = 8.0f;
+        float m_CameraDistance  = 5.0f;
         float m_CameraLongitude = glm::radians(90.0f);
         float m_CameraLatitude  = glm::radians(60.0f);
 
         glm::vec3 m_CameraLookAt = glm::vec3(0.0f, 0.8f, 0.0f);
 
-        float m_PawnMoveSpeed     = 1.0f;
+        float m_PawnRunSpeed  = 3.00f;
+        float m_PawnWalkSpeed = 1.18f;
+
         float m_MouseSensitivityX = 0.09f;
         float m_MouseSensitivityY = 0.09f;
 
@@ -370,7 +377,6 @@ namespace Engine
 
         glm::vec3& GetCameraLookAtRef() { return m_CameraLookAt; }
 
-        float& GetPawnMoveSpeedRef() { return m_PawnMoveSpeed; }
         float& GetMouseSensitivityXRef() { return m_MouseSensitivityX; }
         float& GetMouseSensitivityYRef() { return m_MouseSensitivityY; }
     };

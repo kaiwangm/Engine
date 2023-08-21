@@ -62,10 +62,41 @@ namespace Engine
         parents.resize(num_joints);
 
         auto joint_parents = skeleton.joint_parents();
+        auto joint_names   = skeleton.joint_names();
 
         for (int i = 0; i < num_joints; i++)
         {
             parents[i] = joint_parents[i];
+            m_JointNames.push_back(joint_names[i]);
+
+            std::vector<std::string> keyWords {
+                "shoulder",
+                "arm",
+                "elbow",
+                "wrist",
+                "leg",
+                "knee",
+                "ankle",
+            };
+
+            bool isFind = false;
+            for (int j = 0; j < keyWords.size(); ++j)
+            {
+                if (m_JointNames[i].find(keyWords[j]) != std::string::npos)
+                {
+                    isFind = true;
+                    break;
+                }
+            }
+
+            if (isFind)
+            {
+                m_JointTypeIndex.push_back(1);
+            }
+            else
+            {
+                m_JointTypeIndex.push_back(0);
+            }
         }
 
         m_FrameTime = animation.duration();
@@ -85,7 +116,7 @@ namespace Engine
 
     USkeletonComponent::~USkeletonComponent() {}
 
-    void USkeletonComponent::Update(float ratio)
+    void USkeletonComponent::Update(float ratio, bool useRootMotion)
     {
         ozz::animation::SamplingJob::Context context;
         context.Resize(num_joints);
@@ -113,9 +144,14 @@ namespace Engine
         }
         else
         {
-            if (m_UseRootMotion == false)
+            if (m_UseRootMotion == false && useRootMotion == false)
             {
                 locals[0].translation = initlized_translations;
+                locals[0].rotation    = initlized_rotations;
+            }
+            else if (useRootMotion == true)
+            {
+                // locals[0].translation = initlized_translations;
                 // locals[0].rotation    = initlized_rotations;
             }
         }
@@ -131,6 +167,42 @@ namespace Engine
         }
 
         m_NowTime = ratio * m_FrameTime;
+    }
+
+    bool USkeletonComponent::GetLocals(ozz::vector<ozz::math::SoaTransform>& inLocals, float ratio)
+    {
+        ozz::animation::SamplingJob::Context context;
+        context.Resize(num_joints);
+
+        inLocals.resize(num_soa_joints);
+
+        ozz::animation::SamplingJob sampling_job;
+        sampling_job.animation = &animation;
+        sampling_job.context   = &context;
+        sampling_job.ratio     = ratio;
+        sampling_job.output    = ozz::make_span(inLocals);
+
+        if (!sampling_job.Run())
+        {
+            Log::Error("SamplingJob Run Failed.");
+            return false;
+        }
+
+        static bool                     initlized = false;
+        static ozz::math::SoaFloat3     initlized_translations;
+        static ozz::math::SoaQuaternion initlized_rotations;
+        if (!initlized)
+        {
+            ozz::span<const ozz::math::SoaTransform> restpsed = skeleton.joint_rest_poses();
+
+            initlized_translations = restpsed[0].translation;
+            initlized_rotations    = restpsed[0].rotation;
+            initlized              = true;
+        }
+
+        inLocals[0].translation = initlized_translations;
+
+        return true;
     }
 
     void USkeletonComponent::Draw(Ref<Shader> shader,
@@ -280,12 +352,13 @@ namespace Engine
         std::vector<glm::vec3>    nowRootSpacePosition(num_joints);
         std::vector<glm::vec3>    lastRootSpacePosition(num_joints);
 
-        Update(nowRatio);
+        Update(nowRatio, false);
+        glm::vec3 nowRootPosition;
         {
             const ozz::math::Float4x4& model_mat = models[0];
             glm::mat4                  model;
             memcpy(&model, &model_mat.cols[0], sizeof(glm::mat4));
-            glm::vec3 nowRootPosition = glm::vec3(model[3][0], model[3][1], model[3][2]);
+            nowRootPosition = glm::vec3(model[3][0], model[3][1], model[3][2]);
             for (int i = 0; i < num_joints; ++i)
             {
                 const ozz::math::Float4x4& model_mat = models[i];
@@ -293,15 +366,16 @@ namespace Engine
                 memcpy(&model, &model_mat.cols[0], sizeof(glm::mat4));
                 nowRootSpacePosition[i] = glm::vec3(model[3][0], model[3][1], model[3][2]) - nowRootPosition;
             }
-            nowRootSpacePosition[0] = glm::vec3(0.0f);
+            // nowRootSpacePosition[0] = glm::vec3(0.0f);
         }
 
-        Update(lastRatio);
+        Update(lastRatio, false);
+        glm::vec3 lastRootPosition;
         {
             const ozz::math::Float4x4& model_mat = models[0];
             glm::mat4                  model;
             memcpy(&model, &model_mat.cols[0], sizeof(glm::mat4));
-            glm::vec3 lastRootPosition = glm::vec3(model[3][0], model[3][1], model[3][2]);
+            lastRootPosition = glm::vec3(model[3][0], model[3][1], model[3][2]);
             for (int i = 0; i < num_joints; ++i)
             {
                 const ozz::math::Float4x4& model_mat = models[i];
@@ -309,7 +383,7 @@ namespace Engine
                 memcpy(&model, &model_mat.cols[0], sizeof(glm::mat4));
                 lastRootSpacePosition[i] = glm::vec3(model[3][0], model[3][1], model[3][2]) - lastRootPosition;
             }
-            lastRootSpacePosition[0] = glm::vec3(0.0f);
+            // lastRootSpacePosition[0] = glm::vec3(0.0f);
         }
 
         for (int i = 0; i < num_joints; ++i)
@@ -317,6 +391,8 @@ namespace Engine
             result[i].rootSpacePosition = nowRootSpacePosition[i];
             result[i].rootSpaceVelocity = (nowRootSpacePosition[i] - lastRootSpacePosition[i]) / deltaTime;
         }
+
+        result[0].rootSpaceVelocity = (nowRootPosition - lastRootPosition) / deltaTime;
 
         Update(nowRatio);
 
