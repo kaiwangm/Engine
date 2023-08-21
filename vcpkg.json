@@ -1,6 +1,6 @@
 {
   "name": "engine",
-  "version-string": "0.0.1",
+  "version-string": "0.1.5",
   "dependencies": [
     "spdlog",
     "glad",
