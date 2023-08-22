@@ -39,10 +39,10 @@ namespace Engine
 
     private:
         int   m_TrajectorySampleNum  = 10;
-        float m_TrajectorySampleStep = 0.15f;
+        float m_TrajectorySampleStep = 0.10f;
 
         // KnnResult m_nowAnimationClipKnnResult {0, 0.0f, 0.0f};
-        static constexpr int  m_MaxSearchResultNum = 8;
+        static constexpr int  m_MaxSearchResultNum = 10;
         std::deque<KnnResult> m_nowAnimationClipKnnResults;
 
         std::vector<Ref<USkinnedMeshComponent>> m_SkinnedMeshArray;
@@ -55,9 +55,9 @@ namespace Engine
         static constexpr int dimPose          = 150;
         static constexpr int dimPawn          = 5;
         static constexpr int dim              = dimTrajectory + dimPose + dimPawn + 1; // Dimension of the elements
-        float                weightTrajectory = 0.70f;
-        float                weightPose       = 1.50f;
-        float                weightPawn       = 1.80f;
+        float                weightTrajectory = 0.80f;
+        float                weightPose       = 1.80f;
+        float                weightPawn       = 0.00f;
         float                weightPhase      = 0.0f;
 
         static constexpr int                     dimPoseFeature = 138 * 3;
@@ -149,6 +149,18 @@ namespace Engine
             }
         }
 
+        static glm::quat GetRotationY(glm::quat q)
+        {
+            glm::quat newQuaterion = q;
+            newQuaterion.x         = 0.0f;
+            newQuaterion.z         = 0.0f;
+            double meg = glm::sqrt(newQuaterion.w * newQuaterion.w + newQuaterion.y * newQuaterion.y);
+            newQuaterion.w /= meg;
+            newQuaterion.y /= meg;
+
+            return newQuaterion;
+        }
+
         ozz::vector<ozz::math::Float4x4> GetNowAnimationClipModels()
         {
             ozz::vector<ozz::math::SoaTransform> locals_ary[m_MaxSearchResultNum];
@@ -168,11 +180,11 @@ namespace Engine
                 layers[i].transform = ozz::make_span(locals_ary[i]);
                 if (i == 0)
                 {
-                    layers[i].weight = 0.30f;
+                    layers[i].weight = 0.10f;
                 }
                 else
                 {
-                    layers[i].weight = 0.70f / (m_MaxSearchResultNum - 1);
+                    layers[i].weight = 0.90f / (m_MaxSearchResultNum - 1);
                 }
             }
 
@@ -192,36 +204,39 @@ namespace Engine
                 Log::Error("Failed to blend animation.");
             }
 
-            // {
-            //     glm::quat rootRotation;
-            //     {
-            //         __m128 x = blended_locals_[0].rotation.x;
-            //         __m128 y = blended_locals_[0].rotation.y;
-            //         __m128 z = blended_locals_[0].rotation.z;
-            //         __m128 w = blended_locals_[0].rotation.w;
+            {
+                glm::quat rootRotation;
+                {
+                    __m128 x = blended_locals_[0].rotation.x;
+                    __m128 y = blended_locals_[0].rotation.y;
+                    __m128 z = blended_locals_[0].rotation.z;
+                    __m128 w = blended_locals_[0].rotation.w;
 
-            //         rootRotation.x = _mm_cvtss_f32(x);
-            //         rootRotation.y = _mm_cvtss_f32(y);
-            //         rootRotation.z = _mm_cvtss_f32(z);
-            //         rootRotation.w = _mm_cvtss_f32(w);
-            //     }
-            //     glm::vec3 euler           = glm::eulerAngles(rootRotation);
-            //     // euler.x                   = 0.0f;
-            //     // euler.y                   = 0.0f;
-            //     // euler.z                   = 0.0f;
-            //     glm::quat newRootRotation = glm::quat(euler);
-            //     {
-            //         __m128 x = _mm_set_ss(newRootRotation.x);
-            //         __m128 y = _mm_set_ss(newRootRotation.y);
-            //         __m128 z = _mm_set_ss(newRootRotation.z);
-            //         __m128 w = _mm_set_ss(newRootRotation.w);
+                    rootRotation.x = _mm_cvtss_f32(x);
+                    rootRotation.y = _mm_cvtss_f32(y);
+                    rootRotation.z = _mm_cvtss_f32(z);
+                    rootRotation.w = _mm_cvtss_f32(w);
+                }
+                glm::quat newRootRotation = rootRotation;
 
-            //         blended_locals_[0].rotation.x = x;
-            //         blended_locals_[0].rotation.y = y;
-            //         blended_locals_[0].rotation.z = z;
-            //         blended_locals_[0].rotation.w = w;
-            //     }
-            // }
+                glm::quat nowRotationY = GetRotationY(rootRotation);
+                glm::quat dstRotationY = GetRotationY(m_RootRotation);
+
+                newRootRotation = glm::inverse(nowRotationY) * rootRotation;
+                newRootRotation = dstRotationY * newRootRotation;
+
+                {
+                    __m128 x = _mm_set_ss(newRootRotation.x);
+                    __m128 y = _mm_set_ss(newRootRotation.y);
+                    __m128 z = _mm_set_ss(newRootRotation.z);
+                    __m128 w = _mm_set_ss(newRootRotation.w);
+
+                    blended_locals_[0].rotation.x = x;
+                    blended_locals_[0].rotation.y = y;
+                    blended_locals_[0].rotation.z = z;
+                    blended_locals_[0].rotation.w = w;
+                }
+            }
 
             ozz::vector<ozz::math::Float4x4> models_;
             ozz::animation::LocalToModelJob  ltm_job;

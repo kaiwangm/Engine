@@ -244,19 +244,29 @@ namespace Engine
 
                     for (int i = m_TrajectorySampleNum; i < m_TrajectorySampleNum * 2; ++i)
                     {
-                        TrajectoryPoint& trajectoryPoint = trajecotryPoints_Forward[i - m_TrajectorySampleNum];
-                        glm::vec3        orientation     = glm::eulerAngles(trajectoryPoint.m_Orientation);
+                        TrajectoryPoint trajectoryPoint  = trajecotryPoints_Forward[i - m_TrajectorySampleNum];
+                        TrajectoryPoint trajectoryPoint0 = trajecotryPoints_Forward[0];
 
-                        sampleTrajectory[i * 10 + 0] = 0.0f;
-                        sampleTrajectory[i * 10 + 1] = orientation.y;
+                        glm::quat orientation = trajectoryPoint.m_Orientation;
+                        glm::vec3 position    = trajectoryPoint.m_Position - rootPosition;
+                        glm::vec3 velocity    = trajectoryPoint.m_Velocity;
+
+                        position    = glm::rotate(glm::inverse(trajectoryPoint0.m_Orientation), position);
+                        velocity    = glm::rotate(glm::inverse(trajectoryPoint0.m_Orientation), velocity);
+                        orientation = glm::inverse(trajectoryPoint0.m_Orientation) * orientation;
+
+                        glm::vec3 orientationNormal = glm::rotate(orientation, glm::vec3(1.0f, 0.0f, 0.0f));
+
+                        sampleTrajectory[i * 10 + 0] = orientationNormal.x;
+                        sampleTrajectory[i * 10 + 1] = orientationNormal.z;
                         sampleTrajectory[i * 10 + 2] = 0.0f;
-                        sampleTrajectory[i * 10 + 3] = trajectoryPoint.m_Position.x - rootPosition.x;
+                        sampleTrajectory[i * 10 + 3] = position.x;
                         sampleTrajectory[i * 10 + 4] = 0.0f;
-                        sampleTrajectory[i * 10 + 5] = trajectoryPoint.m_Position.z - rootPosition.z;
+                        sampleTrajectory[i * 10 + 5] = position.z;
                         sampleTrajectory[i * 10 + 6] = 0.0f;
-                        sampleTrajectory[i * 10 + 7] = trajectoryPoint.m_Velocity.x;
+                        sampleTrajectory[i * 10 + 7] = velocity.x;
                         sampleTrajectory[i * 10 + 8] = 0.0f;
-                        sampleTrajectory[i * 10 + 9] = trajectoryPoint.m_Velocity.z;
+                        sampleTrajectory[i * 10 + 9] = velocity.z;
                     }
                     data_raw_trajecotry.push_back(sampleTrajectory);
 
@@ -264,20 +274,20 @@ namespace Engine
                     // skinnedMesh.SetUseRootMotion(false);
                     skinnedMesh.Update(nowtime / frameTime);
 
-                    std::vector<std::array<float, 7>> nowPose = skinnedMesh.GetNowPose();
-                    float velocity = glm::length(skinnedMesh.GetVelocity(0.001f));
+                    std::vector<std::array<float, 7>> nowPose  = skinnedMesh.GetNowPose();
+                    float                             velocity = glm::length(skinnedMesh.GetVelocity(0.001f));
 
                     std::array<float, dimRawPawn> samplePawn {};
                     {
                         glm::quat orientation = glm::quat(nowPose[0][3], nowPose[0][4], nowPose[0][5], nowPose[0][6]);
                         glm::vec3 orientationNormal = velocity * glm::rotate(orientation, glm::vec3(1.0f, 0.0f, 0.0f));
-                        samplePawn[0] = orientationNormal.x;
-                        samplePawn[1] = orientationNormal.y;
-                        samplePawn[2] = orientationNormal.z;
-                        samplePawn[3] = 0.0f;
-                        samplePawn[4] = 0.0f;
-                        samplePawn[5] = 0.0f;
-                        samplePawn[6] = 0.0f;
+                        samplePawn[0]               = orientationNormal.x;
+                        samplePawn[1]               = orientationNormal.y;
+                        samplePawn[2]               = orientationNormal.z;
+                        samplePawn[3]               = 0.0f;
+                        samplePawn[4]               = 0.0f;
+                        samplePawn[5]               = 0.0f;
+                        samplePawn[6]               = 0.0f;
                     }
                     data_raw_pawn.push_back(samplePawn);
 
@@ -667,19 +677,29 @@ namespace Engine
 
         for (int i = m_TrajectorySampleNum; i < m_TrajectorySampleNum * 2; ++i)
         {
-            const TrajectoryPoint& trajectoryPoint = trajecotryPointsForward[i - m_TrajectorySampleNum];
-            glm::vec3              orientation     = glm::eulerAngles(trajectoryPoint.m_Orientation);
+            TrajectoryPoint trajectoryPoint  = trajecotryPointsForward[i - m_TrajectorySampleNum];
+            TrajectoryPoint trajectoryPoint0 = trajecotryPointsForward[0];
 
-            data_raw_trajecotry[i * 10 + 0] = 0.0f;
-            data_raw_trajecotry[i * 10 + 1] = orientation.y;
+            glm::quat orientation = trajectoryPoint.m_Orientation;
+            glm::vec3 position    = trajectoryPoint.m_Position - rootPosition;
+            glm::vec3 velocity    = trajectoryPoint.m_Velocity;
+
+            position    = glm::rotate(glm::inverse(trajectoryPoint0.m_Orientation), position);
+            velocity    = glm::rotate(glm::inverse(trajectoryPoint0.m_Orientation), velocity);
+            orientation = glm::inverse(trajectoryPoint0.m_Orientation) * orientation;
+
+            glm::vec3 orientationNormal = glm::rotate(orientation, glm::vec3(1.0f, 0.0f, 0.0f));
+
+            data_raw_trajecotry[i * 10 + 0] = orientationNormal.x;
+            data_raw_trajecotry[i * 10 + 1] = orientationNormal.z;
             data_raw_trajecotry[i * 10 + 2] = 0.0f;
-            data_raw_trajecotry[i * 10 + 3] = trajectoryPoint.m_Position.x - rootPosition.x;
+            data_raw_trajecotry[i * 10 + 3] = position.x;
             data_raw_trajecotry[i * 10 + 4] = 0.0f;
-            data_raw_trajecotry[i * 10 + 5] = trajectoryPoint.m_Position.z - rootPosition.z;
+            data_raw_trajecotry[i * 10 + 5] = position.z;
             data_raw_trajecotry[i * 10 + 6] = 0.0f;
-            data_raw_trajecotry[i * 10 + 7] = trajectoryPoint.m_Velocity.x;
+            data_raw_trajecotry[i * 10 + 7] = velocity.x;
             data_raw_trajecotry[i * 10 + 8] = 0.0f;
-            data_raw_trajecotry[i * 10 + 9] = trajectoryPoint.m_Velocity.z;
+            data_raw_trajecotry[i * 10 + 9] = velocity.z;
         }
 
         for (int i = 1; i < nowJointFeature.size(); ++i)
@@ -708,8 +728,8 @@ namespace Engine
         float velocity = glm::length(GetVelocity(0.001f));
         {
             const TrajectoryPoint& trajectoryPoint = trajecotryPointsForward[0];
-            glm::quat orientation = trajectoryPoint.m_Orientation;
-            glm::vec3 orientationNormal = velocity * glm::rotate(orientation, glm::vec3(-1.0f, 0.0f, 0.0f));
+            glm::quat              orientation     = trajectoryPoint.m_Orientation;
+            glm::vec3 orientationNormal            = velocity * glm::rotate(orientation, glm::vec3(-1.0f, 0.0f, 0.0f));
 
             data_raw_pawn[0] = orientationNormal.x;
             data_raw_pawn[1] = orientationNormal.y;

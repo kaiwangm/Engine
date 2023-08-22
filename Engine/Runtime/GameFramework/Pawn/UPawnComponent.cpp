@@ -135,7 +135,7 @@ namespace Engine
                                       ((resultTime - nowTime) < -0.10 || (resultTime - nowTime) > 0.00));
             // nowUpdate = nowUpdate || (result.loss > 0.3f);
             nowUpdate = nowUpdate || (accumTime > 1.0f);
-            nowUpdate = nowUpdate && (accumTime > 0.15f);
+            nowUpdate = nowUpdate && (accumTime > 0.05f);
 
             if (nowUpdate == true)
             {
@@ -576,9 +576,10 @@ namespace Engine
         glm::quat& meshRight    = trajectoryComponent.GetNowMeshRightRef();
 
         // meshPosition = glm::mix(meshPosition, worldPosition, glm::min(1.0f * deltaTime, 1.0f));
+        glm::vec3 meshVelocity = glm::length(trajectoryComponent.GetNowMeshVelocityRef()) * glm::rotate(meshRight, glm::vec3(1.0f, 0.0f, 0.0f));
 
-        meshPosition = meshPosition + trajectoryComponent.GetNowMeshVelocityRef() * deltaTime;
-        meshFoward   = glm::slerp(meshFoward, desiredFoward, glm::min(3.0f * deltaTime, 1.0f));
+        meshPosition = meshPosition + meshVelocity * deltaTime;
+        meshFoward   = glm::slerp(meshFoward, desiredFoward, glm::min(90.0f * deltaTime, 1.0f));
         meshRight    = glm::rotate(meshFoward, glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 
         // Update trajectory
@@ -593,7 +594,7 @@ namespace Engine
         pawnRight    = glm::rotate(pawnFoward, glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 
         glm::vec3 nowComponentPosition = transformComponent.GetPosition();
-        nowComponentPosition           = glm::mix(nowComponentPosition, meshPosition, glm::min(3.0f * deltaTime, 1.0f));
+        nowComponentPosition           = meshPosition;
         transformComponent.SetPosition(nowComponentPosition);
 
         USkinnedMeshComponent& skinnedMeshComponent = aPawn->GetSkinnedMeshComponentRef();

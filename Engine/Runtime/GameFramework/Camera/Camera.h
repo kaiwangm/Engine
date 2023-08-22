@@ -20,8 +20,9 @@ namespace Engine
         void OnEvent(Event& event);
         bool OnWindowResizeEvent(WindowResizeEvent& event);
 
-        virtual void    RecalculateProjectionMatrix()                                                 = 0;
-        virtual Frustum CreateFrustumFromCamera(const UTransformComponent& transform) = 0;
+        virtual void    RecalculateProjectionMatrix()                                       = 0;
+        virtual Frustum CreateFrustumFromCamera(const UTransformComponent& transform,
+                                                const UTransformComponent& cameraTransform) = 0;
 
     public:
         glm::mat4 m_ProjectionMatrix;
@@ -63,7 +64,8 @@ namespace Engine
         float&                    GetAspectRatioRef() { return m_AspectRatio; }
         float&                    GetNearClipRef() { return m_NearClip; }
         float&                    GetFarClipRef() { return m_FarClip; }
-        Frustum CreateFrustumFromCamera(const UTransformComponent& transform) override;
+        Frustum                   CreateFrustumFromCamera(const UTransformComponent& transform,
+                                                          const UTransformComponent& cameraTransform) override;
 
     public:
         float m_Fov;

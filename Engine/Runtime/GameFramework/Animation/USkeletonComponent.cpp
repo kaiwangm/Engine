@@ -70,13 +70,16 @@ namespace Engine
             m_JointNames.push_back(joint_names[i]);
 
             std::vector<std::string> keyWords {
-                "shoulder",
-                "arm",
-                "elbow",
-                "wrist",
-                "leg",
-                "knee",
-                "ankle",
+                "Spine",
+                "Neck",
+                "Head",
+                "Shoulder",
+                "Arm",
+                "ForeArm",
+                "UpLeg",
+                "Leg",
+                "Foot",
+                "Toe",
             };
 
             bool isFind = false;

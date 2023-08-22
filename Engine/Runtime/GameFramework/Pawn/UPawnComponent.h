@@ -298,7 +298,7 @@ namespace Engine
             glm::rotate(glm::quat(0.0f, 0.0f, 0.0f, 1.0f), glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 
         int   m_TrajectorySampleNum  = 10;
-        float m_TrajectorySampleStep = 0.15f;
+        float m_TrajectorySampleStep = 0.10f;
         float m_DesiredMoveSpeed     = 0.0f;
 
         float m_DesiredNowMoveSpeed = 0.0f;
@@ -355,7 +355,7 @@ namespace Engine
 
         glm::vec3 m_CameraLookAt = glm::vec3(0.0f, 0.8f, 0.0f);
 
-        float m_PawnRunSpeed  = 3.00f;
+        float m_PawnRunSpeed  = 2.80f;
         float m_PawnWalkSpeed = 1.18f;
 
         float m_MouseSensitivityX = 0.09f;
