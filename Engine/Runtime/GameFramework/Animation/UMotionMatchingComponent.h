@@ -42,7 +42,7 @@ namespace Engine
         float m_TrajectorySampleStep = 0.10f;
 
         // KnnResult m_nowAnimationClipKnnResult {0, 0.0f, 0.0f};
-        static constexpr int  m_MaxSearchResultNum = 10;
+        static constexpr int  m_MaxSearchResultNum = 7;
         std::deque<KnnResult> m_nowAnimationClipKnnResults;
 
         std::vector<Ref<USkinnedMeshComponent>> m_SkinnedMeshArray;

@@ -270,6 +270,7 @@ namespace Engine
                                                          "streaky-metal1_bistro",
                                                          "streaky-metal1",
                                                          true);
+            bistro.GetTransformComponent().SetPosition(glm::vec3 {0.0f, -0.18f, 0.0f});
             bistro.GetTransformComponent().SetScale(glm::vec3 {0.01f, 0.01f, 0.01f});
 
             // auto livingroom = m_World->AddActor<AStaticMesh>("livingroom", //

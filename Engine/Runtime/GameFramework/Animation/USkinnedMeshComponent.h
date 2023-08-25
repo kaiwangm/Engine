@@ -39,18 +39,28 @@ namespace Engine
         ozz::vector<ozz::math::Float4x4> skinning_matrices;
 
         ScratchBuffer                  scratch_buffer_;
+        uint32_t                       m_NumParts = 0;
         std::vector<Ref<VertexBuffer>> m_VertexBuffers;
         std::vector<Ref<IndexBuffer>>  m_IndexBuffers;
         std::vector<Ref<VertexArray>>  m_VertexArrays;
 
-        MMaterial* m_Material;
+        std::vector<MMaterial*> m_Materials;
+
+        struct TextureMetainfo
+        {
+            std::string albedoPath;
+            uint32_t    count;
+            uint32_t    start;
+        };
+
+        std::vector<TextureMetainfo> m_TexturesMetainfo;
 
     private:
         static bool loadMesh(const std::string filename, ozz::vector<ozz::sample::Mesh>* _meshes);
         void        prepareMesh();
-        bool        drawSkinnedMesh(const ozz::sample::Mesh&              _mesh,
-                                    const ozz::span<ozz::math::Float4x4>& _skinning_matrices,
-                                    const int                             index);
+        bool        updateSkinnedMesh(const ozz::sample::Mesh&              _mesh,
+                                      const ozz::span<ozz::math::Float4x4>& _skinning_matrices,
+                                      const int                             index);
 
     public:
         USkinnedMeshComponent();
@@ -61,7 +71,10 @@ namespace Engine
 
     public:
         void Update(float ratio);
-        bool GetLocals(ozz::vector<ozz::math::SoaTransform>& inLocals, float ratio) { return m_Skeleton.GetLocals(inLocals, ratio); }
+        bool GetLocals(ozz::vector<ozz::math::SoaTransform>& inLocals, float ratio)
+        {
+            return m_Skeleton.GetLocals(inLocals, ratio);
+        }
         void DrawSkeleton(Ref<Shader> skeletonShader,
                           glm::mat4   vpMat,
                           glm::mat4   transform,
@@ -72,7 +85,7 @@ namespace Engine
 
     public:
         USkeletonComponent&  GetSkeletonComponentRef() { return m_Skeleton; }
-        MMaterial*           GetMaterial() { return m_Material; }
+        MMaterial*           GetMaterial(int index) { return m_Materials[index]; }
         UTransformComponent& GetTransformComponentRef() { return m_Transform; }
         size_t               GetNumSkinningMatrices() const { return num_skinning_matrices; }
         float                GetFrameTime() const { return m_Skeleton.GetFrameTime(); }

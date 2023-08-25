@@ -161,7 +161,7 @@ namespace Engine
 
         LoadShader("Skinned",
                    "Assets/Editor/Shader/skinned/vertex.glsl",
-                   "Assets/Editor/Shader/gbuffer_fragment.glsl",
+                   "Assets/Editor/Shader/deffered/gbuffer.fs",
                    "Path");
 
         LoadShader("ScreenSpaceReflection",
@@ -1819,30 +1819,20 @@ namespace Engine
         // draw skinned mesh
         for (auto [entity, name, trans, skinnedmesh] : skinnedmesh_view.each())
         {
-            APawn&      skinnedmesh_actor = *static_cast<APawn*>(skinnedmesh.GetOwner());
-            MMaterial*  material          = static_cast<MMaterial*>(skinnedmesh.GetMaterial());
-            std::string materialType      = material->GetMaterialType();
+            APawn& skinnedmesh_actor = *static_cast<APawn*>(skinnedmesh.GetOwner());
 
             if (skinnedmesh_actor.GetVisible() == false)
             {
                 continue;
             }
 
-            if (materialType == "BasicPbr")
-            {
-                auto skinnedMeshShader = m_ShaderLibrary.Get("Skinned");
-                skinnedMeshShader->Bind();
+            auto skinnedMeshShader = m_ShaderLibrary.Get("Skinned");
+            skinnedMeshShader->Bind();
 
-                MBasicPbr* material_basicPbr = static_cast<MBasicPbr*>(material);
-                material_basicPbr->BindAllMap(skinnedMeshShader);
+            glm::mat4 transform = skinnedmesh.GetTransformComponentRef().GetTransform();
+            skinnedmesh.DrawSkinnedMesh(skinnedMeshShader, transform, m_PMatrix, m_VMatrix);
 
-                glm::mat4 transform = skinnedmesh.GetTransformComponentRef().GetTransform();
-                skinnedmesh.DrawSkinnedMesh(skinnedMeshShader, transform, m_PMatrix, m_VMatrix);
-
-                material_basicPbr->UnBindAllMap(skinnedMeshShader);
-
-                skinnedMeshShader->UnBind();
-            }
+            skinnedMeshShader->UnBind();
         }
 
         // draw MotionMatching
@@ -2847,7 +2837,7 @@ namespace Engine
 
         auto screen_shader = m_ShaderLibrary.Get("Screen");
         screen_shader->Bind();
-        
+
         glBlendFunc(GL_ONE, GL_ZERO);
         screen_shader->SetInt("g_Color", 0);
         m_FrameRenderBuffer_fxaa->BindTexture(0);
@@ -3740,27 +3730,6 @@ namespace Engine
                 ImGui::Checkbox("Render Skeleton",
                                 &skinnedMeshComponent.GetSkeletonComponentRef().GetShowSkeletonRef());
                 ImGui::Checkbox("Render Skinned Mesh", &skinnedMeshComponent.GetShowSkinnedMeshRef());
-
-                ASkinnedMesh& skinnedmesh_actor = *static_cast<ASkinnedMesh*>(skinnedMeshComponent.GetOwner());
-                MMaterial*    material          = static_cast<MMaterial*>(skinnedMeshComponent.GetMaterial());
-
-                // Material
-                std::string materialType = material->GetMaterialType();
-                if (materialType == "BasicPbr")
-                {
-                    MBasicPbr* material_basicPbr = static_cast<MBasicPbr*>(material);
-                    Gui::Text("Material Type: BasicPbr");
-                    ImGui::ColorEdit3("Albedo", glm::value_ptr(material_basicPbr->GetAlbedoRef()));
-                    Gui::SliderFloat("Metallic", material_basicPbr->GetMetallicRef(), 0.0f, 1.0f);
-                    Gui::SliderFloat("Roughness", material_basicPbr->GetRoughnessRef(), 0.0f, 1.0f);
-                    Gui::SliderFloat("AO", material_basicPbr->GetAORef(), 0.0f, 1.0f);
-                }
-                else if (materialType == "TriangleShader")
-                {
-                    MTriangleShader* material_triangleShader = static_cast<MTriangleShader*>(material);
-                    Gui::Text("Material Type: TriangleShader");
-                    ImGui::ColorEdit3("Color", glm::value_ptr(material_triangleShader->GetColorRef()));
-                }
             }
 
             if (m_Registry.any_of<UPawnComponent>(entity_selected) == true)

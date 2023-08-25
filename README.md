@@ -6,7 +6,7 @@
 
 My toy modern OpenGL game engine.
 
-![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Docs/Screenshots/MotionMatching.png)
+![](https://raw.githubusercontent.com/kaiwangm/Engine/main/Docs/Screenshots/MotionMatching_Colored.png)
 
 ## Getting Started
 

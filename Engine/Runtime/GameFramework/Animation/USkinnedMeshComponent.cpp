@@ -58,9 +58,11 @@ namespace Engine
             }
         }
 
-        m_VertexBuffers.resize(meshes.size());
-        m_IndexBuffers.resize(meshes.size());
-        m_VertexArrays.resize(meshes.size());
+        m_NumParts = meshes[0].parts.size();
+
+        m_VertexBuffers.resize(m_NumParts);
+        m_IndexBuffers.resize(m_NumParts);
+        m_VertexArrays.resize(m_NumParts);
         for (int i = 0; i < m_VertexArrays.size(); i++)
         {
             m_VertexBuffers[i]  = VertexBuffer::Create();
@@ -80,13 +82,15 @@ namespace Engine
         }
     }
 
-    bool USkinnedMeshComponent::drawSkinnedMesh(const ozz::sample::Mesh&              _mesh,
-                                                const ozz::span<ozz::math::Float4x4>& _skinning_matrices,
-                                                const int                             index)
+    bool USkinnedMeshComponent::updateSkinnedMesh(const ozz::sample::Mesh&              _mesh,
+                                                  const ozz::span<ozz::math::Float4x4>& _skinning_matrices,
+                                                  const int                             index)
     {
         // Renders skin.
 
-        const int vertex_count = _mesh.vertex_count();
+        const int        vertex_count = _mesh.vertex_count();
+        std::vector<int> partition_vertices_start(_mesh.parts.size());
+        std::vector<int> partition_vertices_count(_mesh.parts.size());
 
         // Positions and normals are interleaved to improve caching while executing
         // skinning job.
@@ -227,6 +231,14 @@ namespace Engine
                 return false;
             }
 
+            // fill uvs
+            memcpy(ozz::PointerStride(vbo_map, uvs_offset + processed_vertex_count * uvs_stride),
+                   array_begin(part.uvs),
+                   part_vertex_count * uvs_stride);
+
+            partition_vertices_start[i] = static_cast<int>(processed_vertex_count);
+            partition_vertices_count[i] = static_cast<int>(part_vertex_count);
+
             // Some more vertices were processed.
             processed_vertex_count += part_vertex_count;
         }
@@ -246,43 +258,47 @@ namespace Engine
             soa[idx * 11 + 4]  = out_normal_begin[idx * 3 + 1];
             soa[idx * 11 + 5]  = out_normal_begin[idx * 3 + 2];
             soa[idx * 11 + 6]  = out_texcoords_begin[idx * 2 + 0];
-            soa[idx * 11 + 7]  = out_texcoords_begin[idx * 2 + 1];
+            soa[idx * 11 + 7]  = 1.0f - out_texcoords_begin[idx * 2 + 1];
             soa[idx * 11 + 8]  = out_tangent_begin[idx * 3 + 0];
             soa[idx * 11 + 9]  = out_tangent_begin[idx * 3 + 1];
             soa[idx * 11 + 10] = out_tangent_begin[idx * 3 + 2];
         }
 
-        const GLsizei soa_size = vertex_count * 11 * sizeof(float);
-
-        m_VertexBuffers[index]->Bind();
-        glBufferData(GL_ARRAY_BUFFER, soa_size, soa.data(), GL_DYNAMIC_DRAW);
-        m_VertexBuffers[index]->UnBind();
-
         const ozz::vector<uint16_t>& indices = _mesh.triangle_indices;
         std::vector<uint32_t>        indices32(indices.begin(), indices.end());
 
-        m_IndexBuffers[index]->Bind();
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices32.size() * sizeof(uint32_t), indices32.data(), GL_DYNAMIC_DRAW);
-        m_IndexBuffers[index]->SetCount(indices32.size());
-        m_IndexBuffers[index]->UnBind();
+        for (int i = 0; i < m_NumParts; ++i)
+        {
+            const GLsizei vertices_start = partition_vertices_start[i];
+            const GLsizei vertices_count = partition_vertices_count[i];
+            const GLsizei soa_size       = vertex_count * 11 * sizeof(float);
+
+            m_VertexBuffers[i]->Bind();
+            glBufferData(GL_ARRAY_BUFFER, soa_size, soa.data(), GL_DYNAMIC_DRAW);
+            m_VertexBuffers[i]->UnBind();
+
+            std::vector<uint32_t> partition_indices;
+            uint32_t              partition_indices_start = m_TexturesMetainfo[i].start;
+            uint32_t              partition_indices_count = m_TexturesMetainfo[i].count;
+
+            for (int j = partition_indices_start * 3; j < (partition_indices_start + partition_indices_count) * 3; j++)
+            {
+                partition_indices.push_back(indices32[j]);
+            }
+
+            m_IndexBuffers[i]->Bind();
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                         partition_indices.size() * sizeof(uint32_t),
+                         partition_indices.data(),
+                         GL_DYNAMIC_DRAW);
+            m_IndexBuffers[i]->SetCount(partition_indices.size());
+            m_IndexBuffers[i]->UnBind();
+        }
 
         return true;
     }
 
-    USkinnedMeshComponent::USkinnedMeshComponent()
-    {
-        loadMesh("Assets/Editor/Animation/ruby_mesh.ozz", &meshes);
-        prepareMesh();
-        m_Skeleton.SetShowSkeleton(false);
-
-        m_Material = new MBasicPbr("BasicPbr");
-
-        MBasicPbr* material = static_cast<MBasicPbr*>(m_Material);
-
-        material->SetAlbedo(glm::vec3(0.9f, 0.9f, 0.9f));
-        material->SetMetallic(0.03f);
-        material->SetRoughness(0.96f);
-    }
+    USkinnedMeshComponent::USkinnedMeshComponent() {}
 
     USkinnedMeshComponent::USkinnedMeshComponent(const std::string& skeletonPath,
                                                  const std::string& animationPath,
@@ -293,13 +309,36 @@ namespace Engine
         prepareMesh();
         m_Skeleton.SetShowSkeleton(false);
 
-        m_Material = new MBasicPbr("BasicPbr");
+        m_TexturesMetainfo = {
+            {"Assets/Editor/Animation/silverwolf/texture/hair.png", 5443, 0},
+            {"Assets/Editor/Animation/silverwolf/texture/cloth.png", 13019, 0},
+            {"Assets/Editor/Animation/silverwolf/texture/jacket.png", 8619, 0},
+            {"Assets/Editor/Animation/silverwolf/texture/jacket.png", 281, 0},
+            {"Assets/Editor/Animation/silverwolf/texture/face.png", 4210, 0},
+            {"Assets/Editor/Animation/silverwolf/texture/face.png", 56, 0},
+            {"Assets/Editor/Animation/silverwolf/texture/emoticon.png", 442, 0},
+        };
 
-        MBasicPbr* material = static_cast<MBasicPbr*>(m_Material);
+        uint32_t start = 0;
+        for (int i = 0; i < meshes[0].parts.size(); ++i)
+        {
+            m_TexturesMetainfo[i].start = start;
+            start += m_TexturesMetainfo[i].count;
+        }
 
-        material->SetAlbedo(glm::vec3(0.9f, 0.9f, 0.9f));
-        material->SetMetallic(0.03f);
-        material->SetRoughness(0.96f);
+        for (int i = 0; i < meshes[0].parts.size(); ++i)
+        {
+            MBasicPbr* material = new MBasicPbr(fmt::format("BasicPbr_{}", i).c_str());
+
+            material->SetAlbedo(glm::vec3(0.9f, 0.9f, 0.9f));
+            material->SetMetallic(0.03f);
+            material->SetRoughness(0.96f);
+
+            material->LoadAlbedoMap(m_TexturesMetainfo[i].albedoPath);
+            material->BufferTextures();
+
+            m_Materials.push_back(material);
+        }
     }
 
     void USkinnedMeshComponent::Update(float ratio) { m_Skeleton.Update(ratio); }
@@ -324,7 +363,6 @@ namespace Engine
     {
         ozz::vector<ozz::math::Float4x4>& models = m_Skeleton.GetModelsRef();
 
-        int index = 0;
         for (const ozz::sample::Mesh& mesh : meshes)
         {
             for (size_t i = 0; i < mesh.joint_remaps.size(); ++i)
@@ -334,19 +372,25 @@ namespace Engine
 
             auto trans = ozz::math::Float4x4::identity();
             // Renders skin.
-            drawSkinnedMesh(mesh, make_span(skinning_matrices), index);
+            updateSkinnedMesh(mesh, make_span(skinning_matrices), 0);
 
             skinnedMeshShader->SetMat4("u_MProjection", projection);
             skinnedMeshShader->SetMat4("u_MView", view);
             skinnedMeshShader->SetMat4("u_MTransform", transform);
 
-            m_VertexArrays[index]->Bind();
+            for (int i = 0; i < m_NumParts; ++i)
+            {
+                MBasicPbr* material = dynamic_cast<MBasicPbr*>(m_Materials[i]);
+                material->BindAllMap(skinnedMeshShader);
 
-            RenderCommand::DrawIndexed(m_VertexArrays[index]);
+                m_VertexArrays[i]->Bind();
 
-            m_VertexArrays[index]->UnBind();
+                RenderCommand::DrawIndexed(m_VertexArrays[i]);
 
-            index += 1;
+                m_VertexArrays[i]->UnBind();
+
+                material->UnBindAllMap(skinnedMeshShader);
+            }
         }
     }
 

@@ -355,8 +355,8 @@ namespace Engine
 
         glm::vec3 m_CameraLookAt = glm::vec3(0.0f, 0.8f, 0.0f);
 
-        float m_PawnRunSpeed  = 2.80f;
-        float m_PawnWalkSpeed = 1.18f;
+        float m_PawnRunSpeed  = 2.98f;
+        float m_PawnWalkSpeed = 1.00f;
 
         float m_MouseSensitivityX = 0.09f;
         float m_MouseSensitivityY = 0.09f;
